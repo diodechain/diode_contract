@@ -45,18 +45,28 @@ contract DiodeRegistry is DiodeStake {
   using SafeMath for uint256;
 
   uint256 currentEpoch = 0;
-  uint8 constant blockSeconds = 15;
+  uint8 constant BlockSeconds = 15;
   /*TEST_IF*/
-  uint64 constant blocksPerEpoch = 4;
+  uint64 constant BlocksPerEpoch = 4;
   /*TEST_ELSE
-  uint64 constant blocksPerEpoch = 4 weeks / blockSeconds;
+  uint64 constant BlocksPerEpoch = 4 weeks / BlockSeconds;
   /*TEST_END*/
-  uint64 constant blockRewards = 3 ether;
-  uint64 constant fractionals = 10000;
+  uint256 constant BlockRewards = 1 ether;
+  uint256 constant Fractionals = 10000;
 
   // ==================== DATA STRUCTURES ==================
 
   /**
+   * Accounting Epochs run in two phases:
+   *
+   * EPOCH 0        | EPOCH 1       | EPOCH 2 ...
+   * ============================================
+   * 1. Collecting  |               |
+   * 2. Submitting  | 1. Collecting |
+   *    Payout      | 2. Submitting |  1. Collecting
+   *                |    Payout     |  2. Submitting
+   *                                |     Payout
+   *
    * For accounting the activity from devices we maintain a three
    * level tree of iterable maps:
    *
@@ -121,7 +131,7 @@ contract DiodeRegistry is DiodeStake {
     if (blockHeight >= block.number) revert("Ticket from the future?");
     /*TEST_IF*/
     /*TEST_ELSE
-    if (blockHeight.div(blocksPerEpoch) != currentEpoch) revert("Wrong epoch");
+    if (blockHeight.div(BlocksPerEpoch) != currentEpoch) revert("Wrong epoch");
     /*TEST_END*/
     _;
   }
@@ -151,7 +161,7 @@ contract DiodeRegistry is DiodeStake {
   // BlockTimeGoal is 15 seconds
   // One Epoch should be roughly one month
   function Epoch() public view returns (uint256) {
-    return block.number % blocksPerEpoch;
+    return block.number % BlocksPerEpoch;
   }
 
   /**
@@ -164,16 +174,14 @@ contract DiodeRegistry is DiodeStake {
     }
 
     // TODO: fee calculation based on old blocks here?
-    // Fixed block reward (5 ether?)
-    uint256 miningReward = 5 ether;
-    _minerRollup(block.coinbase, miningReward.mul(fractionals));
+    _minerRollup(block.coinbase, BlockRewards.mul(Fractionals));
 
 
     // At this point all rewards and  service tickets should be accounted for and cleaned up.
-    // rollupRewards should contain the final sum * fractionals of reward for each miner.
+    // rollupRewards should contain the final sum * Fractionals of reward for each miner.
     for (uint256 r = 0; r < rollupArray.length; r++) {
       address miner = rollupArray[r];
-      uint256 reward = rollupReward[miner].div(fractionals);
+      uint256 reward = rollupReward[miner].div(Fractionals);
 
       uint256 maxReward = _miner(0, miner);
       if (reward > maxReward) {
@@ -231,8 +239,8 @@ contract DiodeRegistry is DiodeStake {
         // This nodes reward = nodePoints * (reward / fleetPoints)
         // This is multipled with 1000 to account for fractionals, needs to be divided
         // after summation.
-        // uint256 nodeReward = nodePoints.mul(fractionals).mul(reward).div(fleetPoints);
-        nodePoints = nodePoints.mul(fractionals).mul(reward).div(fleetPoints);
+        // uint256 nodeReward = nodePoints.mul(Fractionals).mul(reward).div(fleetPoints);
+        nodePoints = nodePoints.mul(Fractionals).mul(reward).div(fleetPoints);
 
         // Summarizing in one reward per node to be applying capping and allow fractionals
         _minerRollup(nodeAddress, nodePoints);
@@ -263,27 +271,6 @@ contract DiodeRegistry is DiodeStake {
     }
   }
 
-  function SubmitConnectionTicket(uint256 blockHeight, address fleetContract, address nodeAddress, uint256 totalConnections,
-                                  bytes32 localAddress, bytes32[3] memory signature) public thisEpoch(blockHeight) {
-    if (totalConnections == 0) revert("Invalid ticket value");
-
-    // ======= CLIENT SIGNATURE RECOVERY =======
-    bytes32[] memory message = new bytes32[](5);
-    message[0] = bytes32(blockHeight);
-    message[1] = bytes32(fleetContract);
-    message[2] = bytes32(nodeAddress);
-    message[3] = bytes32(totalConnections);
-    message[4] = localAddress;
-
-    address client = ecrecover(Utils.bytes32Hash(message), uint8(uint256(signature[2])), signature[0], signature[1]);
-    // ======= END =======
-
-    validateFleetAccess(fleetContract, client);
-    updateTrafficCount(fleetContract, nodeAddress, client, totalConnections, 0);
-
-    emit Connection(fleetContract, nodeAddress, client);
-  }
-
   /**
    * Submit one or more connection tickets raw
    *
@@ -293,87 +280,47 @@ contract DiodeRegistry is DiodeStake {
    * [1] fleet contract address
    * [2] node address
    * [3] total connections
-   * [4] local address
-   * [5] client sig r
-   * [6] client sig s
-   * [7] client sig v
+   * [4] total bytes
+   * [5] local address
+   * [6] client sig r
+   * [7] client sig s
+   * [8] client sig v
    *
-   * Requires an array with a length multiple of 8. Each 8 elements representing
+   * Requires an array with a length multiple of 9. Each 9 elements representing
    * a single connection ticket.
    */
-  function SubmitConnectionTicketRaw(bytes32[] /*calldata*/ _connectionTicket) external {
-    if (_connectionTicket.length == 0 || _connectionTicket.length % 8 != 0) revert("Invalid ticket length");
+  function SubmitTicketRaw(bytes32[] /*calldata*/ _connectionTicket) external {
+    if (_connectionTicket.length == 0 || _connectionTicket.length % 9 != 0) revert("Invalid ticket length");
 
-    for (uint256 i = 0; i < _connectionTicket.length; i += 8) {
+    for (uint256 i = 0; i < _connectionTicket.length; i += 9) {
       bytes32[3] memory deviceSignature = [_connectionTicket[i+5], _connectionTicket[i+6], _connectionTicket[i+7]];
-      SubmitConnectionTicket(uint256(_connectionTicket[i+0]), Utils.bytes32ToAddress(_connectionTicket[i+1]),
+      SubmitTicket(uint256(_connectionTicket[i+0]), Utils.bytes32ToAddress(_connectionTicket[i+1]),
                              Utils.bytes32ToAddress(_connectionTicket[i+2]), uint256(_connectionTicket[i+3]),
-                             _connectionTicket[i+4], deviceSignature);
+                   uint256(_connectionTicket[i+4]), _connectionTicket[i+4], deviceSignature);
     }
   }
 
-  /**
-   * Submit one or more traffic tickets raw
-   *
-   * Submit traffic tickets
-   *
-   * [0] block height
-   * [1] fleet contract address
-   * [2] node address
-   * [3] total bytes
-   * [4] destination id
-   * [5] device sig r
-   * [6] device sig s
-   * [7] device sig v
-   * [8] destination sig r
-   * [9] destination sig s
-   * [10] destination sig v
-   */
-  function SubmitTrafficTicketRaw(bytes32[] /*calldata*/ _trafficTicket) external {
-    if (_trafficTicket.length == 0 || _trafficTicket.length % 11 != 0) revert("Invalid traffic ticket length");
+  function SubmitTicket(uint256 blockHeight, address fleetContract, address nodeAddress,
+                        uint256 totalConnections, uint256 totalBytes,
+                        bytes32 localAddress, bytes32[3] memory signature) public thisEpoch(blockHeight) {
+    if (totalConnections == 0) revert("Invalid ticket value");
 
-    for (uint256 i = 0; i < _trafficTicket.length; i += 11) {
-      bytes32[3] memory deviceSignature = [_trafficTicket[i+5], _trafficTicket[i+6], _trafficTicket[i+7]];
-      bytes32[3] memory destSignature = [_trafficTicket[i+8], _trafficTicket[i+9], _trafficTicket[i+10]];
-
-      SubmitTrafficTicket(uint256(_trafficTicket[i+0]), Utils.bytes32ToAddress(_trafficTicket[i+1]),
-                          Utils.bytes32ToAddress(_trafficTicket[i+2]), uint256(_trafficTicket[i+3]),
-                          Utils.bytes32ToAddress(_trafficTicket[i+4]), deviceSignature, destSignature);
-    }
-  }
-
-  function SubmitTrafficTicket(uint256 blockHeight, address fleetContract, address nodeAddress, uint256 totalBytes,
-                               address destAddress, bytes32[3] memory deviceSignature, bytes32[3] memory destSignature) public thisEpoch(blockHeight) {
     // ======= CLIENT SIGNATURE RECOVERY =======
-    bytes32[] memory deviceMessage = new bytes32[](5);
-    deviceMessage[0] = bytes32(blockHeight);
-    deviceMessage[1] = bytes32(fleetContract);
-    deviceMessage[2] = bytes32(nodeAddress);
-    deviceMessage[3] = bytes32(totalBytes);
-    deviceMessage[4] = bytes32(destAddress);
+    bytes32[] memory message = new bytes32[](6);
+    message[0] = bytes32(blockHeight);
+    message[1] = bytes32(fleetContract);
+    message[2] = bytes32(nodeAddress);
+    message[3] = bytes32(totalConnections);
+    message[4] = bytes32(totalBytes);
+    message[5] = localAddress;
 
-    address device = ecrecover(Utils.bytes32Hash(deviceMessage), uint8(uint256(deviceSignature[2])), deviceSignature[0], deviceSignature[1]);
-    // ======= END =======
-    validateFleetAccess(fleetContract, device);
-
-    // ======= DESTINATION SIGNATURE RECOVERY =======
-    bytes32[] memory clientMessage = new bytes32[](8);
-    clientMessage[0] = bytes32(blockHeight);
-    clientMessage[1] = bytes32(fleetContract);
-    clientMessage[2] = bytes32(nodeAddress);
-    clientMessage[3] = bytes32(totalBytes);
-    clientMessage[4] = bytes32(destAddress);
-    clientMessage[5] = deviceSignature[0];
-    clientMessage[6] = deviceSignature[1];
-    clientMessage[7] = deviceSignature[2];
-
-    address dest = ecrecover(Utils.bytes32Hash(clientMessage), uint8(uint256(destSignature[2])), destSignature[0], destSignature[1]);
-    if (dest != destAddress) revert("Invalid destination signature");
+    address client = ecrecover(Utils.bytes32Hash(message), uint8(uint256(signature[2])), signature[0], signature[1]);
     // ======= END =======
 
-    updateTrafficCount(fleetContract, nodeAddress, device, 0, totalBytes);
-    emit Traffic(fleetContract, nodeAddress, device, dest);
-    return;
+    validateFleetAccess(fleetContract, client);
+    updateTrafficCount(fleetContract, nodeAddress, client, totalConnections, totalBytes);
+
+    emit Connection(fleetContract, nodeAddress, client);
   }
 
   // ====================================================================================

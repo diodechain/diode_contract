@@ -19,19 +19,16 @@ import "./FleetContract.sol";
  * claimRewards: 139635
  *
  * TODO:
- * 1. mutisig wallet
- * 2. ticket structure and merkle proof of ticket
- * 3. event
- * 4. withdraw with merkle proof?
- * 5. stake with merkle proof?
+ * 1. Split Miner Stake & Wallet
+ * 2. Events
  */
 
 library TimeLockedStake {
   using SafeMath for uint256;
   /*TEST_IF
-  uint64 constant stakeWaitingTime = 3;
+  uint64 constant StakeWaitingTime = 3;
   /*TEST_ELSE*/
-  uint64 constant stakeWaitingTime = 175200;
+  uint64 constant StakeWaitingTime = 175200;
   /*TEST_END*/
 
   struct Data {
@@ -40,7 +37,7 @@ library TimeLockedStake {
     uint256 doneAmount;
   }
   function isLocked(Data memory dat) internal view returns(bool) {
-    return block.number - dat.startTime < stakeWaitingTime;
+    return block.number - dat.startTime < StakeWaitingTime;
   }
   function pendingValue(Data memory dat) internal view returns(uint256) {
     return add(dat, 0).pendingAmount;
@@ -82,7 +79,7 @@ library Stake {
     return dat;
   }
   /* Stake runs through the four phases:
-   * 1. Pending (for stakeWaitingTime)
+   * 1. Pending (for StakeWaitingTime)
    * 2. Staked
    * 3. Locked (for stakeWaiting Time)
    * 4. Claimable
