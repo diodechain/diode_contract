@@ -136,17 +136,10 @@ contract DiodeRegistry is DiodeStake {
     _;
   }
 
-  event Connection(
+  event Ticket(
     address indexed fleetContract,
     address indexed node,
     address indexed client
-  );
-
-  event Traffic(
-    address indexed fleetContract,
-    address indexed node,
-    address indexed device,
-    address client
   );
 
   event Rewards(
@@ -293,17 +286,17 @@ contract DiodeRegistry is DiodeStake {
     if (_connectionTicket.length == 0 || _connectionTicket.length % 9 != 0) revert("Invalid ticket length");
 
     for (uint256 i = 0; i < _connectionTicket.length; i += 9) {
-      bytes32[3] memory deviceSignature = [_connectionTicket[i+5], _connectionTicket[i+6], _connectionTicket[i+7]];
+      bytes32[3] memory deviceSignature = [_connectionTicket[i+6], _connectionTicket[i+7], _connectionTicket[i+8]];
       SubmitTicket(uint256(_connectionTicket[i+0]), Utils.bytes32ToAddress(_connectionTicket[i+1]),
                              Utils.bytes32ToAddress(_connectionTicket[i+2]), uint256(_connectionTicket[i+3]),
-                   uint256(_connectionTicket[i+4]), _connectionTicket[i+4], deviceSignature);
+                   uint256(_connectionTicket[i+4]), _connectionTicket[i+5], deviceSignature);
     }
   }
 
   function SubmitTicket(uint256 blockHeight, address fleetContract, address nodeAddress,
                         uint256 totalConnections, uint256 totalBytes,
                         bytes32 localAddress, bytes32[3] memory signature) public thisEpoch(blockHeight) {
-    if (totalConnections == 0) revert("Invalid ticket value");
+    if (totalConnections | totalBytes == 0) revert("Invalid ticket value");
 
     // ======= CLIENT SIGNATURE RECOVERY =======
     bytes32[] memory message = new bytes32[](6);
@@ -320,7 +313,7 @@ contract DiodeRegistry is DiodeStake {
     validateFleetAccess(fleetContract, client);
     updateTrafficCount(fleetContract, nodeAddress, client, totalConnections, totalBytes);
 
-    emit Connection(fleetContract, nodeAddress, client);
+    emit Ticket(fleetContract, nodeAddress, client);
   }
 
   // ====================================================================================

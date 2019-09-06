@@ -58,66 +58,32 @@ contract('DiodeRegistry', async function(accounts) {
     return ethUtil.keccak256(Buffer.from(rawTicket, 'hex'));
   }
 
-  // newConnectionTicket returns a signed connection ticket
-  function newConnectionTicket(blockHeight, fleetContract, nodeId, totalConnections, localAddress, devicePriv) {
-    let connectionTicket = {
+  // newTicket returns a signed ticket
+  function newTicket(blockHeight, fleetContract, nodeId, totalConnections, totalBytes, localAddress, devicePriv) {
+    let ticket = {
       blockHeight: ethUtil.toBuffer(blockHeight).toString('hex'),
       fleetContract: fleetContract.substr(2),
       nodeId: nodeId.substr(2),
       totalConnections: totalConnections.toString(),
+      totalBytes: totalBytes.toString(),
       localAddress: localAddress.toString()
     };
-    connectionTicket = formatTicket(connectionTicket);
+    ticket = formatTicket(ticket);
 
-    let ticketHash = hashTicket(connectionTicket);
+    let ticketHash = hashTicket(ticket);
     let sig = ethUtil.ecsign(ticketHash, devicePriv);
-    let connectionTicketArr = [
-      '0x' + connectionTicket.blockHeight,
-      '0x' + connectionTicket.fleetContract,
-      '0x' + connectionTicket.nodeId,
-      '0x' + connectionTicket.totalConnections,
-      '0x' + connectionTicket.localAddress,
+    let ticketArr = [
+      '0x' + ticket.blockHeight,
+      '0x' + ticket.fleetContract,
+      '0x' + ticket.nodeId,
+      '0x' + ticket.totalConnections,
+      '0x' + ticket.totalBytes,
+      '0x' + ticket.localAddress,
       '0x' + sig.r.toString('hex').padStart(64, '0'),
       '0x' + sig.s.toString('hex').padStart(64, '0'),
       '0x' + ethUtil.toBuffer(sig.v).toString('hex').padStart(64, '0'),
     ];
-    return connectionTicketArr;
-  }
-
-  // newTrafficTicket returns a signed traffic ticket
-  function newTrafficTicket(blockHeight, fleetContract, nodeId, totalBytes, devicePriv, destinationId, clientPriv) {
-    let trafficTicket = {
-      blockHeight: ethUtil.toBuffer(blockHeight).toString('hex'),
-      fleetContract: fleetContract.substr(2),
-      nodeId: nodeId.substr(2),
-      totalBytes: totalBytes,
-      destinationId: destinationId.toString('hex'),
-    };
-    trafficTicket = formatTicket(trafficTicket);
-    let rawTicket = Object.keys(trafficTicket).reduce(function (acc, now) {
-      return acc + trafficTicket[now];
-    }, "");
-    let deviceTicketHash = ethUtil.keccak256(Buffer.from(rawTicket, 'hex'));
-    let deviceSig = ethUtil.ecsign(deviceTicketHash, devicePriv);
-    rawTicket += deviceSig.r.toString('hex').padStart(64, '0');
-    rawTicket += deviceSig.s.toString('hex').padStart(64, '0');
-    rawTicket += ethUtil.toBuffer(deviceSig.v).toString('hex').padStart(64, '0');
-    let clientTicketHash = ethUtil.keccak256(Buffer.from(rawTicket, 'hex'));
-    let clientSig = ethUtil.ecsign(clientTicketHash, clientPriv);
-    let trafficTicketArr = [
-      '0x' + trafficTicket.blockHeight,
-      '0x' + trafficTicket.fleetContract,
-      '0x' + trafficTicket.nodeId,
-      '0x' + trafficTicket.totalBytes,
-      '0x' + trafficTicket.destinationId,
-      '0x' + deviceSig.r.toString('hex').padStart(64, '0'),
-      '0x' + deviceSig.s.toString('hex').padStart(64, '0'),
-      '0x' + ethUtil.toBuffer(deviceSig.v).toString('hex').padStart(64, '0'),
-      '0x' + clientSig.r.toString('hex').padStart(64, '0'),
-      '0x' + clientSig.s.toString('hex').padStart(64, '0'),
-      '0x' + ethUtil.toBuffer(clientSig.v).toString('hex').padStart(64, '0'),
-    ];
-    return trafficTicketArr;
+    return ticketArr;
   }
 
   var stakeWaitingTime = 3;
@@ -286,35 +252,33 @@ contract('DiodeRegistry', async function(accounts) {
   it("should submit connection ticket for first device and second device, node should check the block height and signature", async function () {
     blockHeight = await web3.eth.getBlockNumber();
     // make connection ticket
-    let connectionTicketArr = newConnectionTicket(blockHeight, fleet.address, secondAccount, '1', '0', firstDevice.priv);
-    connectionTicketArr = connectionTicketArr.concat(newConnectionTicket(blockHeight, fleet.address, secondAccount, '1', '0', secondDevice.priv));
-    let tx = await registry.SubmitConnectionTicketRaw(connectionTicketArr, { gas: 4000000 });
+    let ticketArr = newTicket(blockHeight, fleet.address, secondAccount, '1', '0', '0', firstDevice.priv);
+    ticketArr = ticketArr.concat(newTicket(blockHeight, fleet.address, secondAccount, '1', '0', '0', secondDevice.priv));
+    let tx = await registry.SubmitTicketRaw(ticketArr, { gas: 4000000 });
     let event = tx.logs[0];
     assert.equal(true, event !== undefined);
-    assert.equal('Connection', event.event);
+    assert.equal('Ticket', event.event);
     assert.equal(`0x${firstDevice.addr.toString('hex').toLowerCase()}`, event.args.client.toLowerCase());
 
     event = tx.logs[1];
     assert.equal(true, event !== undefined);
-    assert.equal('Connection', event.event);
+    assert.equal('Ticket', event.event);
     assert.equal(`0x${secondDevice.addr.toString('hex').toLowerCase()}`, event.args.client.toLowerCase());
   });
 
   it("should submit traffic ticket from first device and second device that go through second account (node) to first client (client)", async function () {
-    let trafficTicketArr = newTrafficTicket(blockHeight, fleet.address, secondAccount, 'ff', firstDevice.priv, firstClient.addr, firstClient.priv);
-    trafficTicketArr = trafficTicketArr.concat(newTrafficTicket(blockHeight, fleet.address, secondAccount, 'ff', secondDevice.priv, firstClient.addr, firstClient.priv));
-    let tx = await registry.SubmitTrafficTicketRaw(trafficTicketArr, { gas: 4000000 });
+    let trafficTicketArr = newTicket(blockHeight, fleet.address, secondAccount, '0', 'ff', '0', firstDevice.priv);
+    trafficTicketArr = trafficTicketArr.concat(newTicket(blockHeight, fleet.address, secondAccount, '0', 'ff', '0', secondDevice.priv));
+    let tx = await registry.SubmitTicketRaw(trafficTicketArr, { gas: 4000000 });
     let event = tx.logs[0];
     assert.equal(true, event !== undefined);
-    assert.equal('Traffic', event.event);
-    assert.equal(`0x${firstDevice.addr.toString('hex').toLowerCase()}`, event.args.device.toLowerCase());
-    assert.equal(`0x${firstClient.addr.toString('hex').toLowerCase()}`, event.args.client.toLowerCase());
+    assert.equal('Ticket', event.event);
+    assert.equal(`0x${firstDevice.addr.toString('hex').toLowerCase()}`, event.args.client.toLowerCase());
 
     event = tx.logs[1];
     assert.equal(true, event !== undefined);
-    assert.equal('Traffic', event.event);
-    assert.equal(`0x${secondDevice.addr.toString('hex').toLowerCase()}`, event.args.device.toLowerCase());
-    assert.equal(`0x${firstClient.addr.toString('hex').toLowerCase()}`, event.args.client.toLowerCase());
+    assert.equal('Ticket', event.event);
+    assert.equal(`0x${secondDevice.addr.toString('hex').toLowerCase()}`, event.args.client.toLowerCase());
   });
 
   it("should redeem the ticket", async function () {
