@@ -20,7 +20,7 @@ contract('DiodeRegistry', async function(accounts) {
 
   function mineBlocks(number) {
     if (number <= 1) return web3.evm.mine();
-    else return web3.evm.mine().then(mineBlocks(number - 1))
+    else return web3.evm.mine().then(() => mineBlocks(number - 1))
   }
 
   // randPrivKey returns random length buffer data
