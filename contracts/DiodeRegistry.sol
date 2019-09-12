@@ -119,8 +119,12 @@ contract DiodeRegistry is DiodeStake {
   // ============= MODIFIERS ===============
   modifier onlyMiner() {
     /*TEST_IF
-    /* ganache bug https://github.com/trufflesuite/ganache-core/issues/201 */
-    if (msg.sender != block.coinbase && block.coinbase != address(0)) revert("Only the miner of the block can call this method");
+    /* 1. ganache bug https://github.com/trufflesuite/ganache-core/issues/201 */
+    /* 2. during diode tests we run against coinbase independent contracts */
+    if (msg.sender != block.coinbase && // normal rule
+        block.coinbase != address(0) && // ganache exception
+        msg.sender != accountant)       // diode dev exception
+          revert("Only the miner of the block can call this method");
     /*TEST_ELSE*/
     if (msg.sender != block.coinbase) revert("Only the miner of the block can call this method");
     /*TEST_END*/

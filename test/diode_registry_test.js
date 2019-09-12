@@ -112,7 +112,6 @@ contract('DiodeRegistry', async function(accounts) {
   var msgHash = ethUtil.keccak256(Buffer.from("\u0019Ethereum Signed Message:\n0"));
 
   it("should register miner and stake 3 (2 + 1) ether", async () => {
-
     registry = await DiodeRegistry.new(secondAccount, { from: firstAccount, gasLimit: 10000000 });
     await registry.MinerStake({ from: secondAccount, value: 1e18 });
     await mineBlocks(stakeWaitingTime);
@@ -286,36 +285,13 @@ contract('DiodeRegistry', async function(accounts) {
   });
 
   it("should redeem the ticket", async function () {
-    let beforeStake = await registry.MinerValue.call(0, { from: secondAccount });
-
-    let version = await web3.eth.net.getId();
-    let tx;
-    if (version == 41043) {
-      // Diode ./run_dev network
-      // Automatically executes blockReward each block
-      // await mineBlocks(1)
-      let epoch = await registry.Epoch();
-      let nextEpoch = epoch;
-      while(epoch.valueOf().eq(nextEpoch.valueOf())) {
-        mineBlocks(1);
-        nextEpoch = await registry.Epoch();
-        // mineBlocks(1);
-      };
-      let block = await web3.eth.getBlock("latest");
-      // This one does NOT have logs[0].event
-      tx = await web3.eth.getTransactionReceipt(block.transactions[0]);
-    } else {
-      // This one has logs[0].event
-      tx = await registry.blockReward();
-      tx = await web3.eth.getTransactionReceipt(tx.tx);
-    }
-    let name = web3.eth.abi.encodeEventSignature('Rewards(address,uint256)')
+    let beforeStake = await registry.MinerValue(0, { from: secondAccount });
+    let tx = await registry.blockReward({ from: secondAccount });
     let event = tx.logs[0];
-    assert(event !== undefined, "blockReward() did not generate any logs");
-    assert.equal(name, event.topics[0]);
-    assert.equal(address(secondAccount), address(event.topics[1]));
-
+    assert.equal(true, event !== undefined);
+    assert.equal('Rewards', event.event);
+    assert.equal(secondAccount.toLowerCase(), event.args.node.toLowerCase());
     let afterStake = await registry.MinerValue(0, { from: secondAccount });
-    assert(web3.utils.toBN(event.topics[2]).eq(afterStake.sub(beforeStake)), "stake wrong after blockReward()");
+    assert.equal(event.args.amount.toString(), afterStake.sub(beforeStake).toString());
   });
 });
