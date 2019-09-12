@@ -50,6 +50,10 @@ contract('DiodeRegistry', async function(accounts) {
     return ticket;
   }
 
+  function address(hex) {
+    return hex.substring(hex.length-40).toLowerCase();
+  }
+
   // hashTicket returns keccak256 hash of the ticket,
   function hashTicket (ticket) {
     let rawTicket = Object.keys(ticket).reduce(function (acc, now) {
@@ -282,13 +286,36 @@ contract('DiodeRegistry', async function(accounts) {
   });
 
   it("should redeem the ticket", async function () {
-    let beforeStake = await registry.MinerValue(0, { from: secondAccount });
-    let tx = await registry.blockReward();
+    let beforeStake = await registry.MinerValue.call(0, { from: secondAccount });
+
+    let version = await web3.eth.net.getId();
+    let tx;
+    if (version == 41043) {
+      // Diode ./run_dev network
+      // Automatically executes blockReward each block
+      // await mineBlocks(1)
+      let epoch = await registry.Epoch();
+      let nextEpoch = epoch;
+      while(epoch.valueOf().eq(nextEpoch.valueOf())) {
+        mineBlocks(1);
+        nextEpoch = await registry.Epoch();
+        // mineBlocks(1);
+      };
+      let block = await web3.eth.getBlock("latest");
+      // This one does NOT have logs[0].event
+      tx = await web3.eth.getTransactionReceipt(block.transactions[0]);
+    } else {
+      // This one has logs[0].event
+      tx = await registry.blockReward();
+      tx = await web3.eth.getTransactionReceipt(tx.tx);
+    }
+    let name = web3.eth.abi.encodeEventSignature('Rewards(address,uint256)')
     let event = tx.logs[0];
-    assert.equal(true, event !== undefined);
-    assert.equal('Rewards', event.event);
-    assert.equal(secondAccount.toLowerCase(), event.args.node.toLowerCase());
+    assert(event !== undefined, "blockReward() did not generate any logs");
+    assert.equal(name, event.topics[0]);
+    assert.equal(address(secondAccount), address(event.topics[1]));
+
     let afterStake = await registry.MinerValue(0, { from: secondAccount });
-    assert.equal(event.args.amount.toString(), afterStake.sub(beforeStake).toString());
+    assert(web3.utils.toBN(event.topics[2]).eq(afterStake.sub(beforeStake)), "stake wrong after blockReward()");
   });
 });
