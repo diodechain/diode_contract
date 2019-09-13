@@ -3,7 +3,12 @@ pragma solidity 0.4.26;
 import "./Utils.sol";
 import "./SafeMath.sol";
 import "./Address.sol";
+/*TEST_IF
+import "./TestFleetContract.sol";
+/*TEST_ELSE*/
 import "./FleetContract.sol";
+/*TEST_END*/
+
 
 /**
  * DiodeStake

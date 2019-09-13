@@ -26,17 +26,17 @@ contract FleetContract {
     accountant = _accountant;
   }
 
-  /*TEST_IF
+  /*TEST_IF*/
   function SetDeviceWhitelist(address _client, bool _value) public {
-  /*TEST_ELSE*/
+  /*TEST_ELSE
   function SetDeviceWhitelist(address _client, bool _value) public onlyOperator {
   /*TEST_END*/
     deviceWhitelist[_client] = _value;
   }
 
-  /*TEST_IF
+  /*TEST_IF*/
   function SetAccessWhitelist(address _client, bool _value) public {
-  /*TEST_ELSE*/
+  /*TEST_ELSE
   function SetAccessWhitelist(address _client, bool _value) public onlyOperator {
   /*TEST_END*/
     accessWhitelist[_client] = _value;
