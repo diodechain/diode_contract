@@ -62,7 +62,8 @@ module.exports = async function () {
     console.log('Fleet address: ', fleetAddr)
 
     // set access whitelist
-    let methodData = abi.methodID('SetAccessWhitelist', ['address', 'bool']).toString('hex') + abi.rawEncode(['address', 'bool'], [deviceAddr, true]).toString('hex')
+    let methodData = '0x' + abi.methodID('SetAccessWhitelist', ['address', 'bool']).toString('hex') + abi.rawEncode(['address', 'bool'], [deviceAddr, true]).toString('hex')
+    tx.to = fleetAddr
     tx.data = methodData
     tx.nonce += 1
     ethTx = new EthereumTx(tx)
@@ -72,7 +73,8 @@ module.exports = async function () {
     console.log('Set access whilist: ', deviceAddr)
 
     // set device whitelist
-    methodData = abi.methodID('SetDeviceWhitelist', ['address', 'bool']).toString('hex') + abi.rawEncode(['address', 'bool'], [deviceAddr, true]).toString('hex')
+    methodData = '0x' + abi.methodID('SetDeviceWhitelist', ['address', 'bool']).toString('hex') + abi.rawEncode(['address', 'bool'], [deviceAddr, true]).toString('hex')
+    tx.to = fleetAddr
     tx.data = methodData
     tx.nonce += 1
     ethTx = new EthereumTx(tx)
