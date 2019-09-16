@@ -30,3 +30,19 @@ Remember to change address and private key in `airswap.js` and set network prope
 ```BASH
 $truffle exec airswap.js --network ropsten
 ```
+
+# setup device
+
+Before connect to diodechain, you have to setup device to access/device whitelist.
+
+ENV
+```
+REGISTRY_ADDR = Registry contract address
+FLEET_ADDR = Fleet contract address
+DEVICE_ADDR = Device address
+```
+
+Example
+```
+$ REGISTRY_ADDR=0x5000000000000000000000000000000000000000  FLEET_ADDR=0x6000000000000000000000000000000000000000  DEVICE_ADDR=0x8f9dcc15a325581c81ca69f3889d444354312052 node_modules/.bin/truffle exec setupdevice.js
+```
