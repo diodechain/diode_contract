@@ -63,3 +63,5 @@ typings/
 build/*
 contracts/TestDiodeRegistry.sol
 contracts/TestDiodeStake.sol
+contracts/TestFleetContract.sol
+.history/
