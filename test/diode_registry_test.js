@@ -247,8 +247,8 @@ contract('DiodeRegistry', async function(accounts) {
   });
 
   it("should set access whitelist", async function() {
-    await fleet.SetAccessWhitelist(`0x${firstDevice.addr.toString('hex')}`, true, { from: firstAccount });
-    value = await fleet.accessWhitelist(`0x${firstDevice.addr.toString('hex')}`, { from: firstAccount });
+    await fleet.SetAccessWhitelist(`0x${firstDevice.addr.toString('hex')}`, firstAccount, true, { from: firstAccount });
+    value = await fleet.accessWhitelist(`0x${firstDevice.addr.toString('hex')}`, firstAccount, { from: firstAccount });
     assert.equal(true, value);
   });
 

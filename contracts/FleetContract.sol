@@ -13,7 +13,7 @@ contract FleetContract {
   bytes32 private accessRoot;
   bytes32 private deviceRoot;
   mapping(address => bool) public deviceWhitelist;
-  mapping(address => bool) public accessWhitelist;
+  mapping(address => mapping(address => bool)) public accessWhitelist;
 
   modifier onlyOperator {
     require(msg.sender == operator);
@@ -35,10 +35,10 @@ contract FleetContract {
   }
 
   /*TEST_IF
-  function SetAccessWhitelist(address _client, bool _value) public {
+  function SetAccessWhitelist(address _device, address _client, bool _value) public {
   /*TEST_ELSE*/
-  function SetAccessWhitelist(address _client, bool _value) public onlyOperator {
+  function SetAccessWhitelist(address _device, address _client, bool _value) public onlyOperator {
   /*TEST_END*/
-    accessWhitelist[_client] = _value;
+    accessWhitelist[_device][_client] = _value;
   }
 }
