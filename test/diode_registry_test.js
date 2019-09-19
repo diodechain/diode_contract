@@ -63,9 +63,10 @@ contract('DiodeRegistry', async function(accounts) {
   }
 
   // newTicket returns a signed ticket
-  function newTicket(blockHeight, fleetContract, nodeId, totalConnections, totalBytes, localAddress, devicePriv) {
+  async function newTicket(blockHeight, fleetContract, nodeId, totalConnections, totalBytes, localAddress, devicePriv) {
+    let hash = (await web3.eth.getBlock(blockHeight)).hash
     let ticket = {
-      blockHeight: ethUtil.toBuffer(blockHeight).toString('hex'),
+      blockHeight: hash.toString('hex').substr(2),
       fleetContract: fleetContract.substr(2),
       nodeId: nodeId.substr(2),
       totalConnections: totalConnections.toString(),
@@ -73,11 +74,10 @@ contract('DiodeRegistry', async function(accounts) {
       localAddress: localAddress.toString()
     };
     ticket = formatTicket(ticket);
-
     let ticketHash = hashTicket(ticket);
     let sig = ethUtil.ecsign(ticketHash, devicePriv);
     let ticketArr = [
-      '0x' + ticket.blockHeight,
+      '0x' + ethUtil.toBuffer(blockHeight).toString('hex').padStart(64, '0'),
       '0x' + ticket.fleetContract,
       '0x' + ticket.nodeId,
       '0x' + ticket.totalConnections,
@@ -94,6 +94,7 @@ contract('DiodeRegistry', async function(accounts) {
   var unstakeWaitingTime = stakeWaitingTime;
   var redeemWaitingTime = stakeWaitingTime;
   var blockSeconds = 15;
+  var blocksPerEpoch = 4;
   var redeemBlockHeight = redeemWaitingTime / blockSeconds;
   var redeemTargetBlockHeight;
   var blockHeight;
@@ -253,10 +254,10 @@ contract('DiodeRegistry', async function(accounts) {
   });
 
   it("should submit connection ticket for first device and second device, node should check the block height and signature", async function () {
-    blockHeight = await web3.eth.getBlockNumber();
+    blockHeight = await web3.eth.getBlockNumber() - blocksPerEpoch;
     // make connection ticket
-    let ticketArr = newTicket(blockHeight, fleet.address, secondAccount, '1', '0', '0', firstDevice.priv);
-    ticketArr = ticketArr.concat(newTicket(blockHeight, fleet.address, secondAccount, '1', '0', '0', secondDevice.priv));
+    let ticketArr = await newTicket(blockHeight, fleet.address, secondAccount, '1', '0', '0', firstDevice.priv);
+    ticketArr = ticketArr.concat(await newTicket(blockHeight, fleet.address, secondAccount, '1', '0', '0', secondDevice.priv));
     let tx = await registry.SubmitTicketRaw(ticketArr, { gas: 4000000 });
     let event = tx.logs[0];
     assert.equal(true, event !== undefined);
@@ -270,8 +271,8 @@ contract('DiodeRegistry', async function(accounts) {
   });
 
   it("should submit traffic ticket from first device and second device that go through second account (node) to first client (client)", async function () {
-    let trafficTicketArr = newTicket(blockHeight, fleet.address, secondAccount, '0', 'ff', '0', firstDevice.priv);
-    trafficTicketArr = trafficTicketArr.concat(newTicket(blockHeight, fleet.address, secondAccount, '0', 'ff', '0', secondDevice.priv));
+    let trafficTicketArr = await newTicket(blockHeight, fleet.address, secondAccount, '0', 'ff', '0', firstDevice.priv);
+    trafficTicketArr = trafficTicketArr.concat(await newTicket(blockHeight, fleet.address, secondAccount, '0', 'ff', '0', secondDevice.priv));
     let tx = await registry.SubmitTicketRaw(trafficTicketArr, { gas: 4000000 });
     let event = tx.logs[0];
     assert.equal(true, event !== undefined);

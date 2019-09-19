@@ -76,6 +76,8 @@ contract DiodeRegistry is DiodeStake {
    *
    * FleetContracts => Miners(aka Nodes) => Devices(aka Client)
    *
+   *   fleetStats[fleet].nodeStats[node].clientStats[client]
+   *
    * Each device ticket is stored into this tree ensuring that
    * device activity is deduplicated on a per-node basis.
    *
@@ -86,7 +88,7 @@ contract DiodeRegistry is DiodeStake {
   address[] rollupArray;
   mapping(address => uint256) rollupReward;
 
-  // These three together form an iterable map for this Epochs activity
+  // These two together form an iterable map for this Epochs activity
   address[] fleetArray;
   mapping(address => FleetStats) fleetStats;
 
@@ -96,7 +98,7 @@ contract DiodeRegistry is DiodeStake {
     uint256 totalConnections;
     uint256 totalBytes;
 
-    // These three together form an iterable map
+    // These two together form an iterable map
     address[] nodeArray;
     mapping(address => NodeStats) nodeStats;
   }
@@ -107,7 +109,7 @@ contract DiodeRegistry is DiodeStake {
     uint256 totalConnections;
     uint256 totalBytes;
 
-    // These three together form an iterable map
+    // These two together form an iterable map
     address[] clientArray;
     mapping(address => ClientStats) clientStats;
   }
@@ -135,11 +137,11 @@ contract DiodeRegistry is DiodeStake {
     _;
   }
 
-  modifier thisEpoch(uint256 blockHeight) {
+  modifier lastEpoch(uint256 blockHeight) {
     if (blockHeight >= block.number) revert("Ticket from the future?");
     /*TEST_IF
     /*TEST_ELSE*/
-    if (blockHeight.div(BlocksPerEpoch) != currentEpoch) revert("Wrong epoch");
+    if (blockHeight.div(BlocksPerEpoch) != currentEpoch - 1) revert("Wrong epoch");
     /*TEST_END*/
     _;
   }
@@ -303,12 +305,12 @@ contract DiodeRegistry is DiodeStake {
 
   function SubmitTicket(uint256 blockHeight, address fleetContract, address nodeAddress,
                         uint256 totalConnections, uint256 totalBytes,
-                        bytes32 localAddress, bytes32[3] memory signature) public thisEpoch(blockHeight) {
+                        bytes32 localAddress, bytes32[3] memory signature) public lastEpoch(blockHeight) {
     if (totalConnections | totalBytes == 0) revert("Invalid ticket value");
 
     // ======= CLIENT SIGNATURE RECOVERY =======
     bytes32[] memory message = new bytes32[](6);
-    message[0] = bytes32(blockHeight);
+    message[0] = blockhash(blockHeight);
     message[1] = bytes32(fleetContract);
     message[2] = bytes32(nodeAddress);
     message[3] = bytes32(totalConnections);
