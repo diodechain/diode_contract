@@ -21,6 +21,7 @@ var registryData = DiodeRegistry.bytecode + registryConstructData
 let registryAddr = ''
 let fleetAddr = ''
 let deviceAddr = ''
+let clientAddr = ''
 
 console.log("Accountant pubAddr: " + pubAddr)
 
@@ -45,6 +46,9 @@ module.exports = async function (cb) {
   }
   if (env.DEVICE_ADDR !== undefined && Util.isValidAddress(env.DEVICE_ADDR)) {
     deviceAddr = env.DEVICE_ADDR
+  }
+  if (env.CLIENT_ADDR !== undefined && Util.isValidAddress(env.CLIENT_ADDR)) {
+    clientAddr = env.CLIENT_ADDR
   }
   let nonce = await web3.eth.getTransactionCount(pubAddr)
   // deploy diode registry
@@ -82,8 +86,8 @@ module.exports = async function (cb) {
     }
 
     // set access whitelist
-    if (deviceAddr !== '') {
-      let methodData = '0x' + abi.methodID('SetAccessWhitelist', ['address', 'bool']).toString('hex') + abi.rawEncode(['address', 'bool'], [deviceAddr, true]).toString('hex')
+    if (deviceAddr !== '' && clientAddr !== '') {
+      let methodData = '0x' + abi.methodID('SetAccessWhitelist', ['address', 'address', 'bool']).toString('hex') + abi.rawEncode(['address', 'address', 'bool'], [deviceAddr, clientAddr, true]).toString('hex')
       tx.to = fleetAddr
       tx.data = methodData
       ethTx = new EthereumTx(tx)
