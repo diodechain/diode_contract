@@ -209,8 +209,8 @@ contract DiodeStake {
     contractAccountant.transfer(_value);
   }
 
-  function MinerValue(uint8 pending) public view returns (uint256) {
-    return _miner(pending, msg.sender);
+  function MinerValue(uint8 pending, address miner) public view returns (uint256) {
+    return _miner(pending, miner);
   }
 
   function _miner(uint8 pending, address miner) internal view returns (uint256) {

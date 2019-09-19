@@ -116,32 +116,32 @@ contract('DiodeRegistry', async function(accounts) {
     registry = await DiodeRegistry.new(secondAccount, { from: firstAccount, gasLimit: 10000000 });
     await registry.MinerStake({ from: secondAccount, value: 1e18 });
     await mineBlocks(stakeWaitingTime);
-    stake = await registry.MinerValue(0, { from: secondAccount });
+    stake = await registry.MinerValue(0, secondAccount);
     assert.equal(stake.valueOf(), 1e18, "stake 1 ether");
     
     await registry.MinerStake({ from: secondAccount, value: 1e18 });
     await mineBlocks(stakeWaitingTime);
-    stake = await registry.MinerValue(0, { from: secondAccount });
+    stake = await registry.MinerValue(0, secondAccount);
     assert.equal(stake.valueOf(), 2e18, "stake 2 ether");
     
     await registry.MinerStake({ from: secondAccount, value: 1e18 });
-    stake = await registry.MinerValue(1, { from: secondAccount });
+    stake = await registry.MinerValue(1, secondAccount);
     assert.equal(stake.valueOf(), 1e18, "stake 1 ether (had not confirmed yet)");
   });
 
   it("should unstake 0.1 ether from miner", async () => {
 
     await mineBlocks(stakeWaitingTime);
-    stake = await registry.MinerValue(0, { from: secondAccount });
+    stake = await registry.MinerValue(0, secondAccount);
     assert.equal(stake.valueOf(), 3e18, "stake 3 ether");
 
     await registry.MinerUnstake('100000000000000000', { from: secondAccount })
     await mineBlocks(unstakeWaitingTime);
     await registry.MinerWithdraw({ from: secondAccount });
-    stake = await registry.MinerValue(0, { from: secondAccount });
+    stake = await registry.MinerValue(0, secondAccount);
     assert.equal(stake.valueOf(), 29e17, "stake 2.9 ether");
 
-    stake = await registry.MinerValue(1, { from: secondAccount });
+    stake = await registry.MinerValue(1, secondAccount);
     assert.equal(stake.valueOf(), 0, "pending 0 ether");
   });
 
@@ -150,10 +150,10 @@ contract('DiodeRegistry', async function(accounts) {
     await registry.MinerUnstake('900000000000000000', { from: secondAccount })
     await mineBlocks(unstakeWaitingTime);
     await registry.MinerWithdraw({ from: secondAccount });
-    stake = await registry.MinerValue(0, { from: secondAccount });
+    stake = await registry.MinerValue(0, secondAccount);
     assert.equal(stake.valueOf(), 2e18, "stake 2 ether");
 
-    stake = await registry.MinerValue(1, { from: secondAccount });
+    stake = await registry.MinerValue(1, secondAccount);
     assert.equal(stake.valueOf(), 0, "stake 0 ether");
   });
 
@@ -286,13 +286,13 @@ contract('DiodeRegistry', async function(accounts) {
   });
 
   it("should redeem the ticket", async function () {
-    let beforeStake = await registry.MinerValue(0, { from: secondAccount });
+    let beforeStake = await registry.MinerValue(0, secondAccount);
     let tx = await registry.blockReward({ from: secondAccount });
     let event = tx.logs[0];
     assert.equal(true, event !== undefined);
     assert.equal('Rewards', event.event);
     assert.equal(secondAccount.toLowerCase(), event.args.node.toLowerCase());
-    let afterStake = await registry.MinerValue(0, { from: secondAccount });
+    let afterStake = await registry.MinerValue(0, secondAccount);
     assert.equal(event.args.amount.toString(), afterStake.sub(beforeStake).toString());
   });
 });
