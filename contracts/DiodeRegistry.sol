@@ -53,7 +53,7 @@ contract DiodeRegistry is DiodeStake {
   /*TEST_IF
   uint64 constant BlocksPerEpoch = 4;
   /*TEST_ELSE*/
-  uint64 constant BlocksPerEpoch = 4 weeks / BlockSeconds;
+  uint64 constant BlocksPerEpoch = 40320;
   /*TEST_END*/
   uint256 constant BlockRewards = 1 ether;
   uint256 constant Fractionals = 10000;
@@ -164,7 +164,7 @@ contract DiodeRegistry is DiodeStake {
   // BlockTimeGoal is 15 seconds
   // One Epoch should be roughly one month
   function Epoch() public view returns (uint256) {
-    return block.number % BlocksPerEpoch;
+    return block.number.div(BlocksPerEpoch);
   }
 
   /**
