@@ -138,8 +138,22 @@ contract DiodeStake {
     _;
   }
 
-  event Register(
-    address indexed device
+  event Staked(
+    bool indexed isContract,
+    address indexed target,
+    uint256 indexed amount
+  );
+
+  event Unstaked(
+    bool indexed isContract,
+    address indexed target,
+    uint256 indexed amount
+  );
+
+  event Withdrawn(
+    bool indexed isContract,
+    address indexed target,
+    uint256 indexed amount
   );
 
   constructor(address /*payable*/ _accountant) public {
@@ -188,6 +202,7 @@ contract DiodeStake {
   function ContractStake(address _id) public payable {
     FleetContract fleetContract = checkAccountant(_id);
     contractStake[fleetContract] = contractStake[fleetContract].addStake(msg.value);
+    emit Staked(true, fleetContract, msg.value);
   }
 
   function _contractValue(address fleetContract) internal view returns(uint256) {
@@ -197,6 +212,7 @@ contract DiodeStake {
   function ContractUnstake(address _id, uint256 _value) public {
     FleetContract fleetContract = checkAccountant(_id);
     contractStake[fleetContract] = contractStake[fleetContract].subStake(_value);
+    emit Unstaked(true, fleetContract, _value);
   }
 
   function ContractWithdraw(address _id) public {
@@ -207,6 +223,7 @@ contract DiodeStake {
     require(_value > 0, "Can't withdraw 0");
     contractStake[fleetContract] = stake.claimStake(_value);
     contractAccountant.transfer(_value);
+    emit Withdrawn(true, fleetContract, _value);
   }
 
   function MinerValue(uint8 pending, address miner) public view returns (uint256) {
@@ -231,6 +248,7 @@ contract DiodeStake {
 
   function _minerStake(address miner, uint256 _value) internal {
     minerStake[miner] = minerStake[miner].addStake(_value);
+    emit Staked(false, miner, _value);
   }
   function _minerStakeNow(address miner, uint256 _value) internal {
     minerStake[miner] = minerStake[miner].addStakeNow(_value);
@@ -239,6 +257,7 @@ contract DiodeStake {
   function MinerUnstake(uint256 _value) public {
     address miner = msg.sender;
     minerStake[miner] = minerStake[miner].subStake(_value);
+    emit Unstaked(false, miner, _value);
   }
 
   function MinerWithdraw() public {
@@ -248,5 +267,6 @@ contract DiodeStake {
     require(_value > 0, "Can't withdraw 0");
     minerStake[miner] = stake.claimStake(_value);
     miner.transfer(_value);
+    emit Withdrawn(false, miner, _value);
   }
 }

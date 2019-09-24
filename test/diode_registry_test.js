@@ -90,6 +90,14 @@ contract('DiodeRegistry', async function(accounts) {
     return ticketArr;
   }
 
+  function assertDiodeStackEvents(event, eventName, isContract, target, amount) {
+    assert.equal(true, event !== undefined);
+    assert.equal(eventName, event.event);
+    assert.equal(isContract, event.args.isContract);
+    assert.equal(target.toLowerCase(), event.args.target.toLowerCase());
+    assert.equal(amount, event.args.amount);
+  }
+
   var stakeWaitingTime = 3;
   var unstakeWaitingTime = stakeWaitingTime;
   var redeemWaitingTime = stakeWaitingTime;
@@ -114,17 +122,23 @@ contract('DiodeRegistry', async function(accounts) {
 
   it("should register miner and stake 3 (2 + 1) ether", async () => {
     registry = await DiodeRegistry.new(secondAccount, { from: firstAccount, gasLimit: 10000000 });
-    await registry.MinerStake({ from: secondAccount, value: 1e18 });
+    let tx = await registry.MinerStake({ from: secondAccount, value: 1e18 });
+    let event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Staked', false, secondAccount, 1e18);
     await mineBlocks(stakeWaitingTime);
     stake = await registry.MinerValue(0, secondAccount);
     assert.equal(stake.valueOf(), 1e18, "stake 1 ether");
-    
-    await registry.MinerStake({ from: secondAccount, value: 1e18 });
+
+    tx = await registry.MinerStake({ from: secondAccount, value: 1e18 });
+    event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Staked', false, secondAccount, 1e18);
     await mineBlocks(stakeWaitingTime);
     stake = await registry.MinerValue(0, secondAccount);
     assert.equal(stake.valueOf(), 2e18, "stake 2 ether");
-    
-    await registry.MinerStake({ from: secondAccount, value: 1e18 });
+
+    tx = await registry.MinerStake({ from: secondAccount, value: 1e18 });
+    event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Staked', false, secondAccount, 1e18);
     stake = await registry.MinerValue(1, secondAccount);
     assert.equal(stake.valueOf(), 1e18, "stake 1 ether (had not confirmed yet)");
   });
@@ -135,9 +149,13 @@ contract('DiodeRegistry', async function(accounts) {
     stake = await registry.MinerValue(0, secondAccount);
     assert.equal(stake.valueOf(), 3e18, "stake 3 ether");
 
-    await registry.MinerUnstake('100000000000000000', { from: secondAccount })
+    let tx = await registry.MinerUnstake('100000000000000000', { from: secondAccount })
+    let event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Unstaked', false, secondAccount, 1e17);
     await mineBlocks(unstakeWaitingTime);
-    await registry.MinerWithdraw({ from: secondAccount });
+    tx = await registry.MinerWithdraw({ from: secondAccount });
+    event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Withdrawn', false, secondAccount, 1e17);
     stake = await registry.MinerValue(0, secondAccount);
     assert.equal(stake.valueOf(), 29e17, "stake 2.9 ether");
 
@@ -147,9 +165,13 @@ contract('DiodeRegistry', async function(accounts) {
 
   it("should unstake 0.9 ether from miner", async () => {
 
-    await registry.MinerUnstake('900000000000000000', { from: secondAccount })
+    let tx = await registry.MinerUnstake('900000000000000000', { from: secondAccount });
+    let event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Unstaked', false, secondAccount, 9e17);
     await mineBlocks(unstakeWaitingTime);
-    await registry.MinerWithdraw({ from: secondAccount });
+    tx = await registry.MinerWithdraw({ from: secondAccount });
+    event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Withdrawn', false, secondAccount, 9e17);
     stake = await registry.MinerValue(0, secondAccount);
     assert.equal(stake.valueOf(), 2e18, "stake 2 ether");
 
@@ -159,10 +181,12 @@ contract('DiodeRegistry', async function(accounts) {
 
   it("should delegate to create fleet contract for third account and stake 2 (1 + 1) ether", async () => {
 
-    await registry.DelegateContractCreate(thirdAccount, { from: secondAccount, value: 1e18 });
+    let tx = await registry.DelegateContractCreate(thirdAccount, { from: secondAccount, value: 1e18 });
+    let event = tx.logs[0];
     await mineBlocks(stakeWaitingTime);
-    
+
     dfleetAddress = await registry.delegators(thirdAccount, { from: secondAccount });
+    assertDiodeStackEvents(event, 'Staked', true, dfleetAddress, 1e18);
     stake = await registry.ContractValue(0, dfleetAddress, { from: secondAccount });
     assert.equal(stake.valueOf(), 1e18, "stake 1 ether");
 
@@ -173,19 +197,23 @@ contract('DiodeRegistry', async function(accounts) {
     let operator = await dfleet.operator();
     assert.equal(operator, thirdAccount);
 
-    await registry.ContractStake(thirdAccount, { from: secondAccount, value: 1e18 });
+    tx = await registry.ContractStake(thirdAccount, { from: secondAccount, value: 1e18 });
+    event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Staked', true, dfleetAddress, 1e18);
     stake = await registry.ContractValue(1, dfleetAddress, { from: secondAccount });
     assert.equal(stake.valueOf(), 1e18, "stake 1 ether");
 
     await mineBlocks(stakeWaitingTime);
 
-    stake = await registry.ContractValue(0, dfleetAddress, { from: secondAccount });
+    stake = await registry.ContractValue(0, dfleetAddress.toLowerCase(), { from: secondAccount });
     assert.equal(stake.valueOf(), 2e18, "stake 2 ether");
   });
 
   it("should delegate to unstake 2 ether", async () => {
 
-    await registry.ContractUnstake(thirdAccount, '2000000000000000000', { from: secondAccount });
+    let tx = await registry.ContractUnstake(thirdAccount, '2000000000000000000', { from: secondAccount });
+    let event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Unstaked', true, dfleetAddress, 2e18);
     await mineBlocks(unstakeWaitingTime);
     stake = await registry.ContractValue(0, dfleetAddress, { from: secondAccount });
     assert.equal(stake.valueOf(), 0, "stake 0 ether");
@@ -199,19 +227,25 @@ contract('DiodeRegistry', async function(accounts) {
     claimableStake = await registry.ContractValue(3, dfleetAddress, { from: secondAccount });
     assert.equal(claimableStake.valueOf(), 2e18, "claimable stake 2 ether");
     
-    await registry.ContractWithdraw(thirdAccount, { from: secondAccount });
+    tx = await registry.ContractWithdraw(thirdAccount, { from: secondAccount });
+    event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Withdrawn', true, dfleetAddress, 2e18);
     claimableStake = await registry.ContractValue(3, dfleetAddress, { from: secondAccount });
     assert.equal(claimableStake.valueOf(), 0, "claimable stake 0 ether");
   });
 
   it("should register a fleet contract and stake 2 (1 + 1) ether", async function() {
     fleet = await FleetContract.new(registry.address, firstAccount, secondAccount, { from: firstAccount })
-    await registry.ContractStake(fleet.address, { from: secondAccount, value: 1e18 })
+    let tx = await registry.ContractStake(fleet.address, { from: secondAccount, value: 1e18 })
+    let event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Staked', true, fleet.address, 1e18);
     await mineBlocks(stakeWaitingTime)
     stake = await registry.ContractValue(0, fleet.address)
     assert.equal(stake.valueOf(), 1e18, "stake 1 ether")
 
-    await registry.ContractStake(fleet.address, { from: secondAccount, value: 1e18 })
+    tx = await registry.ContractStake(fleet.address, { from: secondAccount, value: 1e18 })
+    event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Staked', true, fleet.address, 1e18);
     stake = await registry.ContractValue(1, fleet.address)
     assert.equal(stake.valueOf(), 1e18, "pending 1 ether")
 
@@ -224,7 +258,9 @@ contract('DiodeRegistry', async function(accounts) {
   });
 
   it("should unstake 0.1 ether from fleet contract", async function() {
-    await registry.ContractUnstake(fleet.address, '100000000000000000', { from: secondAccount })
+    let tx = await registry.ContractUnstake(fleet.address, '100000000000000000', { from: secondAccount })
+    let event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Unstaked', true, fleet.address, 1e17);
     stake = await registry.ContractValue(2, fleet.address)
     assert.equal(stake.valueOf(), 1e17, "unstake pending 0.1 ether")
 
@@ -232,7 +268,9 @@ contract('DiodeRegistry', async function(accounts) {
     stake = await registry.ContractValue(3, fleet.address)
     assert.equal(stake.valueOf(), 1e17, "unstake 0.1 ether")
 
-    await registry.ContractWithdraw(fleet.address, { from: secondAccount })
+    tx = await registry.ContractWithdraw(fleet.address, { from: secondAccount })
+    event = tx.logs[0];
+    assertDiodeStackEvents(event, 'Withdrawn', true, fleet.address, 1e17);
     stake = await registry.ContractValue(0, fleet.address)
     assert.equal(stake.valueOf(), 1.9e18, "stake 1 ether")
   });
