@@ -1,3 +1,4 @@
+const BN = require("bn.js");
 const crypto = require("crypto");
 const ethUtil = require("ethereumjs-util");
 var DiodeRegistry = artifacts.require("TestDiodeRegistry");
@@ -103,6 +104,9 @@ contract('DiodeRegistry', async function(accounts) {
   var redeemWaitingTime = stakeWaitingTime;
   var blockSeconds = 15;
   var blocksPerEpoch = 4;
+  var blockReward = new BN('1000000000000000000', 10);
+  var minBlockReward = new BN('1000000000000000', 10);
+
   var redeemBlockHeight = redeemWaitingTime / blockSeconds;
   var redeemTargetBlockHeight;
   var blockHeight;
@@ -332,5 +336,21 @@ contract('DiodeRegistry', async function(accounts) {
     assert.equal(secondAccount.toLowerCase(), event.args.node.toLowerCase());
     let afterStake = await registry.MinerValue(0, secondAccount);
     assert.equal(event.args.amount.toString(), afterStake.sub(beforeStake).toString());
+  });
+
+  it("coinbase should earn blockreward", async function () {
+    let coinbase = (await web3.eth.getBlock(blockHeight)).miner
+    let beforeStake = await registry.MinerValue(0, coinbase);
+    let tx = await registry.blockReward({ from: secondAccount });
+    let afterStake = await registry.MinerValue(0, coinbase);
+
+    let shouldDelta = beforeStake;
+    if (beforeStake.cmp(blockReward) > 0) {
+      shouldDelta = blockReward;
+    } 
+    let delta = afterStake.sub(beforeStake);
+
+    assert.equal(beforeStake.add(shouldDelta).toString(), afterStake.toString());
+    assert.equal(delta.toString(), shouldDelta.toString());
   });
 });

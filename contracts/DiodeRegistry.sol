@@ -56,6 +56,7 @@ contract DiodeRegistry is DiodeStake {
   uint64 constant BlocksPerEpoch = 40320;
   /*TEST_END*/
   uint256 constant BlockRewards = 1 ether;
+  uint256 constant MinBlockRewards = 1 finney;
   uint256 constant Fractionals = 10000;
 
   // ==================== DATA STRUCTURES ==================
@@ -168,7 +169,7 @@ contract DiodeRegistry is DiodeStake {
   }
 
   /**
-   * rewardTransaction() -- needs to be called every block.
+   * blockReward() -- needs to be called every block.
    */
   function blockReward() public onlyMiner {
     // Calculcating per epoch service rewards
@@ -187,6 +188,9 @@ contract DiodeRegistry is DiodeStake {
       uint256 reward = rollupReward[miner].div(Fractionals);
 
       uint256 maxReward = _miner(0, miner);
+      if (maxReward < MinBlockRewards) {
+        maxReward = MinBlockRewards;
+      }
       if (reward > maxReward) {
         reward = maxReward;
       }
