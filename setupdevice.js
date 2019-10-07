@@ -61,12 +61,16 @@ module.exports = async function (cb) {
   }
   try {
     let ethTx = new EthereumTx(tx)
+    let txReceipt
     if (registryAddr === '') {
       ethTx.data = registryData
       ethTx.sign(privKey)
-      let txReceipt = await web3.eth.sendSignedTransaction(`0x${ethTx.serialize().toString('hex')}`)
-      tx.nonce += 1
+      txReceipt = await web3.eth.sendSignedTransaction(`0x${ethTx.serialize().toString('hex')}`)
+        .on('transactionHash', (txHash) => {
+          console.log('Deploy registry: ', txHash)
+        })
       // await waitForMS(waitMS)
+      tx.nonce += 1
       registryAddr = txReceipt.contractAddress
       console.log('Registry address: ', registryAddr)
     }
@@ -79,23 +83,31 @@ module.exports = async function (cb) {
       ethTx = new EthereumTx(tx)
       ethTx.sign(privKey)
       txReceipt = await web3.eth.sendSignedTransaction(`0x${ethTx.serialize().toString('hex')}`)
-      tx.nonce += 1
+        .on('transactionHash', (txHash) => {
+          console.log('Deploy registry: ', txHash)
+        })
       // await waitForMS(waitMS)
+      tx.nonce += 1
       fleetAddr = txReceipt.contractAddress
       console.log('Fleet address: ', fleetAddr)
     }
 
     // set access whitelist
     if (deviceAddr !== '' && clientAddr !== '') {
+      let batch = new web3.eth.BatchRequest();
       let methodData = '0x' + abi.methodID('SetAccessWhitelist', ['address', 'address', 'bool']).toString('hex') + abi.rawEncode(['address', 'address', 'bool'], [deviceAddr, clientAddr, true]).toString('hex')
       tx.to = fleetAddr
       tx.data = methodData
       ethTx = new EthereumTx(tx)
       ethTx.sign(privKey)
-      txReceipt = await web3.eth.sendSignedTransaction(`0x${ethTx.serialize().toString('hex')}`)
+      req1 = web3.eth.sendSignedTransaction.request(`0x${ethTx.serialize().toString('hex')}`, (err, txHash) => {
+        if (err) {
+          console.warn(err)
+          return
+        }
+        console.log('SetAccessWhitelist: ', txHash)
+      })
       tx.nonce += 1
-      // await waitForMS(waitMS)
-      console.log('Set access whilist: ', deviceAddr)
 
       // set device whitelist
       methodData = '0x' + abi.methodID('SetDeviceWhitelist', ['address', 'bool']).toString('hex') + abi.rawEncode(['address', 'bool'], [deviceAddr, true]).toString('hex')
@@ -103,11 +115,22 @@ module.exports = async function (cb) {
       tx.data = methodData
       ethTx = new EthereumTx(tx)
       ethTx.sign(privKey)
-      txReceipt = await web3.eth.sendSignedTransaction(`0x${ethTx.serialize().toString('hex')}`)
-      // await waitForMS(waitMS)
+      req2 = web3.eth.sendSignedTransaction.request(`0x${ethTx.serialize().toString('hex')}`, (err, txHash) => {
+        if (err) {
+          console.warn(err)
+          cb()
+          return
+        }
+        console.log('SetDeviceWhitelist: ', txHash)
+        cb()
+      })
+      batch.add(req1)
+      batch.add(req2)
+      // no Promise
+      batch.execute()
+      console.log('Set access whilist: ', deviceAddr)
       console.log('Set device whilist: ', deviceAddr)
     }
-    cb()
   } catch (err) {
     console.log(err)
     cb(err)
