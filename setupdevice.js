@@ -7,7 +7,7 @@
 const fs = require('fs')
 const abi = require('ethereumjs-abi')
 const Util = require('ethereumjs-util')
-const DiodeRegistry = require("./build/contracts/TestDiodeRegistry.json")
+const DiodeRegistry = require("./build/contracts/DiodeRegistry.json")
 const FleetContract = require("./build/contracts/FleetContract.json")
 const key = fs.readFileSync("diode.secret").toString().trim();
 const privKey = Buffer.from(key, 'hex')

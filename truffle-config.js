@@ -88,14 +88,16 @@ module.exports = {
     //   skipDryRun: true
     // },
 
-    // diode: {
-    //   provider: () => new HDWalletProvider(mnemonic, `http://127.0.0.1:8545`),
-    //   network_id: 41043,
-    //   gas: 5500000,
-    //   confirmations: 0,
-    //   timeoutBlocks: 200,
-    //   skipDryRun: true
-    // },
+    diode: {
+      // provider: () => new HDWalletProvider(mnemonic, 'http://asia.testnet.diode.io:8545'),
+      host: 'asia.testnet.diode.io',
+      port: 8545,
+      network_id: 41043,
+      gas: 5500000,
+      confirmations: 0,
+      timeoutBlocks: 200,
+      skipDryRun: true
+    },
 
     // Useful for private networks
     // private: {

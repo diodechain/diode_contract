@@ -30,6 +30,8 @@ Remember to change address and private key in `airswap.js` and set network prope
 ```BASH
 $truffle exec airswap.js --network ropsten
 ```
+# diode testnet address
+We run some diode nodes in different region. The address format of our diode nodes is [asia|europe|usa].testnet.diode.io. You can choose the nearest one and have fun with our node!
 
 # setup device
 
