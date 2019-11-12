@@ -1,3 +1,6 @@
+// Diode Contracts
+// Copyright 2019 IoT Blockchain Technology Corporation LLC (IBTC)
+// Licensed under the Diode License, Version 1.0
 /**
  * Run this script to setup test environment
  * 1. deploy diode registry

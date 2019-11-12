@@ -1,3 +1,6 @@
+// Diode Contracts
+// Copyright 2019 IoT Blockchain Technology Corporation LLC (IBTC)
+// Licensed under the Diode License, Version 1.0
 var ERC20 = artifacts.require("ERC20");
 
 contract('ERC20', function(accounts) {
