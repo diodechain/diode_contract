@@ -1,4 +1,6 @@
-# poc contract
+# diode contract
+[![Build Status](https://travis-ci.com/diodechain/diode_contract.svg?branch=master)](https://travis-ci.com/diodechain/diode_contract)
+
 Smart contract for diode chain. It also works on ethereum.
 
 # development
