@@ -61,6 +61,7 @@ contract DiodeRegistry is DiodeStake {
   uint256 constant BlockRewards = 1 ether;
   uint256 constant MinBlockRewards = 1 finney;
   uint256 constant Fractionals = 10000;
+  address constant Foundation = 0x10000000000000000000;
 
   // ==================== DATA STRUCTURES ==================
 
@@ -182,7 +183,7 @@ contract DiodeRegistry is DiodeStake {
 
     // TODO: fee calculation based on old blocks here?
     _minerRollup(block.coinbase, BlockRewards.mul(Fractionals));
-
+    _minerRollup(Foundation, BlockRewards.mul(Fractionals).div(10));
 
     // At this point all rewards and  service tickets should be accounted for and cleaned up.
     // rollupRewards should contain the final sum * Fractionals of reward for each miner.
