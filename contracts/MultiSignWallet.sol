@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.6.0;
 
 // From https://github.com/gnosis/MultiSigWallet/blob/master/contracts/MultiSigWallet.sol @ 95d51ae
 /// @title Multisignature wallet - Allows multiple parties to agree on transactions before execution.

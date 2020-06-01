@@ -14,7 +14,7 @@
     "ganache-cli": "^6.4.3",
     "js-keccak-tiny": "^0.2.0",
     "sleep": "^6.0.0",
-    "truffle": "^5.0.31",
+    "truffle": "^5.1.28",
     "truffle-hdwallet-provider": "^1.0.16",
     "xmlhttprequest": "^1.8.0"
   },
