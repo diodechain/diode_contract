@@ -61,7 +61,7 @@ contract DiodeRegistry is DiodeStake {
   uint256 constant BlockRewards = 1 ether;
   uint256 constant MinBlockRewards = 1 finney;
   uint256 constant Fractionals = 10000;
-  address constant Foundation = 0x10000000000000000000;
+  address constant Foundation = address(0x10000000000000000000);
 
   // ==================== DATA STRUCTURES ==================
 
@@ -144,10 +144,7 @@ contract DiodeRegistry is DiodeStake {
 
   modifier lastEpoch(uint256 blockHeight) {
     if (blockHeight >= block.number) revert("Ticket from the future?");
-    /*TEST_IF
-    /*TEST_ELSE*/
     if (blockHeight.div(BlocksPerEpoch) != currentEpoch - 1) revert("Wrong epoch");
-    /*TEST_END*/
     _;
   }
 
@@ -162,7 +159,7 @@ contract DiodeRegistry is DiodeStake {
     uint256 indexed amount
   );
 
-  constructor(address /*payable*/ _accountant) DiodeStake(_accountant) public {
+  constructor(address payable _accountant) DiodeStake(_accountant) public {
   }
 
 
@@ -300,7 +297,7 @@ contract DiodeRegistry is DiodeStake {
    * Requires an array with a length multiple of 9. Each 9 elements representing
    * a single connection ticket.
    */
-  function SubmitTicketRaw(bytes32[] /*calldata*/ _connectionTicket) external {
+  function SubmitTicketRaw(bytes32[] calldata _connectionTicket) external {
     if (_connectionTicket.length == 0 || _connectionTicket.length % 9 != 0) revert("Invalid ticket length");
 
     for (uint256 i = 0; i < _connectionTicket.length; i += 9) {
@@ -319,8 +316,8 @@ contract DiodeRegistry is DiodeStake {
     // ======= CLIENT SIGNATURE RECOVERY =======
     bytes32[] memory message = new bytes32[](6);
     message[0] = blockhash(blockHeight);
-    message[1] = bytes32(fleetContract);
-    message[2] = bytes32(nodeAddress);
+    message[1] = bytes32(bytes20(fleetContract));
+    message[2] = bytes32(bytes20(nodeAddress));
     message[3] = bytes32(totalConnections);
     message[4] = bytes32(totalBytes);
     message[5] = localAddress;

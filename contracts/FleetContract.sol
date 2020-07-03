@@ -10,8 +10,8 @@ pragma solidity ^0.6.0;
  */
 contract FleetContract {
   address private diodeRegistry;
-  address /*payable*/ public operator;
-  address public accountant;
+  address public operator;
+  address payable public accountant;
   uint256 private value;
   bytes32 private accessRoot;
   bytes32 private deviceRoot;
@@ -23,7 +23,7 @@ contract FleetContract {
     _;
   }
 
-  constructor (address _diodeRegistry, address _operator, address _accountant) public {
+  constructor (address _diodeRegistry, address _operator, address payable _accountant) public {
     operator = _operator;
     diodeRegistry = _diodeRegistry;
     accountant = _accountant;

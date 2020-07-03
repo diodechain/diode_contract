@@ -26,11 +26,11 @@ contract DNS {
     operator = _operator;
   }
 
-  function Resolve(string name) public view returns (address) {
+  function Resolve(string memory name) public view returns (address) {
       return names[convert(name)].destination;
   }
 
-  function Register(string name, address destination) public {
+  function Register(string memory name, address destination) public {
       validate(name);
       bytes32 key = convert(name);
       Meta memory current = names[key];
@@ -43,11 +43,11 @@ contract DNS {
       names[key] = current;
   }
   
-  function convert(string name) internal pure returns (bytes32) {
+  function convert(string memory name) internal pure returns (bytes32) {
       return keccak256(bytes(name));
   }
 
-  function validate(string name) internal pure {
+  function validate(string memory name) internal pure {
     bytes memory b = bytes(name);
     require(b.length > 7, "Names must be longer than 7 characters");
     require(b.length <= 32, "Names must be within 32 characters");
