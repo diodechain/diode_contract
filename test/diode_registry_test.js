@@ -186,61 +186,6 @@ contract('DiodeRegistry', async function(accounts) {
     assert.equal(stake.valueOf(), 0, "stake 0 ether");
   });
 
-  it("should delegate to create fleet contract for third account and stake 2 (1 + 1) ether", async () => {
-
-    let tx = await registry.DelegateContractCreate(thirdAccount, { from: secondAccount, value: 1e18 });
-    let event = tx.logs[0];
-    await mineBlocks(stakeWaitingTime);
-
-    dfleetAddress = await registry.delegators(thirdAccount, { from: secondAccount });
-    assertDiodeStackEvents(event, 'Staked', true, dfleetAddress, 1e18);
-    stake = await registry.ContractValue(0, dfleetAddress, { from: secondAccount });
-    assert.equal(stake.valueOf(), 1e18, "stake 1 ether");
-
-    dfleet = await FleetContract.at(dfleetAddress);
-    let accountant = await dfleet.accountant();
-    assert.equal(accountant, await registry.accountant());
-
-    let operator = await dfleet.operator();
-    assert.equal(operator, thirdAccount);
-
-    tx = await registry.ContractStake(thirdAccount, { from: secondAccount, value: 1e18 });
-    event = tx.logs[0];
-    assertDiodeStackEvents(event, 'Staked', true, dfleetAddress, 1e18);
-    stake = await registry.ContractValue(1, dfleetAddress, { from: secondAccount });
-    assert.equal(stake.valueOf(), 1e18, "stake 1 ether");
-
-    await mineBlocks(stakeWaitingTime);
-
-    stake = await registry.ContractValue(0, dfleetAddress.toLowerCase(), { from: secondAccount });
-    assert.equal(stake.valueOf(), 2e18, "stake 2 ether");
-  });
-
-  it("should delegate to unstake 2 ether", async () => {
-
-    let tx = await registry.ContractUnstake(thirdAccount, '2000000000000000000', { from: secondAccount });
-    let event = tx.logs[0];
-    assertDiodeStackEvents(event, 'Unstaked', true, dfleetAddress, 2e18);
-    await mineBlocks(unstakeWaitingTime);
-    stake = await registry.ContractValue(0, dfleetAddress, { from: secondAccount });
-    assert.equal(stake.valueOf(), 0, "stake 0 ether");
-
-    let pendingStake = await registry.ContractValue(1, dfleetAddress, { from: secondAccount });
-    assert.equal(pendingStake.valueOf(), 0, "pending stake 0 ether");
-
-    let lockedStake = await registry.ContractValue(2, dfleetAddress, { from: secondAccount });
-    assert.equal(lockedStake.valueOf(), 0, "locked stake 0 ether");
-
-    claimableStake = await registry.ContractValue(3, dfleetAddress, { from: secondAccount });
-    assert.equal(claimableStake.valueOf(), 2e18, "claimable stake 2 ether");
-    
-    tx = await registry.ContractWithdraw(thirdAccount, { from: secondAccount });
-    event = tx.logs[0];
-    assertDiodeStackEvents(event, 'Withdrawn', true, dfleetAddress, 2e18);
-    claimableStake = await registry.ContractValue(3, dfleetAddress, { from: secondAccount });
-    assert.equal(claimableStake.valueOf(), 0, "claimable stake 0 ether");
-  });
-
   it("should register a fleet contract and stake 2 (1 + 1) ether", async function() {
     fleet = await FleetContract.new(registry.address, firstAccount, secondAccount, { from: firstAccount })
     let tx = await registry.ContractStake(fleet.address, { from: secondAccount, value: 1e18 })
