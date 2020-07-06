@@ -23,7 +23,7 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "./precompile.sh && truffle test",
+    "test": "./precompile.sh && truffle test -b",
     "ganache": "ganache-cli -p 9999 -l 1000000000 -g 100000000",
     "build": "truffle build",
     "compile": "./precompile.sh && truffle compile",
