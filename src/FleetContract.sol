@@ -35,15 +35,15 @@ contract FleetContract is FleetContractInterface {
     accountant = _accountant;
   }
 
-  function Accountant() public override returns (address payable) {
+  function Accountant() external view override returns (address payable) {
     return accountant;
   }
 
-  function SetDeviceAllowlist(address _client, bool _value) public override onlyOperator {
+  function SetDeviceAllowlist(address _client, bool _value) external override onlyOperator {
     allowlist[_client] = _value;
   }
 
-  function DeviceAllowlist(address _client) public view override returns (bool) {
+  function DeviceAllowlist(address _client) external view override virtual returns (bool) {
     return allowlist[_client];
   }
 
@@ -51,11 +51,11 @@ contract FleetContract is FleetContractInterface {
   /*******************************
    **   DEPRECATED FUNCTIONS    **
    *******************************/
-  function SetDeviceWhitelist(address _client, bool _value) public {
-    SetDeviceAllowlist(_client, _value);
+  function SetDeviceWhitelist(address _client, bool _value) external {
+    this.SetDeviceAllowlist(_client, _value);
   }
-  function deviceWhitelist(address _client) public view returns (bool) {
-    return DeviceAllowlist(_client);
+  function deviceWhitelist(address _client) external view returns (bool) {
+    return this.DeviceAllowlist(_client);
   }
 
 }

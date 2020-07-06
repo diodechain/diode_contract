@@ -8,11 +8,10 @@ import "./FleetContract.sol";
  * DevFleetContract
  */
 contract DevFleetContract is FleetContract {
-  constructor (DiodeRegistry _registry, address _operator, address payable _accountant) public {
-    FleetContract(_registry, _operator, _accountant);
+  constructor (DiodeRegistry _registry, address _operator, address payable _accountant) FleetContract(_registry, _operator, _accountant) public {
   }
 
-  function DeviceAllowlist(address _client) public view override returns (bool) {
+  function DeviceAllowlist(address) public view override returns (bool) {
     return true;
   }
 }
