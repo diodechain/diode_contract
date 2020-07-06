@@ -6,11 +6,7 @@ pragma solidity ^0.6.0;
 import "./Utils.sol";
 import "./deps/SafeMath.sol";
 import "./FleetContract.sol";
-/*TEST_IF
-import "./TestDiodeStake.sol";
-/*TEST_ELSE*/
 import "./DiodeStake.sol";
-/*TEST_END*/
 
 /**
  * DiodeRegistry
@@ -40,11 +36,7 @@ LATER:
  * -- Block Header use signature or add public key
  */
 
-/*TEST_IF
-contract TestDiodeRegistry is DiodeStake {
-/*TEST_ELSE*/
 contract DiodeRegistry is DiodeStake {
-/*TEST_END*/
   using SafeMath for uint256;
 
   uint256 currentEpoch = 0;
@@ -129,8 +121,8 @@ contract DiodeRegistry is DiodeStake {
     /* 1. ganache bug https://github.com/trufflesuite/ganache-core/issues/201 */
     /* 2. during diode tests we run against coinbase independent contracts */
     if (msg.sender != block.coinbase && // normal rule
-        block.coinbase != address(0) && // ganache exception
-        msg.sender != accountant)       // diode dev exception
+        block.coinbase != address(0) // ganache exception
+        )
           revert("Only the miner of the block can call this method");
     /*TEST_ELSE*/
     if (msg.sender != block.coinbase) revert("Only the miner of the block can call this method");

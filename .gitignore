@@ -60,6 +60,7 @@ typings/
 # secret files
 *.secret
 
+contracts/*
 build/*
 contracts/TestDiodeRegistry.sol
 contracts/TestDiodeStake.sol
