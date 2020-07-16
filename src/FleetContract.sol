@@ -2,13 +2,12 @@
 // Copyright 2019 IoT Blockchain Technology Corporation LLC (IBTC)
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.6.0;
-import "./FleetContractInterface.sol";
 import "./DiodeRegistry.sol";
 
 /**
  * FleetContract
  */
-contract FleetContract is FleetContractInterface {
+contract FleetContract {
   DiodeRegistry private registry;
   address public operator;
   address payable public accountant;
@@ -28,22 +27,27 @@ contract FleetContract is FleetContractInterface {
     _;
   }
 
-  constructor (DiodeRegistry _registry, address _operator, address payable _accountant) public {
-    _registry.ContractStake(_accountant);
+  constructor (DiodeRegistry _registry, address _operator, address payable _accountant) public payable {
     registry = _registry;
     operator = _operator;
     accountant = _accountant;
+    if (msg.value > 0)
+      _registry.ContractStake{value: msg.value, gas: gasleft()}(this);
   }
 
-  function Accountant() external view override returns (address payable) {
+  function Accountant() external view returns (address payable) {
     return accountant;
   }
 
-  function SetDeviceAllowlist(address _client, bool _value) external override onlyOperator {
+  function Operator() external view returns (address) {
+    return operator;
+  }
+
+  function SetDeviceAllowlist(address _client, bool _value) public virtual onlyOperator {
     allowlist[_client] = _value;
   }
 
-  function DeviceAllowlist(address _client) external view override virtual returns (bool) {
+  function DeviceAllowlist(address _client) public view virtual returns (bool) {
     return allowlist[_client];
   }
 

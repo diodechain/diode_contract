@@ -2,6 +2,7 @@
 // Copyright 2019 IoT Blockchain Technology Corporation LLC (IBTC)
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.6.0;
+pragma experimental ABIEncoderV2;
 
 import "./Utils.sol";
 import "./deps/SafeMath.sol";
@@ -21,19 +22,9 @@ import "./DiodeStake.sol";
  * 3. 1. including distributing block rewards
  * 3. 2. including end of epoch distribution of service rewards
  *
- * UPDATES NEEDED:
- * -- No check for EPOCH right now, need to update
- * ====> HOW to make submitTicket secure when it depends on Fleetcontract.checkDevice ? Possible?
- * -- Update register device to just use device addr
- * -- Finish writing blockReward function
- * -- Fix stack depth issue in SubmitTrafficTicket
- * -- UNIT Tests
- * -- Deploy to Server (Genesis Block)
-
- * OTHER:
- * -- Check submit ticket from device in diode server
-LATER:
- * -- Block Header use signature or add public key
+ * NOTES:
+ *    submitTicket is not secure because it depends on Fleetcontract.checkDevice
+ *
  */
 
 contract DiodeRegistry is DiodeStake {
@@ -82,8 +73,9 @@ contract DiodeRegistry is DiodeStake {
   mapping(address => uint256) rollupReward;
 
   // These two together form an iterable map for this Epochs activity
-  address[] fleetArray;
+  FleetContract[] fleetArray;
   mapping(address => FleetStats) fleetStats;
+  function _fleetStats(FleetContract _fleet) internal view returns (FleetStats storage) { return fleetStats[address(_fleet)]; }
 
   struct FleetStats {
     bool exists;
@@ -123,10 +115,10 @@ contract DiodeRegistry is DiodeStake {
     if (msg.sender != block.coinbase && // normal rule
         block.coinbase != address(0) // ganache exception
         )
-          revert("Only the miner of the block can call this method");
     /*TEST_ELSE*/
-    if (msg.sender != block.coinbase) revert("Only the miner of the block can call this method");
+    if (msg.sender != block.coinbase)
     /*TEST_END*/
+      revert("Only the miner of the block can call this method");
     _;
   }
 
@@ -140,7 +132,7 @@ contract DiodeRegistry is DiodeStake {
   }
 
   event Ticket(
-    address indexed fleetContract,
+    FleetContract indexed fleetContract,
     address indexed node,
     address indexed client
   );
@@ -220,12 +212,12 @@ contract DiodeRegistry is DiodeStake {
 
     // Q: Is it better to copy fleetArray.length into a uint256 local var first?
     for (f = 0; f < fleetArray.length; f++) {
-      address fleetContract = fleetArray[f];
+      FleetContract fleetContract = fleetArray[f];
 
       uint256 fleetValue = _contractValue(fleetContract);
       reward = fleetValue.div(100);
 
-      FleetStats storage fleet = fleetStats[fleetContract];
+      FleetStats storage fleet = _fleetStats(fleetContract);
       uint256 fleetPoints = fleet.totalBytes.add(fleet.totalConnections.mul(1024));
 
       for (uint256 n = 0; n < fleet.nodeArray.length; n++) {
@@ -252,7 +244,7 @@ contract DiodeRegistry is DiodeStake {
         delete fleet.nodeStats[nodeAddress];
       }
       // Fleet Cleanup
-      delete fleetStats[fleetContract];
+      delete fleetStats[address(fleetContract)];
     }
     // Global cleanup
     delete fleetArray;
@@ -293,13 +285,13 @@ contract DiodeRegistry is DiodeStake {
 
     for (uint256 i = 0; i < _connectionTicket.length; i += 9) {
       bytes32[3] memory deviceSignature = [_connectionTicket[i+6], _connectionTicket[i+7], _connectionTicket[i+8]];
-      SubmitTicket(uint256(_connectionTicket[i+0]), Utils.bytes32ToAddress(_connectionTicket[i+1]),
+      SubmitTicket(uint256(_connectionTicket[i+0]), FleetContract(Utils.bytes32ToAddress(_connectionTicket[i+1])),
                              Utils.bytes32ToAddress(_connectionTicket[i+2]), uint256(_connectionTicket[i+3]),
                    uint256(_connectionTicket[i+4]), _connectionTicket[i+5], deviceSignature);
     }
   }
 
-  function SubmitTicket(uint256 blockHeight, address fleetContract, address nodeAddress,
+  function SubmitTicket(uint256 blockHeight, FleetContract fleetContract, address nodeAddress,
                         uint256 totalConnections, uint256 totalBytes,
                         bytes32 localAddress, bytes32[3] memory signature) public lastEpoch(blockHeight) {
     if (totalConnections | totalBytes == 0) revert("Invalid ticket value");
@@ -307,7 +299,7 @@ contract DiodeRegistry is DiodeStake {
     // ======= CLIENT SIGNATURE RECOVERY =======
     bytes32[] memory message = new bytes32[](6);
     message[0] = blockhash(blockHeight);
-    message[1] = bytes32(bytes20(fleetContract));
+    message[1] = bytes32(bytes20(address(fleetContract)));
     message[2] = bytes32(bytes20(nodeAddress));
     message[3] = bytes32(totalConnections);
     message[4] = bytes32(totalBytes);
@@ -322,12 +314,67 @@ contract DiodeRegistry is DiodeStake {
     emit Ticket(fleetContract, nodeAddress, client);
   }
 
+
+  // ====================================================================================
+  // ============================= EXPLORATIVE ACCESSORS ================================
+  // ====================================================================================
+
+  // These types only exist for external accessors, hence avoid using mappings
+  struct Fleet {
+    FleetContract fleet;
+    uint256 totalConnections;
+    uint256 totalBytes;
+    address[] nodes;
+  }
+
+  struct Node {
+    address node;
+    uint256 totalConnections;
+    uint256 totalBytes;
+    Client[] clients;
+  }
+
+  struct Client {
+    address client;
+    uint256 totalConnections;
+    uint256 totalBytes;
+  }
+
+  // These functions are only called by Web3 contract explorers
+  function EpochFleets() external view returns (FleetContract[] memory) {
+    return fleetArray;
+  }
+
+  function EpochFleet(FleetContract _fleet) external view returns (Fleet memory) {
+    FleetStats storage stats = _fleetStats(_fleet);
+    return Fleet(_fleet, stats.totalConnections, stats.totalBytes, stats.nodeArray);
+  }
+
+  function EpochFleetNode(FleetContract _fleet, address _node) external view returns (Node memory) {
+    FleetStats storage stats = _fleetStats(_fleet);
+    NodeStats storage nstats = stats.nodeStats[_node];
+    uint len = nstats.clientArray.length;
+    Node memory node = Node(_node, nstats.totalConnections, nstats.totalBytes, new Client[](len));
+
+    for (uint i = 0; i < len; i++) {
+      address client = nstats.clientArray[i];
+      ClientStats memory cstats = nstats.clientStats[client];
+      node.clients[i] = Client(client, cstats.totalConnections, cstats.totalBytes);
+    }
+
+    return node;
+  }
+
+  function CurrentEpoch() external view returns (uint256) {
+    return currentEpoch;
+  }
+
   // ====================================================================================
   // ============================= INTERNAL FUNCTIONS ===================================
   // ====================================================================================
-  function updateTrafficCount(address fleetContract, address nodeAddress, address clientAddress,
+  function updateTrafficCount(FleetContract fleetContract, address nodeAddress, address clientAddress,
                               uint256 totalConnections, uint256 totalBytes) internal {
-    FleetStats storage fleet = fleetStats[fleetContract];
+    FleetStats storage fleet = _fleetStats(fleetContract);
 
     if (fleet.exists == false) {
       fleet.exists = true;
@@ -367,7 +414,7 @@ contract DiodeRegistry is DiodeStake {
     //    more complicated.
   }
 
-  function validateFleetAccess(address fleetContract, address client) internal view {
+  function validateFleetAccess(FleetContract fleetContract, address client) internal view {
     FleetContract fc = FleetContract(fleetContract);
     if (fc.deviceWhitelist(client) == false) revert("Unregistered device");
   }

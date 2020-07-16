@@ -116,7 +116,6 @@ library Stake {
 contract DiodeStake {
   using Stake for Stake.Data;
   using SafeMath for uint256;
-  using Address for address;
   address public _reserved_1;
   address payable public foundation;
   uint256 public stakeCount;
@@ -124,6 +123,7 @@ contract DiodeStake {
   mapping(address => FleetContract) public _reserved_3;
   mapping(address => Stake.Data) private minerStake;
   mapping(address => Stake.Data) private contractStake;
+  function _contractStake(FleetContract _fleet) internal view returns (Stake.Data memory) { return contractStake[address(_fleet)]; }
 
   event Staked(
     bool indexed isContract,
@@ -147,52 +147,48 @@ contract DiodeStake {
     foundation = _foundation;
   }
 
-  function checkAccountant(address _id) internal view returns(FleetContract) {
-    if (!_id.isContract()) revert("Invalid fleet contract address");
-    FleetContract fleetContract = FleetContract(_id);
-    address contractAccountant = fleetContract.accountant();
+  modifier onlyAccountant(FleetContract _fleet) {
+    if (!Address.isContract(address(_fleet))) revert("Invalid fleet contract address");
+    address contractAccountant = _fleet.Accountant();
     if (contractAccountant != msg.sender) revert("Only the fleet accountant can do this");
 
-    return fleetContract;
+    _;
   }
 
-  function ContractValue(uint8 pending, address _id) public view returns (uint256) {
+  function ContractValue(uint8 pending, FleetContract _fleet) public view returns (uint256) {
     if (pending == 0)
-      return contractStake[_id].stakedValue();
+      return _contractStake(_fleet).stakedValue();
     else if (pending == 1)
-      return contractStake[_id].pendingValue();
+      return _contractStake(_fleet).pendingValue();
     else if (pending == 2)
-      return contractStake[_id].lockedValue();
+      return _contractStake(_fleet).lockedValue();
     else if (pending == 3)
-      return contractStake[_id].claimableValue();
+      return _contractStake(_fleet).claimableValue();
     revert("Unhandled argument");
   }
 
-  function ContractStake(address _id) public payable {
-    FleetContract fleetContract = checkAccountant(_id);
-    contractStake[address(fleetContract)] = contractStake[address(fleetContract)].addStake(msg.value);
-    emit Staked(true, address(fleetContract), msg.value);
+  function ContractStake(FleetContract _fleet) public payable onlyAccountant(_fleet) {
+    contractStake[address(_fleet)] = _contractStake(_fleet).addStake(msg.value);
+    emit Staked(true, address(_fleet), msg.value);
   }
 
-  function _contractValue(address fleetContract) internal view returns(uint256) {
-    return contractStake[fleetContract].stakedValue();
+  function _contractValue(FleetContract _fleet) internal view returns(uint256) {
+    return _contractStake(_fleet).stakedValue();
   }
 
-  function ContractUnstake(address _id, uint256 _value) public {
-    FleetContract fleetContract = checkAccountant(_id);
-    contractStake[address(fleetContract)] = contractStake[address(fleetContract)].subStake(_value);
-    emit Unstaked(true, address(fleetContract), _value);
+  function ContractUnstake(FleetContract _fleet, uint256 _value) public onlyAccountant(_fleet) {
+    contractStake[address(_fleet)] = _contractStake(_fleet).subStake(_value);
+    emit Unstaked(true, address(_fleet), _value);
   }
 
-  function ContractWithdraw(address _id) public {
-    FleetContract fleetContract = checkAccountant(_id);
-    address payable contractAccountant = fleetContract.accountant();
-    Stake.Data storage stake = contractStake[address(fleetContract)];
+  function ContractWithdraw(FleetContract _fleet) public onlyAccountant(_fleet) {
+    address payable contractAccountant = _fleet.Accountant();
+    Stake.Data memory stake = _contractStake(_fleet);
     uint256 _value = stake.claimableValue();
     require(_value > 0, "Can't withdraw 0");
-    contractStake[address(fleetContract)] = stake.claimStake(_value);
+    contractStake[address(_fleet)] = stake.claimStake(_value);
     contractAccountant.transfer(_value);
-    emit Withdrawn(true, address(fleetContract), _value);
+    emit Withdrawn(true, address(_fleet), _value);
   }
 
   function MinerValue(uint8 pending, address miner) public view returns (uint256) {
@@ -231,7 +227,7 @@ contract DiodeStake {
 
   function MinerWithdraw() public {
     address payable miner = msg.sender;
-    Stake.Data storage stake = minerStake[miner];
+    Stake.Data memory stake = minerStake[miner];
     uint256 _value = stake.claimableValue();
     require(_value > 0, "Can't withdraw 0");
     minerStake[miner] = stake.claimStake(_value);

@@ -5,11 +5,10 @@ pragma solidity ^0.6.0;
 
 /**
  * FleetContract
- *
- * TODO: emit event
  */
 interface FleetContractInterface {
   function Accountant() external view returns (address payable);
+  function Operator() external view returns (address);
   function SetDeviceAllowlist(address _client, bool _value) external;
   function DeviceAllowlist(address _client) external view returns (bool);
 }
