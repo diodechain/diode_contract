@@ -123,7 +123,9 @@ contract('DiodeRegistry', async function(accounts) {
   var thirdAccount = accounts[2];
   var forthAccount = accounts[3];
   var firstDevice = account();
+  console.log("firstDevice = ", firstDevice.addr.toString('hex'))
   var secondDevice = account();
+  console.log("secondDevice = ", secondDevice.addr.toString('hex'))
   var firstClient = account();
   var msgHash = ethUtil.keccak256(Buffer.from("\u0019Ethereum Signed Message:\n0"));
 
