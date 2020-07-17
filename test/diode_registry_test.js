@@ -4,7 +4,7 @@
 const BN = require("bn.js");
 const crypto = require("crypto");
 const ethUtil = require("ethereumjs-util");
-var DiodeRegistry = artifacts.require("TestDiodeRegistry");
+var DiodeRegistry = artifacts.require("DiodeRegistry");
 var FleetContract = artifacts.require("FleetContract");
 
 contract('DiodeRegistry', async function(accounts) {
@@ -188,6 +188,10 @@ contract('DiodeRegistry', async function(accounts) {
 
   it("should register a fleet contract and stake 2 (1 + 1) ether", async function() {
     fleet = await FleetContract.new(registry.address, firstAccount, secondAccount, { from: firstAccount })
+
+    assert.equal(await fleet.Operator(), firstAccount);
+    assert.equal(await fleet.Accountant(), secondAccount);
+
     let tx = await registry.ContractStake(fleet.address, { from: secondAccount, value: 1e18 })
     let event = tx.logs[0];
     assertDiodeStackEvents(event, 'Staked', true, fleet.address, 1e18);
@@ -234,12 +238,6 @@ contract('DiodeRegistry', async function(accounts) {
 
     await fleet.SetDeviceWhitelist(`0x${secondDevice.addr.toString('hex')}`, true, { from: firstAccount });
     value = await fleet.deviceWhitelist(`0x${secondDevice.addr.toString('hex')}`, { from: firstAccount });
-    assert.equal(true, value);
-  });
-
-  it("should set access whitelist", async function() {
-    await fleet.SetAccessWhitelist(`0x${firstDevice.addr.toString('hex')}`, firstAccount, true, { from: firstAccount });
-    value = await fleet.accessWhitelist(`0x${firstDevice.addr.toString('hex')}`, firstAccount, { from: firstAccount });
     assert.equal(true, value);
   });
 

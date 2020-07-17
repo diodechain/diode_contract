@@ -56,10 +56,10 @@ contract FleetContract {
    **   DEPRECATED FUNCTIONS    **
    *******************************/
   function SetDeviceWhitelist(address _client, bool _value) external {
-    this.SetDeviceAllowlist(_client, _value);
+    SetDeviceAllowlist(_client, _value);
   }
   function deviceWhitelist(address _client) external view returns (bool) {
-    return this.DeviceAllowlist(_client);
+    return DeviceAllowlist(_client);
   }
 
 }

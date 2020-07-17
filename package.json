@@ -27,7 +27,8 @@
     "ganache": "ganache-cli -p 9999 -l 1000000000 -g 100000000",
     "build": "truffle build",
     "compile": "./precompile.sh && truffle compile",
-    "deploy": "truffle deploy"
+    "deploy": "truffle deploy",
+    "migrate": "truffle migrate"
   },
   "repository": {
     "type": "git",
