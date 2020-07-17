@@ -7,7 +7,7 @@ pragma solidity ^0.6.0;
  * BNS Blockchain Name System
  *
  */
-contract NNS {
+contract BNS {
   struct Meta {
       address   destination;
       address   owner;
