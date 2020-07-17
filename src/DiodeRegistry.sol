@@ -294,7 +294,7 @@ contract DiodeRegistry is DiodeStake {
   function SubmitTicket(uint256 blockHeight, FleetContract fleetContract, address nodeAddress,
                         uint256 totalConnections, uint256 totalBytes,
                         bytes32 localAddress, bytes32[3] memory signature) public lastEpoch(blockHeight) {
-    if (totalConnections | totalBytes == 0) revert("Invalid ticket value");
+    require(totalConnections | totalBytes != 0, "Invalid ticket value");
 
     // ======= CLIENT SIGNATURE RECOVERY =======
     bytes32[] memory message = new bytes32[](6);
@@ -416,6 +416,32 @@ contract DiodeRegistry is DiodeStake {
 
   function validateFleetAccess(FleetContract fleetContract, address client) internal view {
     FleetContract fc = FleetContract(fleetContract);
-    if (fc.deviceWhitelist(client) == false) revert("Unregistered device");
+    requiref(fc.deviceWhitelist(client), "Unregistered device", client);
   }
+
+  /* TEST_IF
+  function requiref(bool _test, string memory _format, address _arg) internal pure returns (string memory) {
+    if (!_test) {
+      string memory output = string(abi.encodePacked(_format, " (", tohex(_arg), ")"));
+      revert(output);
+    }
+  }
+  bytes constant hexchars = "0123456789abcdef";
+  function tohex(address _arg) internal pure returns (bytes memory) {
+    bytes memory ret = new bytes(42);
+    bytes20 b = bytes20(_arg);
+    ret[0] = '0';
+    ret[1] = 'x';
+    for (uint i = 0; i < 20; i++) {
+      ret[2*i+2] = hexchars[uint8(b[i]) % 16];
+      ret[2*i+3] = hexchars[uint8(b[i]) / 16];
+    }
+    return ret;
+  }
+  /*TEST_ELSE*/
+  function requiref(bool _test, string memory _format, address) internal pure returns (string memory) {
+    require(_test, _format);
+  }
+  /*TEST_END*/
+
 }
