@@ -35,6 +35,15 @@ library Utils {
     return address(_address);
   }
 
+  // addressToBytes32
+  function addressToBytes32(address _address) internal pure returns (bytes32) {
+    bytes32 _bytes;
+    assembly {
+      _bytes := add(_address, 0)
+    }
+    return _bytes;
+  }
+
   // bytes32Hash
   function bytes32Hash(bytes32[] memory _src) internal pure returns (bytes32) {
     uint256 _srcLen = _src.length;

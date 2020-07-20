@@ -299,8 +299,8 @@ contract DiodeRegistry is DiodeStake {
     // ======= CLIENT SIGNATURE RECOVERY =======
     bytes32[] memory message = new bytes32[](6);
     message[0] = blockhash(blockHeight);
-    message[1] = bytes32(bytes20(address(fleetContract)));
-    message[2] = bytes32(bytes20(nodeAddress));
+    message[1] = Utils.addressToBytes32(address(fleetContract));
+    message[2] = Utils.addressToBytes32(nodeAddress);
     message[3] = bytes32(totalConnections);
     message[4] = bytes32(totalBytes);
     message[5] = localAddress;
