@@ -4,7 +4,8 @@
 pragma solidity ^0.6.0;
 pragma experimental ABIEncoderV2;
 
-import "./Utils.sol";
+import "./deps/Diode.sol";
+import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
 import "./FleetContract.sol";
 import "./DiodeStake.sol";
@@ -37,12 +38,10 @@ contract DiodeRegistry is DiodeStake {
   /*TEST_ELSE*/
   uint64 constant BlocksPerEpoch = 40320;
   /*TEST_END*/
-  uint256 constant BlockRewards = 1 ether;
+  uint256 constant BlockReward = 1 ether;
   uint256 constant MinBlockRewards = 1 finney;
   uint256 constant Fractionals = 10000;
-  address constant Foundation = address(0x10000000000000000000);
-
-  // ==================== DATA STRUCTURES ==================
+  address immutable Tester;
 
   /**
    * Accounting Epochs run in two phases:
@@ -77,6 +76,12 @@ contract DiodeRegistry is DiodeStake {
   mapping(address => FleetStats) fleetStats;
   function _fleetStats(FleetContract _fleet) internal view returns (FleetStats storage) { return fleetStats[address(_fleet)]; }
 
+  uint256 constant MinimumFee = 100;
+  uint256 feePool;
+  uint256 fee = MinimumFee;
+
+
+  // ==================== DATA STRUCTURES ==================
   struct FleetStats {
     bool exists;
 
@@ -113,7 +118,8 @@ contract DiodeRegistry is DiodeStake {
     /* 1. ganache bug https://github.com/trufflesuite/ganache-core/issues/201 */
     /* 2. during diode tests we run against coinbase independent contracts */
     if (msg.sender != block.coinbase && // normal rule
-        block.coinbase != address(0) // ganache exception
+        block.coinbase != address(0) && // ganache exception
+        msg.sender != Tester            // diode server exception
         )
     /*TEST_ELSE*/
     if (msg.sender != block.coinbase)
@@ -142,9 +148,9 @@ contract DiodeRegistry is DiodeStake {
     uint256 indexed amount
   );
 
-  constructor(address payable _accountant) DiodeStake(_accountant) public {
+  constructor(address payable _tester) DiodeStake() public {
+    Tester = _tester;
   }
-
 
   // BlockTimeGoal is 15 seconds
   // One Epoch should be roughly one month
@@ -152,18 +158,64 @@ contract DiodeRegistry is DiodeStake {
     return block.number.div(BlocksPerEpoch);
   }
 
+  // Fee() returns the current minimum gas price
+  function Fee() external view returns (uint256) {
+    return fee;
+  }
+
   /**
    * blockReward() -- needs to be called every block.
    */
-  function blockReward() public onlyMiner {
+  function blockReward(uint256 _gasUsed, uint256 _weiSpent) external onlyMiner {
+    _blockReward(_gasUsed, _weiSpent);
+  }
+
+  /**
+   * blockReward() -- needs to be called every block.
+   */
+  function blockReward() external onlyMiner {
+    _blockReward(0, 0);
+  }
+
+  /**
+   * blockReward() -- needs to be called every block.
+   */
+  function _blockReward(uint256 _gasUsed, uint256 _weiSpent) internal {
     // Calculcating per epoch service rewards
     if (currentEpoch != Epoch()) {
       endEpoch();
     }
 
-    // TODO: fee calculation based on old blocks here?
-    _minerRollup(block.coinbase, BlockRewards.mul(Fractionals));
-    _minerRollup(Foundation, BlockRewards.mul(Fractionals).div(10));
+    // Calculating block reward + earned fee
+    {
+      // First adding collected fee based.
+      // We want to incentivize collecting large blocks.
+      require(_weiSpent >= _gasUsed * fee, "Average gas price below current base fee");
+      feePool += _weiSpent;
+
+      // The reward is 10% of the current pool so miners receive 
+      // a moving average. The first miner of a large transaction
+      // receives the biggest chunk.
+      uint256 reward = feePool / 10;
+      
+      // Deducting the reward from the pool
+      feePool = feePool - reward;
+      
+      // In addition to the fees the miner is receiving the constant block reward
+      reward += BlockReward;
+
+      _minerRollup(block.coinbase, reward.mul(Fractionals));
+      // Foundation is receiving 10% of the reward
+      _minerRollup(Diode.Foundation, reward.mul(Fractionals).div(10));
+    }
+
+    // Fee adjustment calculation
+    if (_gasUsed >= 10000000) {
+      fee += fee / 10;
+    } else if (_gasUsed <= 5000000) {
+      fee -= fee / 10;
+    }
+    if (fee < MinimumFee) fee = MinimumFee;
 
     // At this point all rewards and  service tickets should be accounted for and cleaned up.
     // rollupRewards should contain the final sum * Fractionals of reward for each miner.
@@ -367,6 +419,10 @@ contract DiodeRegistry is DiodeStake {
 
   function CurrentEpoch() external view returns (uint256) {
     return currentEpoch;
+  }
+
+  function FeePool() external view returns (uint256) {
+    feePool;
   }
 
   // ====================================================================================

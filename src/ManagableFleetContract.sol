@@ -3,7 +3,7 @@
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.6.0;
 import "./FleetContract.sol";
-import "./Set.sol";
+import "./deps/Set.sol";
 
 /**
  * ManagableFleetContract

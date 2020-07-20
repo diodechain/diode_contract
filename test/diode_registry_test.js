@@ -119,6 +119,7 @@ contract('DiodeRegistry', async function(accounts) {
   var dfleetAddress;
   var dfleet;
   var firstAccount = accounts[0];
+  console.log("firstAccount = ", firstAccount)
   var secondAccount = accounts[1];
   var thirdAccount = accounts[2];
   var forthAccount = accounts[3];

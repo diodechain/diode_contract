@@ -3,7 +3,8 @@
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.6.0;
 
-import "./Utils.sol";
+import "./deps/Diode.sol";
+import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
 import "./deps/Address.sol";
 import "./FleetContract.sol";
@@ -116,8 +117,9 @@ library Stake {
 contract DiodeStake {
   using Stake for Stake.Data;
   using SafeMath for uint256;
-  address public _reserved_1;
-  address payable public foundation;
+
+  address private _reserved_1;
+  address private _reserved_2;
   uint256 public stakeCount;
   uint256 public unstakeCount;
   mapping(address => FleetContract) public _reserved_3;
@@ -143,8 +145,7 @@ contract DiodeStake {
     uint256 indexed amount
   );
 
-  constructor(address payable _foundation) public {
-    foundation = _foundation;
+  constructor() public {
   }
 
   modifier onlyAccountant(FleetContract _fleet) {
