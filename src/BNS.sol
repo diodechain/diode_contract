@@ -26,7 +26,7 @@ contract BNS {
     address setter;
   }
 
-  mapping(address => string) public reverse;
+  mapping(address => ReverseEntry) public reverse;
 
   modifier onlyOperator {
     require(msg.sender == operator, "Only the operator can make this call");
@@ -61,7 +61,7 @@ contract BNS {
     return resolveEntry(_name);
   }
 
-  function resolveEntry(string calldata _name) internal view returns (BNSEntry memory) {
+  function resolveEntry(string memory _name) internal view returns (BNSEntry memory) {
     BNSEntry memory current = names[convert(_name)];
     if (block.number < current.leaseEnd)
       return current;
@@ -147,11 +147,13 @@ contract BNS {
     names[_hash] = current;
   }
 
-  
+
   /**
-   * RegisterReverse `name` and assigns it to a single destination address.
-   * @param name the name to be created.
-   * @param destination the single destination to be assigned.
+   * RegisterReverse sets at reverse lookup entry from `_address` to `_name`.
+   * This requires an existing forward lookup from `_name` to `_address`.
+   *
+   * @param _name the name to be created.
+   * @param _address the single destination to be assigned.
    */
   function RegisterReverse(address _address, string calldata _name) external {
     BNSEntry memory entry = resolveEntry(_name);
@@ -159,23 +161,23 @@ contract BNS {
 
     if (reverse[_address].setter == _address)
       require(msg.sender == _address, "Only the address owner can override an authorized entry.");
-    
+
     reverse[_address] = ReverseEntry(_name, msg.sender);
   }
 
   /**
-   * ResolveReverse `name` and assigns it to a single destination address.
-   * @param name the name to be created.
-   * @param destination the single destination to be assigned.
+   * ResolveReverse resolves `_address` into a single name if a reverse lookup entry has
+   * been created before using `RegisterReverse(address,string)`.
+   * @param _address the name to be created.
    */
-  function ResolveReverse(address _address) external returns (string memory) {
-    string memory name = reverse[_address];
-    BNSEntry memory entry = resolveEntry(name);
+  function ResolveReverse(address _address) external view returns (string memory) {
+    ReverseEntry memory rentry = reverse[_address];
+    BNSEntry memory entry = resolveEntry(rentry.name);
     _forwardLookup(_address, entry);
-    return name;
+    return rentry.name;
   }
 
-  function _forwardLookup(address _address, BNSEntry memory entry) internal {
+  function _forwardLookup(address _address, BNSEntry memory entry) internal pure {
     if (entry.destination != _address) {
       for (uint i = 0; i < entry.destinations.length; i++) {
         if (entry.destinations[i] == _address)
