@@ -20,7 +20,6 @@ contract BNS {
   address public operator;
   mapping(bytes32 => BNSEntry) public names;
 
-
   struct ReverseEntry {
     string name;
     address setter;
@@ -108,7 +107,6 @@ contract BNS {
   //     registerMultiple(_hash, _destinations);
   // }
 
-
   /**
    * Unregister `_name` is a hashed name that is beeing deleted.
    * @param _name the name to be deleted.
@@ -147,7 +145,6 @@ contract BNS {
     names[_hash] = current;
   }
 
-
   /**
    * RegisterReverse sets at reverse lookup entry from `_address` to `_name`.
    * This requires an existing forward lookup from `_name` to `_address`.
@@ -172,6 +169,9 @@ contract BNS {
    */
   function ResolveReverse(address _address) external view returns (string memory) {
     ReverseEntry memory rentry = reverse[_address];
+    if (bytes(rentry.name).length == 0) {
+      return rentry.name;
+    }
     BNSEntry memory entry = resolveEntry(rentry.name);
     _forwardLookup(_address, entry);
     return rentry.name;
@@ -187,8 +187,6 @@ contract BNS {
       }
     }
   }
-
-
 
   /*******************************************************
    ***********   INTERNAL FUNCTIONS **********************

@@ -8,6 +8,10 @@ library Assert {
     result = a;
     require(result, message);
   }
+  function notOk(bool a, string memory message) internal pure returns (bool result) {
+    result = !a;
+    ok(result, message);
+  }
   function equal(uint a, uint b, string memory message) internal pure returns (bool result) {
     result = (a == b);
     ok(result, message);

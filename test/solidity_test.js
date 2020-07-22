@@ -36,7 +36,18 @@ function doTest(filename) {
 
         methods.forEach(function (name) {
             it(name, async () => {
-                await instance[name]();
+                let idx = 0;
+                // Changing calling account for name patterns such:
+                // checkFrom1...
+                // checkFrom2...
+                // checkFrom3...
+                for (let i = 0; i < accounts.length; i++) {
+                    if (name.startsWith("checkFrom" + (i+1))) {
+                        idx = i;
+                        break;
+                    }
+                }
+                await instance[name]({from: accounts[idx]});
             })
         })
     });
