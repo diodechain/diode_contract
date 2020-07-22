@@ -22,12 +22,8 @@
     "truffle-hdwallet-provider": "^1.0.16",
     "xmlhttprequest": "^1.8.0"
   },
-  "devDependencies": {
-    "remix-tests": "^0.1.34"
-  },
   "scripts": {
     "test": "truffle test -b",
-    "test_remix": "remix-tests test/BNS_test.sol",
     "ganache": "ganache-cli -p 9999 -l 1000000000 -g 100000000",
     "build": "truffle build",
     "compile": "truffle compile",
