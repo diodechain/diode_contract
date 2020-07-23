@@ -1,7 +1,7 @@
 // Diode Contracts
 // Copyright 2019 IoT Blockchain Technology Corporation LLC (IBTC)
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.0;
+pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 /**
@@ -13,6 +13,7 @@ contract BNS {
       address   owner;
       string    name;
       address[] destinations;
+      string[]  properties;
       uint256   lockEnd;
       uint256   leaseEnd;
   }
@@ -42,14 +43,10 @@ contract BNS {
    */
   function Resolve(string calldata _name) external view returns (address) {
       BNSEntry memory current = resolveEntry(_name);
-      if (block.number < current.leaseEnd) {
-        if (current.destinations.length == 0)
-          return current.destination;
-        else
-          return current.destinations[block.number % current.destinations.length];
-      }
+      if (current.destinations.length == 0)
+        return current.destination;
 
-      return address(0);
+      return current.destinations[block.number % current.destinations.length];
   }
 
   /**
@@ -58,15 +55,6 @@ contract BNS {
    */
   function ResolveEntry(string calldata _name) external view returns (BNSEntry memory) {
     return resolveEntry(_name);
-  }
-
-  function resolveEntry(string memory _name) internal view returns (BNSEntry memory) {
-    BNSEntry memory current = names[convert(_name)];
-    if (block.number < current.leaseEnd)
-      return current;
-
-    BNSEntry memory empty;
-    return empty;
   }
 
   /**
@@ -128,21 +116,56 @@ contract BNS {
       delete names[_hash];
   }
 
-  function register(bytes32 _hash, address destination) internal {
-      address[] memory destinations = new address[](1);
-      destinations[0] = destination;
-      registerMultiple(_hash, destinations);
+  /**
+   * AddProperty adds a new property to the domain.
+   * @param _name the name of the domain.
+   * @param _property the property string to be added.
+   */
+  function AddProperty(string calldata _name, string calldata _property) external {
+    BNSEntry storage current = names[convert(_name)];
+    require(current.owner == msg.sender && block.number < current.leaseEnd, "This name is not registered by you");
+    current.properties.push(_property);
   }
 
-  function registerMultiple(bytes32 _hash, address[] memory destinations) internal {
-    BNSEntry memory current = names[_hash];
-    require(current.owner == msg.sender || block.number > current.lockEnd, "This name is already taken");
-    current.destination = destinations[0];
-    current.destinations = destinations;
-    current.owner = msg.sender;
-    current.leaseEnd = block.number + 518400;
-    current.lockEnd = block.number + 518400 * 2;
-    names[_hash] = current;
+  /**
+   * DeleteProperty remove a property from the domain.
+   * @param _name the name of the domain.
+   * @param _idx the zero based index of the property to be deleted.
+   */
+  function DeleteProperty(string calldata _name, uint256 _idx) external {
+    BNSEntry storage current = names[convert(_name)];
+    require(current.owner == msg.sender && block.number < current.leaseEnd, "This name is not registered by you");
+    uint256 last = current.properties.length - 1;
+    require(_idx <= last, "Index out of bounds");
+    if (_idx != last) {
+      current.properties[_idx] = current.properties[last];
+    }
+    current.properties.pop();
+  }
+
+  /**
+   * GetProperty retrieves the indexed property of a domain.
+   * @param _name the name of the domain.
+   * @param _idx the zero based index of the property to be retrieved.
+   */
+  function GetProperty(string calldata _name, uint256 _idx) external view returns (string memory) {
+    return resolveEntry(_name).properties[_idx];
+  }
+
+  /**
+   * GetPropertyLength retrieves the number of properties for a domain.
+   * @param _name the name of the domain.
+   */
+  function GetPropertyLength(string calldata _name) external view returns (uint256) {
+    return resolveEntry(_name).properties.length;
+  }
+
+  /**
+   * GetProperties retrieves all properties of a domain.
+   * @param _name the name of the domain.
+   */
+  function GetProperties(string calldata _name) external view returns (string[] memory) {
+    return resolveEntry(_name).properties;
   }
 
   /**
@@ -154,7 +177,7 @@ contract BNS {
    */
   function RegisterReverse(address _address, string calldata _name) external {
     BNSEntry memory entry = resolveEntry(_name);
-    _forwardLookup(_address, entry);
+    forwardLookup(_address, entry);
 
     if (reverse[_address].setter == _address)
       require(msg.sender == _address, "Only the address owner can override an authorized entry.");
@@ -173,11 +196,31 @@ contract BNS {
       return rentry.name;
     }
     BNSEntry memory entry = resolveEntry(rentry.name);
-    _forwardLookup(_address, entry);
+    forwardLookup(_address, entry);
     return rentry.name;
   }
 
-  function _forwardLookup(address _address, BNSEntry memory entry) internal pure {
+  /*******************************************************
+   ***********   INTERNAL FUNCTIONS **********************
+   *******************************************************/
+  function register(bytes32 _hash, address destination) internal {
+      address[] memory destinations = new address[](1);
+      destinations[0] = destination;
+      registerMultiple(_hash, destinations);
+  }
+
+  function registerMultiple(bytes32 _hash, address[] memory destinations) internal {
+    BNSEntry memory current = names[_hash];
+    require(current.owner == msg.sender || block.number > current.lockEnd, "This name is already taken");
+    current.destination = destinations[0];
+    current.destinations = destinations;
+    current.owner = msg.sender;
+    current.leaseEnd = block.number + 518400;
+    current.lockEnd = block.number + 518400 * 2;
+    names[_hash] = current;
+  }
+
+  function forwardLookup(address _address, BNSEntry memory entry) internal pure {
     if (entry.destination != _address) {
       for (uint i = 0; i < entry.destinations.length; i++) {
         if (entry.destinations[i] == _address)
@@ -188,9 +231,6 @@ contract BNS {
     }
   }
 
-  /*******************************************************
-   ***********   INTERNAL FUNCTIONS **********************
-   *******************************************************/
   function convert(string memory name) internal pure returns (bytes32) {
     validate(name);
     return keccak256(bytes(name));
@@ -212,5 +252,14 @@ contract BNS {
         (char == 0x2D), //-
         "Names can only contain: [0-9A-Za-z-]");
     }
+  }
+
+  function resolveEntry(string memory _name) internal view returns (BNSEntry memory) {
+    BNSEntry memory current = names[convert(_name)];
+    if (block.number < current.leaseEnd)
+      return current;
+
+    BNSEntry memory empty;
+    return empty;
   }
 }
