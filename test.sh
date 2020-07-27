@@ -8,7 +8,7 @@ echo "Start ganache-cli pid: $ganachecli_pid and sleep 3 seconds"
 
 sleep 3
 
-npm run test
+make test
 ret=$?
 
 kill -9 $ganachecli_pid

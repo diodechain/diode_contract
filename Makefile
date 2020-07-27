@@ -32,7 +32,8 @@ docs: $(prod)
 
 .PHONY: test
 test: $(test_contracts) $(prod)
-	$(TRUFFLE) test test/solidity_test.js
+	$(TRUFFLE) test
+	# $(TRUFFLE) test test/solidity_test.js
 
 .PHONY: clean
 clean:
