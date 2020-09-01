@@ -1,47 +1,34 @@
 # Diode Contracts
 [![Build Status](https://travis-ci.com/diodechain/diode_contract.svg?branch=master)](https://travis-ci.com/diodechain/diode_contract)
 
-Smart contract for diode chain. It also works on ethereum.
+Smart contracts for diode chain. Ethereum compatible. Can be tested with ganache and diode.
 
-# development
-1. start ganache-cli
-```BASH
-$npm run ganache
-```
+# Development
 
-2. test
-```BASH
-$npm run test
-```
+We using node v12.16.1 (npm v6.14.7) and yarn for development. Best is to use nvm to select right version and get started
 
-2. build contracts
-```BASH
-$npm run build
-```
+## Setup environment:
 
-# mint ERC20 tokens to test accounts
-Remember to private key in `mintTokens.js` and set network properly.
+
 
 ```BASH
-$truffle exec mintTokens.js --network ropsten
+$ nvm use
+$ yarn
 ```
 
-# Airswap ERC20 token to diode chain (diode)
-Remember to change address and private key in `airswap.js` and set network properly.
+## Run tests:
 
 ```BASH
-$truffle exec airswap.js --network ropsten
+$ ./test.sh
 ```
-# Diode Testnet address
-We run some diode nodes in different region. The primary addresses of the nodes are: testnet.diode.io . But you can also check https://diode.io/testnet/#/network for your nearest node.
 
-# Diode Testnet foundation
+## Build deployment contracts
 
-The foundation contract is at 0x10000000000000000000 the owners are:
+```BASH
+$ make clean && make
+```
 
-["0x3b9f7e8d713a83e627b915741b078944ab8a9f35", "0xb80dd8ff9d7c1c81cfa55f0f984b4a9f543a51c6", "0x2e13a61e2be33404976f7e04dd7e99f9ec1f0edf", "0xe5d636dbc4404312456b3f7f490fce0570f23104"]
-
-# Setup device
+# Setup device (outdated)
 
 Before connect to diodechain, you have to setup device to access/device whitelist.
 
