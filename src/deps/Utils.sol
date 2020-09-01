@@ -1,7 +1,7 @@
 // Diode Contracts
 // Copyright 2019 IoT Blockchain Technology Corporation LLC (IBTC)
 // Licensed under the Diode License, Version 1.0
-pragma solidity 0.4.26;
+pragma solidity ^0.6.0;
 
 library Utils {
   // spilit signature
@@ -35,15 +35,17 @@ library Utils {
     return address(_address);
   }
 
+  // addressToBytes32
+  function addressToBytes32(address _address) internal pure returns (bytes32) {
+    bytes32 _bytes;
+    assembly {
+      _bytes := add(_address, 0)
+    }
+    return _bytes;
+  }
+
   // bytes32Hash
   function bytes32Hash(bytes32[] memory _src) internal pure returns (bytes32) {
-    uint256 _srcLen = _src.length;
-    bytes memory _msg = new bytes(32 * _srcLen);
-    for (uint256 i=0; i<_srcLen; i++) {
-      for (uint256 j=0; j<32; j++) {
-        _msg[i * 32 + j] = _src[i][j];
-      }
-    }
-    return keccak256(_msg);
+    return keccak256(abi.encodePacked(_src));
   }
 }

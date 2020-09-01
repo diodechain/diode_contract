@@ -1,20 +1,20 @@
-// Diode Contracts
-// Copyright 2019 IoT Blockchain Technology Corporation LLC (IBTC)
-// Licensed under the Diode License, Version 1.0
-pragma solidity 0.4.26;
+pragma solidity ^0.6.5;
 
 contract Migrations {
   address public owner;
-  uint public last_completed_migration;
 
-  constructor() public {
-    owner = msg.sender;
-  }
+  // A function with the signature `last_completed_migration()`, returning a uint, is required.
+  uint public last_completed_migration;
 
   modifier restricted() {
     if (msg.sender == owner) _;
   }
 
+  constructor() public {
+    owner = msg.sender;
+  }
+
+  // A function with the signature `setCompleted(uint)` is required.
   function setCompleted(uint completed) public restricted {
     last_completed_migration = completed;
   }

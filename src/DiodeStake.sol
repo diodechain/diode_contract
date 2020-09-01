@@ -1,17 +1,13 @@
 // Diode Contracts
 // Copyright 2019 IoT Blockchain Technology Corporation LLC (IBTC)
 // Licensed under the Diode License, Version 1.0
-pragma solidity 0.4.26;
+pragma solidity ^0.6.0;
 
-import "./Utils.sol";
-import "./SafeMath.sol";
-import "./Address.sol";
-/*TEST_IF
-import "./TestFleetContract.sol";
-/*TEST_ELSE*/
+import "./deps/Diode.sol";
+import "./deps/Utils.sol";
+import "./deps/SafeMath.sol";
+import "./deps/Address.sol";
 import "./FleetContract.sol";
-/*TEST_END*/
-
 
 /**
  * DiodeStake
@@ -121,25 +117,15 @@ library Stake {
 contract DiodeStake {
   using Stake for Stake.Data;
   using SafeMath for uint256;
-  using Address for address;
-  address public owner;
-  // diode accountant
-  address /*payable*/ public accountant;
+
+  address private _reserved_1;
+  address private _reserved_2;
   uint256 public stakeCount;
   uint256 public unstakeCount;
-  mapping(address => FleetContract) public delegators;
+  mapping(address => FleetContract) public _reserved_3;
   mapping(address => Stake.Data) private minerStake;
   mapping(address => Stake.Data) private contractStake;
-
-  modifier onlyOwner() {
-    if (msg.sender != owner) revert();
-    _;
-  }
-
-  modifier onlyAccountant() {
-    if (msg.sender != accountant) revert();
-    _;
-  }
+  function _contractStake(FleetContract _fleet) internal view returns (Stake.Data memory) { return contractStake[address(_fleet)]; }
 
   event Staked(
     bool indexed isContract,
@@ -159,74 +145,51 @@ contract DiodeStake {
     uint256 indexed amount
   );
 
-  constructor(address /*payable*/ _accountant) public {
-    owner = msg.sender;
-    accountant = _accountant;
+  constructor() public {
   }
 
-  // for cron job function
-  function DelegateContractCreate(address _owner) public payable onlyAccountant {
-    if (delegators[_owner] != address(0)) revert("Delegate already has a fleet contract");
-    FleetContract _fleetContract = new FleetContract(address(this), _owner, accountant);
-    delegators[_owner] = _fleetContract;
-    ContractStake(address(_fleetContract));
+  modifier onlyAccountant(FleetContract _fleet) {
+    if (!Address.isContract(address(_fleet))) revert("Invalid fleet contract address");
+    address contractAccountant = _fleet.Accountant();
+    if (contractAccountant != msg.sender) revert("Only the fleet accountant can do this");
+
+    _;
   }
 
-  function checkAccountant(address _id) internal view returns(FleetContract) {
-    FleetContract fleetContract = delegators[_id];
-
-    // Handle delegated contracts
-    if (fleetContract != address(0)) {
-      if (accountant != msg.sender) revert ("Only the cron accountant can call this");
-
-    // Handle direct fleet contracts
-    } else {
-      if (!_id.IsContract()) revert("Invalid fleet contract address");
-      fleetContract = FleetContract(_id);
-      address contractAccountant = fleetContract.accountant();
-      if (contractAccountant != msg.sender) revert("Only the fleet accountant can do this");
-    }
-
-    return fleetContract;
-  }
-
-  function ContractValue(uint8 pending, address _id) public view returns (uint256) {
+  function ContractValue(uint8 pending, FleetContract _fleet) public view returns (uint256) {
     if (pending == 0)
-      return contractStake[_id].stakedValue();
+      return _contractStake(_fleet).stakedValue();
     else if (pending == 1)
-      return contractStake[_id].pendingValue();
+      return _contractStake(_fleet).pendingValue();
     else if (pending == 2)
-      return contractStake[_id].lockedValue();
+      return _contractStake(_fleet).lockedValue();
     else if (pending == 3)
-      return contractStake[_id].claimableValue();
+      return _contractStake(_fleet).claimableValue();
     revert("Unhandled argument");
   }
 
-  function ContractStake(address _id) public payable {
-    FleetContract fleetContract = checkAccountant(_id);
-    contractStake[fleetContract] = contractStake[fleetContract].addStake(msg.value);
-    emit Staked(true, fleetContract, msg.value);
+  function ContractStake(FleetContract _fleet) public payable onlyAccountant(_fleet) {
+    contractStake[address(_fleet)] = _contractStake(_fleet).addStake(msg.value);
+    emit Staked(true, address(_fleet), msg.value);
   }
 
-  function _contractValue(address fleetContract) internal view returns(uint256) {
-    return contractStake[fleetContract].stakedValue();
+  function _contractValue(FleetContract _fleet) internal view returns(uint256) {
+    return _contractStake(_fleet).stakedValue();
   }
 
-  function ContractUnstake(address _id, uint256 _value) public {
-    FleetContract fleetContract = checkAccountant(_id);
-    contractStake[fleetContract] = contractStake[fleetContract].subStake(_value);
-    emit Unstaked(true, fleetContract, _value);
+  function ContractUnstake(FleetContract _fleet, uint256 _value) public onlyAccountant(_fleet) {
+    contractStake[address(_fleet)] = _contractStake(_fleet).subStake(_value);
+    emit Unstaked(true, address(_fleet), _value);
   }
 
-  function ContractWithdraw(address _id) public {
-    FleetContract fleetContract = checkAccountant(_id);
-    address /*payable*/ contractAccountant = fleetContract.accountant();
-    Stake.Data storage stake = contractStake[fleetContract];
+  function ContractWithdraw(FleetContract _fleet) public onlyAccountant(_fleet) {
+    address payable contractAccountant = _fleet.Accountant();
+    Stake.Data memory stake = _contractStake(_fleet);
     uint256 _value = stake.claimableValue();
     require(_value > 0, "Can't withdraw 0");
-    contractStake[fleetContract] = stake.claimStake(_value);
+    contractStake[address(_fleet)] = stake.claimStake(_value);
     contractAccountant.transfer(_value);
-    emit Withdrawn(true, fleetContract, _value);
+    emit Withdrawn(true, address(_fleet), _value);
   }
 
   function MinerValue(uint8 pending, address miner) public view returns (uint256) {
@@ -264,8 +227,8 @@ contract DiodeStake {
   }
 
   function MinerWithdraw() public {
-    address /*payable*/ miner = msg.sender;
-    Stake.Data storage stake = minerStake[miner];
+    address payable miner = msg.sender;
+    Stake.Data memory stake = minerStake[miner];
     uint256 _value = stake.claimableValue();
     require(_value > 0, "Can't withdraw 0");
     minerStake[miner] = stake.claimStake(_value);
