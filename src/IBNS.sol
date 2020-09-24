@@ -7,7 +7,7 @@ pragma experimental ABIEncoderV2;
 /**
  * BNS Blockchain Name System
  */
-interface BNSInterface {
+interface IBNS {
   struct BNSEntry {
       address   destination;
       address   owner;

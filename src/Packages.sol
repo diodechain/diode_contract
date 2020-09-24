@@ -5,7 +5,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "./deps/Set.sol";
-import "./BNSInterface.sol";
+import "./IBNS.sol";
 
 /**
  * Drive Smart Contract
@@ -16,7 +16,7 @@ contract Packages {
         bytes32 package_hash; 
     }
 
-    BNSInterface bns;
+    IBNS bns;
     mapping(bytes32 => Package) packages;
 
     modifier onlyDomainOwner(string memory _domain) {
@@ -28,7 +28,7 @@ contract Packages {
         _;
     }
 
-    constructor(BNSInterface _bns) public {
+    constructor(IBNS _bns) public {
         bns = _bns;
     }
 
@@ -56,7 +56,7 @@ contract Packages {
         return packages[convert(_domain, _package_name)].last_update;
     }
 
-    function BNS() external view returns (BNSInterface) {
+    function BNS() external view returns (IBNS) {
         return bns;
     }
 

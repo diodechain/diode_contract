@@ -4,20 +4,12 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
+import "./IBNS.sol";
+
 /**
  * BNS Blockchain Name System
  */
-contract BNS {
-  struct BNSEntry {
-      address   destination;
-      address   owner;
-      string    name;
-      address[] destinations;
-      string[]  properties;
-      uint256   lockEnd;
-      uint256   leaseEnd;
-  }
-
+contract BNS is IBNS {
   address public _reserved;
   mapping(bytes32 => BNSEntry) public names;
 
@@ -28,7 +20,7 @@ contract BNS {
 
   mapping(address => ReverseEntry) public reverse;
 
-  function Version() external pure returns (int) {
+  function Version() external override pure returns (int) {
     return 300;
   }
 
@@ -36,7 +28,7 @@ contract BNS {
    * Resolve `_name` and return one of the registered destinations.
    * @param _name the name to be resolved.
    */
-  function Resolve(string calldata _name) external view returns (address) {
+  function Resolve(string calldata _name) external override view returns (address) {
       BNSEntry memory current = resolveEntry(_name);
       if (current.destinations.length == 0)
         return current.destination;
@@ -48,7 +40,7 @@ contract BNS {
    * Resolve `_name` and return one of the full BNSEntry.
    * @param _name the name to be resolved.
    */
-  function ResolveEntry(string calldata _name) external view returns (BNSEntry memory) {
+  function ResolveEntry(string calldata _name) external override view returns (BNSEntry memory) {
     return resolveEntry(_name);
   }
 
@@ -56,7 +48,7 @@ contract BNS {
    * Resolve `_name` and return the owner.
    * @param _name the name to be resolved.
    */
-  function ResolveOwner(string calldata _name) external view returns (address) {
+  function ResolveOwner(string calldata _name) external override view returns (address) {
     return resolveEntry(_name).owner;
   }
 
@@ -65,7 +57,7 @@ contract BNS {
    * @param _name the name to be created.
    * @param _destination the single destination to be assigned.
    */
-  function Register(string calldata _name, address _destination) external {
+  function Register(string calldata _name, address _destination) external override {
     register(_name, _destination);
   }
 
@@ -74,7 +66,7 @@ contract BNS {
    * @param _name the name to be transferred.
    * @param _newowner the new owner to be assigned.
    */
-  function TransferOwner(string calldata _name, address _newowner) external {
+  function TransferOwner(string calldata _name, address _newowner) external override {
     BNSEntry storage current = names[convert(_name)];
     require(current.owner == msg.sender && block.number < current.leaseEnd, "This name is not registered by you");
     current.owner = _newowner;
@@ -85,7 +77,7 @@ contract BNS {
    * @param _name the name to be changed.
    * @param _newname the new name.
    */
-  function Rename(string calldata _name, string calldata _newname) external {
+  function Rename(string calldata _name, string calldata _newname) external override {
     bytes32 key = convert(_name);
     BNSEntry storage current = names[key];
     require(current.owner == msg.sender && block.number < current.leaseEnd, "This name is not registered by you");
@@ -100,7 +92,7 @@ contract BNS {
    * @param _name the name to be created.
    * @param _destinations array of destinations to be assigned.
    */
-  function RegisterMultiple(string calldata _name, address[] calldata _destinations) external {
+  function RegisterMultiple(string calldata _name, address[] calldata _destinations) external override {
       registerMultiple(_name, _destinations);
   }
 
@@ -128,7 +120,7 @@ contract BNS {
    * Unregister `_name` is a hashed name that is beeing deleted.
    * @param _name the name to be deleted.
    */
-  function Unregister(string calldata _name) external {
+  function Unregister(string calldata _name) external override {
       bytes32 key = convert(_name);
       BNSEntry memory current = names[key];
       require(current.owner == msg.sender || (block.number > current.lockEnd && current.lockEnd > 0), "This name is not yours to unregister");
@@ -150,7 +142,7 @@ contract BNS {
    * @param _name the name of the domain.
    * @param _property the property string to be added.
    */
-  function AddProperty(string calldata _name, string calldata _property) external {
+  function AddProperty(string calldata _name, string calldata _property) external override {
     BNSEntry storage current = names[convert(_name)];
     require(current.owner == msg.sender && block.number < current.leaseEnd, "This name is not registered by you");
     current.properties.push(_property);
@@ -161,7 +153,7 @@ contract BNS {
    * @param _name the name of the domain.
    * @param _idx the zero based index of the property to be deleted.
    */
-  function DeleteProperty(string calldata _name, uint256 _idx) external {
+  function DeleteProperty(string calldata _name, uint256 _idx) external override {
     BNSEntry storage current = names[convert(_name)];
     require(current.owner == msg.sender && block.number < current.leaseEnd, "This name is not registered by you");
     uint256 last = current.properties.length - 1;
@@ -177,7 +169,7 @@ contract BNS {
    * @param _name the name of the domain.
    * @param _idx the zero based index of the property to be retrieved.
    */
-  function GetProperty(string calldata _name, uint256 _idx) external view returns (string memory) {
+  function GetProperty(string calldata _name, uint256 _idx) external override view returns (string memory) {
     return resolveEntry(_name).properties[_idx];
   }
 
@@ -185,7 +177,7 @@ contract BNS {
    * GetPropertyLength retrieves the number of properties for a domain.
    * @param _name the name of the domain.
    */
-  function GetPropertyLength(string calldata _name) external view returns (uint256) {
+  function GetPropertyLength(string calldata _name) external override view returns (uint256) {
     return resolveEntry(_name).properties.length;
   }
 
@@ -193,7 +185,7 @@ contract BNS {
    * GetProperties retrieves all properties of a domain.
    * @param _name the name of the domain.
    */
-  function GetProperties(string calldata _name) external view returns (string[] memory) {
+  function GetProperties(string calldata _name) external override view returns (string[] memory) {
     return resolveEntry(_name).properties;
   }
 
@@ -204,7 +196,7 @@ contract BNS {
    * @param _name the name to be created.
    * @param _address the single destination to be assigned.
    */
-  function RegisterReverse(address _address, string calldata _name) external {
+  function RegisterReverse(address _address, string calldata _name) external override {
     BNSEntry memory entry = resolveEntry(_name);
     forwardLookup(_address, entry);
 
@@ -219,7 +211,7 @@ contract BNS {
    * been created before using `RegisterReverse(address,string)`.
    * @param _address the name to be created.
    */
-  function ResolveReverse(address _address) external view returns (string memory) {
+  function ResolveReverse(address _address) external override view returns (string memory) {
     ReverseEntry memory rentry = reverse[_address];
     if (bytes(rentry.name).length == 0) {
       return rentry.name;
