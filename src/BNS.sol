@@ -131,7 +131,7 @@ contract BNS {
   function Unregister(string calldata _name) external {
       bytes32 key = convert(_name);
       BNSEntry memory current = names[key];
-      require(current.owner == msg.sender || block.number > current.lockEnd, "This name is not yours to unregister");
+      require(current.owner == msg.sender || (block.number > current.lockEnd && current.lockEnd > 0), "This name is not yours to unregister");
       delete names[key];
   }
 
@@ -242,7 +242,7 @@ contract BNS {
     bytes32 _hash = convert(_name);
 
     BNSEntry memory current = names[_hash];
-    require(current.owner == msg.sender || block.number > current.lockEnd, "This name is already taken");
+    require(current.owner == msg.sender || current.owner == address(0) || (block.number > current.lockEnd && current.lockEnd > 0), "This name is already taken");
     current.destination = destinations[0];
     current.destinations = destinations;
     current.owner = msg.sender;
