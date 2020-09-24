@@ -32,7 +32,6 @@ contract('Create2Test', async function (accounts) {
 
         await test2.executeCreate();
         let result2 = await test2.result();
-        console.log(result2)
         assert.equal(result2, "0x468f390402669E3dF953E180aF63F06d6fBEF8C5")
 
         await test2.executeCreate2();

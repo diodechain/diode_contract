@@ -31,9 +31,8 @@ contract DriveFactory {
         address payable addr;
         // These are the first two arguments of Proxy(_target, _owner)
         bytes memory code = abi.encodePacked(
-            _target,
-            _owner,
-            type(Proxy).creationCode
+            type(Proxy).creationCode,
+            abi.encode(_target, _owner)
         );
         bytes32 salt = keccak256(abi.encodePacked(_salt, msg.sender));
 
@@ -54,7 +53,10 @@ contract DriveFactory {
         address _target
     ) public view returns (address) {
         bytes32 contractCodeHash = keccak256(
-            abi.encodePacked(_target, _owner, type(Proxy).creationCode)
+            abi.encodePacked(
+                type(Proxy).creationCode,
+                abi.encode(_target, _owner)
+            )
         );
         bytes32 salt = keccak256(abi.encodePacked(_salt, msg.sender));
 
