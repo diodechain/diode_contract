@@ -10,14 +10,14 @@ library Set {
     address[] items;
   }
 
-  function add(Data storage self, address _item) public {
+  function add(Data storage self, address _item) internal {
       if (isMember(self, _item)) {
           return;
       }
       self.items.push(_item);
       self.indexes[_item] = self.items.length;
   }
-  function remove(Data storage self, address _item) public {
+  function remove(Data storage self, address _item) internal {
       uint256 idx = self.indexes[_item];
       if (idx == 0) {
           return;
@@ -31,10 +31,10 @@ library Set {
       }
       self.items.pop();
   }
-  function isMember(Data storage self, address _item) public view returns (bool) {
+  function isMember(Data storage self, address _item) internal view returns (bool) {
       return self.indexes[_item] > 0;
   }
-  function members(Data storage self) public view returns (address[] storage) {
+  function members(Data storage self) internal view returns (address[] storage) {
     return self.items;
   }
 }

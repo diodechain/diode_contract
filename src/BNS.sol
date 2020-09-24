@@ -29,7 +29,7 @@ contract BNS {
   mapping(address => ReverseEntry) public reverse;
 
   function Version() external pure returns (int) {
-    return 100;
+    return 300;
   }
 
   /**
@@ -50,6 +50,14 @@ contract BNS {
    */
   function ResolveEntry(string calldata _name) external view returns (BNSEntry memory) {
     return resolveEntry(_name);
+  }
+
+  /**
+   * Resolve `_name` and return the owner.
+   * @param _name the name to be resolved.
+   */
+  function ResolveOwner(string calldata _name) external view returns (address) {
+    return resolveEntry(_name).owner;
   }
 
   /**
