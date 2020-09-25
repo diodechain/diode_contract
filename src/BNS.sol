@@ -21,7 +21,7 @@ contract BNS is IBNS {
   mapping(address => ReverseEntry) public reverse;
 
   function Version() external override pure returns (int) {
-    return 300;
+    return 310;
   }
 
   /**
