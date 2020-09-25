@@ -68,7 +68,7 @@ contract BNS is IBNS {
    */
   function TransferOwner(string calldata _name, address _newowner) external override {
     BNSEntry storage current = names[convert(_name)];
-    require(current.owner == msg.sender && block.number < current.leaseEnd, "This name is not registered by you");
+    requireOnlyOwner(current);
     current.owner = _newowner;
   }
 
@@ -80,9 +80,9 @@ contract BNS is IBNS {
   function Rename(string calldata _name, string calldata _newname) external override {
     bytes32 key = convert(_name);
     BNSEntry storage current = names[key];
-    require(current.owner == msg.sender && block.number < current.leaseEnd, "This name is not registered by you");
+    requireOnlyOwner(current);
     BNSEntry storage newentry = names[convert(_newname)];
-    require(block.number > newentry.lockEnd, "This name is not registered by you");
+    require(!isLocked(newentry), "The new name is not available you");
     newentry = current;
     delete names[key];
   }
@@ -123,7 +123,7 @@ contract BNS is IBNS {
   function Unregister(string calldata _name) external override {
       bytes32 key = convert(_name);
       BNSEntry memory current = names[key];
-      require(current.owner == msg.sender || (block.number > current.lockEnd && current.lockEnd > 0), "This name is not yours to unregister");
+      require(current.owner == msg.sender || !isLocked(current), "This name is not yours to unregister");
       delete names[key];
   }
 
@@ -144,7 +144,7 @@ contract BNS is IBNS {
    */
   function AddProperty(string calldata _name, string calldata _property) external override {
     BNSEntry storage current = names[convert(_name)];
-    require(current.owner == msg.sender && block.number < current.leaseEnd, "This name is not registered by you");
+    requireOnlyOwner(current);
     current.properties.push(_property);
   }
 
@@ -155,7 +155,7 @@ contract BNS is IBNS {
    */
   function DeleteProperty(string calldata _name, uint256 _idx) external override {
     BNSEntry storage current = names[convert(_name)];
-    require(current.owner == msg.sender && block.number < current.leaseEnd, "This name is not registered by you");
+    requireOnlyOwner(current);
     uint256 last = current.properties.length - 1;
     require(_idx <= last, "Index out of bounds");
     if (_idx != last) {
@@ -193,17 +193,29 @@ contract BNS is IBNS {
    * RegisterReverse sets at reverse lookup entry from `_address` to `_name`.
    * This requires an existing forward lookup from `_name` to `_address`.
    *
-   * @param _name the name to be created.
    * @param _address the single destination to be assigned.
+   * @param _name the name to be set.
    */
   function RegisterReverse(address _address, string calldata _name) external override {
     BNSEntry memory entry = resolveEntry(_name);
     forwardLookup(_address, entry);
 
-    if (reverse[_address].setter == _address)
-      require(msg.sender == _address, "Only the address owner can override an authorized entry.");
+    if (reverse[_address].setter != address(0))
+      require(msg.sender == _address || msg.sender == reverse[_address].setter, "Only the address owner can override an owned entry.");
 
     reverse[_address] = ReverseEntry(_name, msg.sender);
+  }
+
+  /**
+   * UnregisterReverse deletes at reverse lookup entry for `_address`
+   *
+   * @param _address the single destination to be assigned.
+   */
+  function UnregisterReverse(address _address) external override {
+    if (reverse[_address].setter != address(0))
+      require(msg.sender == _address || msg.sender == reverse[_address].setter, "Only the address owner can unregister an owned entry.");
+
+    delete reverse[_address];
   }
 
   /**
@@ -222,8 +234,32 @@ contract BNS is IBNS {
   }
 
   /*******************************************************
+   ***********   TEST FUNCTIONS     **********************
+   *******************************************************/
+  /*TEST_IF
+  function UnlimitedLease(string calldata _name) external {
+    BNSEntry storage current = names[convert(_name)];
+    // requireOnlyOwner(current);
+    current.leaseEnd = 0;
+    current.lockEnd = 0;
+  }
+  /*TEST_END*/
+
+  /*******************************************************
    ***********   INTERNAL FUNCTIONS **********************
    *******************************************************/
+  function requireOnlyOwner(BNSEntry storage current) internal view {
+    require(current.owner == msg.sender && (current.leaseEnd == 0 || block.number < current.leaseEnd), "This name is not registered by you, or it's lease has ended");
+  }
+
+  function isOwned(BNSEntry memory current) internal view returns (bool) {
+    return block.number < current.leaseEnd || (current.leaseEnd == 0 && current.owner != address(0));
+  }
+
+  function isLocked(BNSEntry memory current) internal view returns (bool) {
+    return block.number < current.lockEnd || (current.lockEnd == 0 && current.owner != address(0));
+  }
+
   function register(string memory _name, address destination) internal {
       address[] memory destinations = new address[](1);
       destinations[0] = destination;
@@ -234,7 +270,7 @@ contract BNS is IBNS {
     bytes32 _hash = convert(_name);
 
     BNSEntry memory current = names[_hash];
-    require(current.owner == msg.sender || current.owner == address(0) || (block.number > current.lockEnd && current.lockEnd > 0), "This name is already taken");
+    require(current.owner == msg.sender || !isLocked(current), "This name is already taken");
     current.destination = destinations[0];
     current.destinations = destinations;
     current.owner = msg.sender;
@@ -280,7 +316,7 @@ contract BNS is IBNS {
 
   function resolveEntry(string memory _name) internal view returns (BNSEntry memory) {
     BNSEntry memory current = names[convert(_name)];
-    if (block.number < current.leaseEnd)
+    if (isOwned(current))
       return current;
 
     BNSEntry memory empty;

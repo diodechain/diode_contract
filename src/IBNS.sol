@@ -113,6 +113,14 @@ interface IBNS {
    * @param _address the single destination to be assigned.
    */
   function RegisterReverse(address _address, string calldata _name) external;
+
+  /**
+   * UnregisterReverse deletes at reverse lookup entry for `_address`
+   *
+   * @param _address the single destination to be assigned.
+   */
+  function UnregisterReverse(address _address) external;
+
   /**
    * ResolveReverse resolves `_address` into a single name if a reverse lookup entry has
    * been created before using `RegisterReverse(address,string)`.
