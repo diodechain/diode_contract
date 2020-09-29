@@ -27,7 +27,7 @@ contracts/%.sol: test/%.sol contracts/deps
 	cp $< $@
 
 .PHONY: compile
-compile: $(prod) $(test_contracts)
+compile: $(prod)
 	$(TRUFFLE) compile
 
 .PHONY: migrate

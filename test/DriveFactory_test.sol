@@ -27,36 +27,15 @@ contract DriveFactoryTest {
         number1 = address(new Dummy());
     }
 
-    function checkCreate() public {
-        address raw = factory.Create(payable(address(this)), address(version1));
-        Drive drive = Drive(raw);
-        Proxy proxy = Proxy(payable(raw));
-
-        drive.AddMember(number1, RoleType.Admin);
-
-        // Factory created contract should work normally
-        Assert.equal(drive.Version(), 100, "Version() should be equal 100");
-        acceptanceTest(drive);
-
-        // Upgrade
-        proxy._proxy_set_target(address(version2));
-        
-        // and test again
-        Assert.equal(drive.Version(), 200, "Version() should be equal 200");
-        acceptanceTest(drive);
-    }
-
     function checkCreate2() public {
         bytes32 salt = hex"0011001100110011001100110011001100110011001100110011001100110011";
-        address should = factory.Create2Address(payable(address(this)), salt, address(version1));
-        address raw = factory.Create2(payable(address(this)), salt, address(version1));
+        address should = factory.Create2Address(salt);
+        address raw = factory.Create(payable(address(this)), salt, address(version1));
 
         Assert.notEqual(raw, address(0), "Create2() should not return 0");
         Assert.equal(raw, should, "Create2() and Create2Address() should return the same address");
 
-
         Drive drive = Drive(raw);
-        Proxy proxy = Proxy(payable(raw));
 
         drive.AddMember(number1, RoleType.Admin);
 
@@ -65,7 +44,7 @@ contract DriveFactoryTest {
         acceptanceTest(drive);
 
         // Upgrade
-        proxy._proxy_set_target(address(version2));
+        factory.Upgrade(salt, address(version2));
         
         // and test again
         Assert.equal(drive.Version(), 200, "Version() should be equal 200");

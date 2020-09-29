@@ -11,19 +11,12 @@ import "./Proxy.sol";
  */
 interface IInitializable {
     function initialize(address payable _owner) external;
+
+    function owner() external view returns (address payable);
 }
 
 contract DriveFactory {
-    function Create(address payable _owner, address _target)
-        public
-        returns (address)
-    {
-        address addr = address(new Proxy(_target, _owner));
-        IInitializable(addr).initialize(_owner);
-        return addr;
-    }
-
-    function Create2(
+    function Create(
         address payable _owner,
         bytes32 _salt,
         address _target
@@ -32,39 +25,42 @@ contract DriveFactory {
         // These are the first two arguments of Proxy(_target, _owner)
         bytes memory code = abi.encodePacked(
             type(Proxy).creationCode,
-            abi.encode(_target, _owner)
+            abi.encode(address(0), address(this))
         );
-        bytes32 salt = keccak256(abi.encodePacked(_salt, msg.sender));
-
         assembly {
-            addr := create2(0, add(code, 0x20), mload(code), salt)
+            addr := create2(0, add(code, 0x20), mload(code), _salt)
             if iszero(extcodesize(addr)) {
                 revert(0, 0)
             }
         }
 
+        Proxy(addr)._proxy_set_target(_target);
         IInitializable(addr).initialize(_owner);
         return addr;
     }
 
-    function Create2Address(
-        address payable _owner,
-        bytes32 _salt,
-        address _target
-    ) public view returns (address) {
+    function Upgrade(bytes32 _salt, address _target) public {
+        address addr = Create2Address(_salt);
+
+        require(
+            IInitializable(addr).owner() == msg.sender,
+            "only the owner can upgrade"
+        );
+        Proxy(payable(addr))._proxy_set_target(_target);
+    }
+
+    function Create2Address(bytes32 _salt) public view returns (address) {
         bytes32 contractCodeHash = keccak256(
             abi.encodePacked(
                 type(Proxy).creationCode,
-                abi.encode(_target, _owner)
+                abi.encode(address(0), address(this))
             )
         );
-        bytes32 salt = keccak256(abi.encodePacked(_salt, msg.sender));
-
         bytes32 rawAddress = keccak256(
             abi.encodePacked(
                 bytes1(0xff),
                 address(this),
-                salt,
+                _salt,
                 contractCodeHash
             )
         );
