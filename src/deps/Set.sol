@@ -30,9 +30,14 @@ library Set {
         self.indexes[lastItem] = idx;
       }
       self.items.pop();
+      delete self.indexes[_item];
   }
   function isMember(Data storage self, address _item) internal view returns (bool) {
-      return self.indexes[_item] > 0;
+      uint256 idx = self.indexes[_item];
+      if (idx == 0 || idx > self.items.length) {
+        return false;
+      }
+      return self.items[idx - 1] == _item;
   }
   function members(Data storage self) internal view returns (address[] storage) {
     return self.items;
