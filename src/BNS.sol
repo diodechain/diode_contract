@@ -21,7 +21,7 @@ contract BNS is IBNS {
   mapping(address => ReverseEntry) public reverse;
 
   function Version() external override pure returns (int) {
-    return 310;
+    return 311;
   }
 
   /**
@@ -307,11 +307,12 @@ contract BNS is IBNS {
 
       require(
         (char >= 0x30 && char <= 0x39) || //9-0
-        (char >= 0x41 && char <= 0x5A) || //A-Z
         (char >= 0x61 && char <= 0x7A) || //a-z
         (char == 0x2D), //-
-        "Names can only contain: [0-9A-Za-z-]");
+        "Names can only contain: [0-9a-z-]");
     }
+
+    require(b[0] != 0x2D && b[b.length-1] != 0x2D, "Names can't start or end with '-'");
   }
 
   function resolveEntry(string memory _name) internal view returns (BNSEntry memory) {

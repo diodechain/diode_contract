@@ -34,10 +34,16 @@ contract BNSTest {
         return Assert.ok(success, "Registering should succeed");
     }
 
-    function checkShortnameReverts () public returns (bool) {
-        string memory name = "short";
+    function checkInvalidNamesRevert () public {
+        fail("short", "registering a too short name should revert");
+        fail("0123456789012345678901234567890123456789", "registering a too long name should revert");
+        fail("-loooooooong", "registering a name beginning with - should revert");
+        fail("loooooooong-", "registering a name ending with - should revert");
+    }
+
+    function fail(string memory name, string memory message) internal {
         bool success = _register(name, msg.sender);
-        Assert.notOk(success, "registering a too short name should revert");
+        Assert.notOk(success, message);        
     }
 
     function checkDoubleRegister() public {
@@ -94,7 +100,7 @@ contract BNSTest {
     }
 
     function checkDoubleRegisterUnlimited() public {
-        string memory name = "sample-name-Unlimited";
+        string memory name = "sample-name-unlimited";
         Assert.equal(_register(name, msg.sender), true, "registering once should work");
         instance.UnlimitedLease(name);
         Assert.equal(instance.Resolve(name), msg.sender, "name should resolve to msg.sender");
@@ -104,7 +110,7 @@ contract BNSTest {
     }
 
     function checkReRegisterFailsUnlimited() public {
-        string memory name = "sample-name-Unlimited";
+        string memory name = "sample-name-unlimited";
         address prev = instance.Resolve(name);
         address test = address(msg.sender);
         Assert.notEqual(prev, test, "before test runs prev and test should not be equal");
@@ -114,7 +120,7 @@ contract BNSTest {
     }
 
     function checkReverseUnlimited() public {
-        string memory name = "sample-name-Unlimited";
+        string memory name = "sample-name-unlimited";
 
         // Setting up registered name to points to two different addresses
         address[] memory addresses = new address[](2);
@@ -139,7 +145,7 @@ contract BNSTest {
         Assert.equal(name, instance.ResolveReverse(address(this)), "ResolveReverse(address(this)) should match address");
 
         // Overriding should be protected for address(this)
-        string memory name2 = "sample-name2-Unlimited";
+        string memory name2 = "sample-name2-unlimited";
         instance.RegisterMultiple(name2, addresses);
         instance.UnlimitedLease(name2);
 
@@ -177,7 +183,7 @@ contract BNSTest {
     }
 
     function checkPropertiesUnlimited() public {
-        string memory name = "sample-name-props-Unlimited";
+        string memory name = "sample-name-props-unlimited";
 
         // Setting up registered name
         instance.Register(name, address(this));
