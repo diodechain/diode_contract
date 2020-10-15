@@ -45,6 +45,11 @@ test: $(test_contracts) $(prod)
 	$(TRUFFLE) test
 	# $(TRUFFLE) test test/solidity_test.js
 
+.PHONY: compile_test
+compile_test: PRE := sed -e 's:TEST_IF:TEST_IF\*/:g' -e 's:TEST_ELSE\*/:TEST_ELSE:g'
+compile_test: $(test_contracts) $(prod)
+	$(TRUFFLE) compile
+
 .PHONY: clean
 clean:
 	-rm -rf build contracts

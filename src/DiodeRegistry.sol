@@ -496,8 +496,8 @@ contract DiodeRegistry is DiodeStake {
     ret[0] = '0';
     ret[1] = 'x';
     for (uint i = 0; i < 20; i++) {
-      ret[2*i+2] = hexchars[uint8(b[i]) % 16];
-      ret[2*i+3] = hexchars[uint8(b[i]) / 16];
+      ret[2*i+2] = hexchars[uint8(b[i]) / 16];
+      ret[2*i+3] = hexchars[uint8(b[i]) % 16];
     }
     return ret;
   }
