@@ -168,12 +168,13 @@ contract DiodeRegistry is DiodeStake {
     return fee;
   }
 
-  /**
-   * blockReward() -- needs to be called every block.
-   */
+  /*TEST_IF
+  /*TEST_ELSE*/
+  // blockReward() -- needs to be called every block.
   function blockReward(uint256 _gasUsed, uint256 _weiSpent) external onlyMiner {
     _blockReward(_gasUsed, _weiSpent);
   }
+  /*TEST_END*/
 
   /**
    * blockReward() -- needs to be called every block.
@@ -183,7 +184,7 @@ contract DiodeRegistry is DiodeStake {
   }
 
   /**
-   * blockReward() -- needs to be called every block.
+   * _blockReward() -- needs to be called every block.
    */
   function _blockReward(uint256 _gasUsed, uint256 _weiSpent) internal {
     // Calculcating per epoch service rewards
