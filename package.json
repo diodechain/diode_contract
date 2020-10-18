@@ -29,7 +29,8 @@
     "compile": "truffle compile",
     "deploy": "truffle deploy",
     "migrate": "truffle migrate",
-    "docs": "solidity-docgen"
+    "docs": "solidity-docgen",
+    "lint": "solhint src/**/*.sol"
   },
   "repository": {
     "type": "git",
@@ -38,5 +39,8 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "homepage": "https://bitbucket.org/diode01/poc-contract#readme"
+  "homepage": "https://bitbucket.org/diode01/poc-contract#readme",
+  "devDependencies": {
+    "solhint": "^3.2.2"
+  }
 }
