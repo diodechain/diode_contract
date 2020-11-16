@@ -2,8 +2,10 @@ pragma solidity ^0.6.5;
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/Drive.sol";
+import "../contracts/DriveInvites.sol";
 
 contract DriveTest {
+    DriveInvites invites;
     Drive drive;
     address number1;
     address number2;
@@ -11,9 +13,10 @@ contract DriveTest {
 
     constructor() public {
         drive = new Drive();
+        invites = new DriveInvites();
         number1 = address(new CallForwarder(address(drive)));
         number2 = address(new CallForwarder(address(drive)));
-        number3 = address(new CallForwarder(address(drive)));
+        number3 = address(new CallForwarder(address(invites)));
     }
 
     function checkOwner() public {
@@ -38,6 +41,18 @@ contract DriveTest {
 
     function checkMember() public view {
         Assert.ok(drive.Role(number2) == RoleType.Member, "number2 should be RoleMember");
+    }
+
+    function checkInvite() public {
+        Assert.equal(address(this), drive.owner(), "address(this) should be owner");
+        invites.Invite(drive, number3);
+        
+        address[] memory none  = invites.Invites();
+        Assert.equal(none.length, 0, "This should have no invites");
+        address[] memory recvd = DriveInvites(number3).Invites();
+        Assert.equal(recvd.length, 1, "number3 should have 1 invite");
+        Assert.equal(recvd[0], address(drive), "number3s invites should be for drive");
+
     }
 
 
