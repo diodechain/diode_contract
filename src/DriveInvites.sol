@@ -12,24 +12,33 @@ import "./IDrive.sol";
  * On-Chain invites for asynchronous eventing
  */
 
+interface IDriveFactory {
+    function Create2Address(bytes32 _salt) external view returns (IDrive);
+}
+
 contract DriveInvites {
     using Set for Set.Data;
 
     mapping(address => Set.Data) invites;
 
     // To be called by drive contract (msg.sender)
-    function Invite(IDrive drive, address whom) public {
-        require(drive.Role(msg.sender) >= RoleType.Admin, "Only Admins can invite");
-        invites[whom].add(address(drive));
+    function Invite(address driveId, address whom) public {
+        require(driveId != address(0), "driveId can't be zero");
+        require(factory() != IDriveFactory(0), "factory() can't be zero");
+        IDrive drive = factory().Create2Address(bytes32(uint256(driveId)));
+        // require(drive != IDrive(0), "drive can't be zero");
+        // require(drive.Role(msg.sender) >= RoleType.Admin, "Only Admins can invite");
+        invites[whom].add(driveId);
     }
 
     // To be called by drive contract (msg.sender)
-    function Uninvite(IDrive drive, address whom) public {
+    function Uninvite(address driveId, address whom) public {
+        IDrive drive = factory().Create2Address(bytes32(uint256(driveId)));
         require(
             drive.Role(msg.sender) >= RoleType.Admin,
             "Only Admins can manage invites"
         );
-        invites[whom].remove(address(drive));
+        invites[whom].remove(driveId);
     }
 
     // Called by the invitess to check (user)
@@ -38,7 +47,16 @@ contract DriveInvites {
     }
 
     // Called by the invitess to remove an invite after use (user)
-    function PopInvite(address invite) public {
-        return invites[msg.sender].remove(invite);
+    function PopInvite(address driveId) public {
+        return invites[msg.sender].remove(driveId);
     }
+
+    // ######## ######## ######## ######## ######## ######## ######## ######## ########
+    // ######## ######## ########   Internal only functions  ######## ######## ########
+    // ######## ######## ######## ######## ######## ######## ######## ######## ########
+
+    function factory() internal virtual view returns (IDriveFactory) {
+        return IDriveFactory(0x932ca256C8F912A9BaFAAf4bD598FCD22b8E21b7);
+    }
+
 }

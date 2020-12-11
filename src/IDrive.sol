@@ -39,4 +39,8 @@ interface IDrive {
         bytes32 r,
         bytes32 s
     ) external;
+
+    function Name() external returns (string memory);
+
+    function Migrate() external;
 }

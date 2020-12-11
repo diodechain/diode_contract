@@ -4,6 +4,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
+import "./IBNS.sol";
 import "./IDrive.sol";
 import "./deps/OwnableInitializable.sol";
 import "./deps/Set.sol";
@@ -19,6 +20,8 @@ contract Drive is OwnableInitializable, IDrive {
 
     address password_address;
     uint256 password_nonce;
+    bytes   bns_name;
+    uint256 bns_members;
 
     modifier onlyAdmin {
         require(
@@ -34,7 +37,7 @@ contract Drive is OwnableInitializable, IDrive {
     }
 
     function Version() external virtual override pure returns (int256) {
-        return 100;
+        return 110;
     }
 
     function AddMember(address _member) external override onlyAdmin {
@@ -97,22 +100,59 @@ contract Drive is OwnableInitializable, IDrive {
         roles[msg.sender] = RoleType.Member;
     }
 
+    function Name() public override returns (string memory) {
+        if (bns_name.length == 0) {
+            bns_name = abi.encodePacked("drive-", encode(uint160(address(this))));
+        }
+        return string(bns_name);
+    }
+
+    function Migrate() public override {
+        add(owner(), RoleType.Owner);
+        register();
+    }
+
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
     // ######## ######## ########   Internal only functions  ######## ######## ########
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
 
+    function bns() internal virtual view returns (IBNS) {
+        return IBNS(0xaF60fAA5cd840b724742f1AF116168276112d6A6);
+    }
+
+    function register() internal {
+        uint256 size = members.size();
+        if (size > 0 && size != bns_members && bns() != IBNS(0)) {
+            bns().RegisterMultiple(Name(), members.members());
+            bns_members = size;
+        }
+    }
+
     function add(address _member, uint256 _role) internal {
         members.add(_member);
         roles[_member] = _role;
+        register();
     }
 
     function remove(address _member) internal {
         members.remove(_member);
         delete roles[_member];
+        register();
     }
 
     function role(address _member) internal view returns (uint256) {
         if (_member == owner()) return RoleType.Owner;
         return roles[_member];
     }
+
+    bytes constant chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+    function encode(uint160 _arg) internal pure returns (bytes memory) {
+        bytes memory ret = new bytes(20);
+        for (uint i = 0; i < 20; i++) {
+            ret[i] = chars[_arg % 36];
+            _arg = _arg / 36;
+        }
+        return ret;
+    }
+
 }

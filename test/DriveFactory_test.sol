@@ -1,27 +1,34 @@
 pragma solidity ^0.6.5;
 import "./Assert.sol";
 import "./CallForwarder.sol";
+import "../contracts/BNS.sol";
 import "../contracts/DriveFactory.sol";
 import "../contracts/Drive.sol";
 
-contract Drive2 is Drive {
-    function Version() external override pure returns (int256) {
-        return 200;
-    }
+contract TestDrive is Drive {
+    BNS bns_addr;
+    constructor(BNS _bns) Drive() public { bns_addr = _bns; }
+    function bns() internal override view returns (IBNS) { return bns_addr; }
+}
+
+contract TestDrive2 is TestDrive {
+    constructor(BNS _bns) TestDrive(_bns) public {}
+    function Version() external override pure returns (int256) { return 200; }
 }
 
 contract Dummy {
 }
 
 contract DriveFactoryTest {
-    Drive version1;
-    Drive version2;
+    BNS bns;
+    TestDrive version1;
+    TestDrive version2;
     address number1;
     DriveFactory factory;
 
     constructor() public {
-        version1 = new Drive();
-        version2 = new Drive2();
+        version1 = new TestDrive(bns);
+        version2 = new TestDrive2(bns);
         factory = new DriveFactory();
     
         number1 = address(new Dummy());
@@ -40,7 +47,7 @@ contract DriveFactoryTest {
         drive.AddMember(number1, RoleType.Admin);
 
         // Factory created contract should work normally
-        Assert.equal(drive.Version(), 100, "Version() should be equal 100");
+        Assert.equal(drive.Version(), 110, "Version() should be equal 110");
         acceptanceTest(drive);
 
         // Upgrade
