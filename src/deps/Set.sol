@@ -42,4 +42,7 @@ library Set {
   function members(Data storage self) internal view returns (address[] storage) {
     return self.items;
   }
+  function size(Data storage self) internal view returns (uint256) {
+    return self.items.length;
+  }
 }
