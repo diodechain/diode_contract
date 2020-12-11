@@ -59,6 +59,12 @@ contract TokenVestingNative is Ownable {
         _start = start;
     }
 
+
+    /**
+     * Allowing later fund additions
+     */
+    receive() external payable { }
+
     /**
      * @return the beneficiary of the tokens.
      */
