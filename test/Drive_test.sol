@@ -29,6 +29,7 @@ contract DriveTest {
     address number1;
     address number2;
     address number3;
+    address number4;
 
     constructor() public {
         bns = new BNS();
@@ -43,6 +44,7 @@ contract DriveTest {
         number1 = address(new CallForwarder(address(drive)));
         number2 = address(new CallForwarder(address(drive)));
         number3 = address(new CallForwarder(address(invites)));
+        number4 = address(new CallForwarder(address(drive)));
     }
 
     function checkOwner() public {
@@ -97,5 +99,23 @@ contract DriveTest {
         for (uint i = 0; i < members.length; i++) {
             Assert.equal(results[i], members[i], "name should resolve to drive members");
         }
+    }
+
+    function checkJoin() public {
+        // This is a pregenerated signature, during test runs the msg.sender() check
+        // in Drive.sol is disabled (fixed to 0) to make this possible with dynamic accounts
+        // Password: lol => 0x2B502D064Bd908805EA02E6A6F799c11F87AeCcc
+        address pass = address(0x2B502D064Bd908805EA02E6A6F799c11F87AeCcc);
+        uint8 rec = 27;
+        bytes32 r = bytes32(0x0a81ebd45fca048189ad7c022750a55d4d506a10d34164183e207d71c4350b98);
+        bytes32 s = bytes32(0x5617d73d70019ccb2612aba50f32d4a965b02d095d2b4f78b828e0e24ba9f8a0);
+        
+        drive.SetPasswordPublic(pass);
+        Drive(number4).Join(rec, r, s);
+
+        address[] memory members = drive.Members();
+        Assert.equal(members.length, 4, "Members() should return four members");
+        Assert.equal(members[3], number4, "members[3] should be the number4");
+
     }
 }

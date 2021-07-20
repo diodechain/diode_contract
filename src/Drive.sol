@@ -37,7 +37,7 @@ contract Drive is OwnableInitializable, IDrive {
     }
 
     function Version() external virtual override pure returns (int256) {
-        return 110;
+        return 120;
     }
 
     function AddMember(address _member) external override onlyAdmin {
@@ -87,11 +87,17 @@ contract Drive is OwnableInitializable, IDrive {
         bytes32 s
     ) external override {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        /*TEST_IF
+        bytes32 prefixedHash = keccak256(
+            abi.encodePacked(prefix, address(0), password_nonce)
+        );
+        /*TEST_ELSE*/
         bytes32 prefixedHash = keccak256(
             abi.encodePacked(prefix, msg.sender, password_nonce)
         );
+        /*TEST_END*/
         require(
-            ecrecover(prefixedHash, v, r, s) != password_address,
+            ecrecover(prefixedHash, v, r, s) == password_address,
             "Invalid signatue"
         );
 

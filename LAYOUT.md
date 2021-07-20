@@ -3,6 +3,7 @@
 Files are compiled with 
 
     - 0.6.5+commit.f956cc89
+    - EVM Version: constantinople
     - Enable optimization: 200 iters
     - Deployment address: 0xb80dd8fF9D7C1c81Cfa55F0F984B4a9f543a51c6
 
@@ -38,6 +39,7 @@ DRIVEFACTORY:
     0xdaF5509Cc5c63E589f101D9435900A156CEd2812 DriveFactory.sol V0
 
 DRIVE:
+    0x2B013fFDEAb11A564B6212b6a653C72E215b57eC Drive.sol V120
     0x08777ef6A3514B73fD08593915B9f98d5ce823D0 Drive.sol V110
     0x10c10974b9e0549c6ec43ac59e75399dacbbc782 Drive.sol V100
     0x2B1b31917204444456bbfa699c91627e10DfE646 Drive.sol V1
