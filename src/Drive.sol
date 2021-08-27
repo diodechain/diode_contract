@@ -37,7 +37,7 @@ contract Drive is OwnableInitializable, IDrive {
     }
 
     function Version() external virtual override pure returns (int256) {
-        return 120;
+        return 130;
     }
 
     function AddMember(address _member) external override onlyAdmin {
@@ -102,8 +102,7 @@ contract Drive is OwnableInitializable, IDrive {
         );
 
         password_nonce++;
-        members.add(msg.sender);
-        roles[msg.sender] = RoleType.Member;
+        add(msg.sender, RoleType.Member);
     }
 
     function Name() public override returns (string memory) {
