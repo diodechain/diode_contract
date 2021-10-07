@@ -7,6 +7,7 @@ const fs = require('fs');
 let items = fs.readdirSync("./test");
 for (let i = 0; i < items.length; i++) {
     if (items[i].endsWith("_test.sol")) {
+    // if (items[i].endsWith("Drive_test.sol")) {
         doTest(items[i]);
     }
 }

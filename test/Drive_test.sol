@@ -116,6 +116,13 @@ contract DriveTest {
         address[] memory members = drive.Members();
         Assert.equal(members.length, 4, "Members() should return four members");
         Assert.equal(members[3], number4, "members[3] should be the number4");
+    }
 
+    function checkTransfer() public {
+        address[] memory members = drive.Members();
+        Assert.equal(members[2], drive.owner(), "members[2] should be the owner");
+        drive.transferOwnership(payable(members[1]));
+        Assert.equal(members[1], drive.owner(), "members[1] should be the owner");
+        Assert.equal(RoleType.Admin, drive.Role(members[2]), "members[2] should be admin now");
     }
 }
