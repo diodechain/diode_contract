@@ -6,7 +6,7 @@ Smart contracts for diode chain. Ethereum compatible. Can be tested with ganache
 
 # Development
 
-We using node v12.16.1 (npm v6.14.7) and yarn for development. Best is to use nvm to select right version and get started
+We're using node v12.16.1 (npm v6.14.7) and yarn for development. Best is to use nvm to select right version and get started
 
 ## Setup environment:
 
