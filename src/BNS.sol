@@ -21,7 +21,7 @@ contract BNS is IBNS {
   mapping(address => ReverseEntry) public reverse;
 
   function Version() external override pure returns (int) {
-    return 311;
+    return 312;
   }
 
   /**
@@ -257,7 +257,7 @@ contract BNS is IBNS {
   }
 
   function isLocked(BNSEntry memory current) internal view returns (bool) {
-    return block.number < current.lockEnd || (current.lockEnd == 0 && current.owner != address(0));
+    return current.owner != address(0);
   }
 
   function register(string memory _name, address destination) internal {
