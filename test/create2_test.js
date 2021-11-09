@@ -1,5 +1,5 @@
 // Diode Contracts
-// Copyright 2020 IoT Blockchain Technology Corporation LLC (IBTC)
+// Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
 let Create2Test = artifacts.require("Create2Test");
 

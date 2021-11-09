@@ -11,7 +11,7 @@ Files are compiled with
 
 CONTRACT-FACTORY: XXX.Sol
     Creates Proxy Contracts FleetContracts
-    Double Proxy, so IBTC can update.
+    Double Proxy, so Diode can update.
 
 FOUNDATION:
     0x1000000000000000000000000000000000000000 MultiSigWallet
