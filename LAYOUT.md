@@ -9,10 +9,6 @@ Files are compiled with
 
 # Known Deployments
 
-CONTRACT-FACTORY: XXX.Sol
-    Creates Proxy Contracts FleetContracts
-    Double Proxy, so Diode can update.
-
 FOUNDATION:
     0x1000000000000000000000000000000000000000 MultiSigWallet
 
@@ -32,7 +28,10 @@ BNS:
 PACKAGES:
     0x65d0516Ca915EB9fA9E1B672e64b3a6fAce60564 Packages.sol
 
-DRIVEFACTORY:
+DRIVEMEMBER:
+    0x210eab6667c1c578bea68D2d4ad2E9433bC5e59a DriveMember.sol V100
+
+(DRIVE)FACTORY:
     0x932ca256C8F912A9BaFAAf4bD598FCD22b8E21b7 DriveFactory.sol V2
     0x654c4f3fc6f8E6639bB9a61EFD6a8100c43832B6 DriveFactory.sol V2
     0x9dBCe40Dd8e6e1Ee266CE5d5dC9a46e84C4a61Ac DriveFactory.sol V1

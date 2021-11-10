@@ -7,7 +7,11 @@ pragma experimental ABIEncoderV2;
 import "./Proxy.sol";
 
 /**
- * Drive Smart Contract
+ * Drive Smart Contract Factory
+ * 
+ * Used to instantiate
+ *  - Drive.sol and
+ *  - DriveMember.sol
  */
 interface IInitializable {
     function initialize(address payable _owner) external;
