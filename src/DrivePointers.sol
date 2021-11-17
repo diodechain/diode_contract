@@ -18,10 +18,6 @@ contract DrivePointers {
     constructor() public {
     }
 
-    /**
-    * Resolve `_name` and return one of the full BNSEntry.
-    * @param _name the name to be resolved.
-    */
     function Set(uint256 key, address drive) external {
         Pointer memory ptr = ptrs[key];
         require(ptr.owner == msg.sender || ptr.owner == address(0), "Key has been set already");
@@ -30,11 +26,11 @@ contract DrivePointers {
         ptrs[key] = ptr;
     }
 
-    function GetDrive(uint256 key) external returns (address memory) {
+    function GetDrive(uint256 key) external returns (address) {
         return ptrs[key].drive;
     }
 
-    function GetOwner(uint256 key) external returns (address memory) {
+    function GetOwner(uint256 key) external returns (address) {
         return ptrs[key].owner;
     }
 }

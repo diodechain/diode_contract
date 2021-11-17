@@ -45,4 +45,11 @@ library Set {
   function size(Data storage self) internal view returns (uint256) {
     return self.items.length;
   }
+  function clear(Data storage self) internal {
+    for (uint i = self.items.length; i > 0; i--) {
+      address item = self.items[i-1];
+      self.items.pop();
+      delete self.indexes[item];
+    }
+  }
 }

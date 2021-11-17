@@ -8,15 +8,32 @@ import "./deps/OwnableInitializable.sol";
 import "./deps/Set.sol";
 
 /**
- * Drive Smart Contract
+ * DriveMember and Identity Smart Contract
+ *  
+ * When used as a DriveMember the `drive` member variable should point to the address of the drive "zone"
+ * that this contract is a member of.
+ *
+ * When used as Identity the `drive` member variable will be `0`.
+ *
+ * The "owner" will always be the initial "master key". The contract is being deployed using the DriveFactory.sol
+ * and thus upgradeable by the `owner()` only. 
+ * 
+ * TODO:
+ * Implement fallback recovery options, such as social recovery or a PIN/PUK style cold storage backup master to
+ * recover from cases when the "master key" got stolen.
  */
 contract DriveMember is OwnableInitializable {
     using Set for Set.Data;
     Set.Data members;
+    bool protected;
     address drive;
 
     modifier onlyMember {
-        require(members.isMember(msg.sender), "Only members can call this");
+        if (protected) {
+            require(owner() == msg.sender, "Only the owner can call this in protected mode");
+        } else {
+            require(owner() == msg.sender || members.isMember(msg.sender), "Only members can call this");
+        }
 
         _;
     }
@@ -29,16 +46,23 @@ contract DriveMember is OwnableInitializable {
         return 100;
     }
 
+    function Protect(bool _protect) external onlyMember {
+        protected = _protect;
+    }
+
     function AddMember(address _member) external onlyMember {
         members.add(_member);
     }
-
 
     function RemoveMember(address _member) external onlyMember {
         members.remove(_member);
     }
 
-    function Destroy() external onlyMember {
+    function IsMember(address _member) external returns (bool) {
+        return _member == owner() || members.isMember(_member);
+    }
+
+    function Destroy() external onlyOwner {
         selfdestruct(msg.sender);
     }
 
@@ -50,15 +74,19 @@ contract DriveMember is OwnableInitializable {
         drive = _drive;
     }
 
-    function SubmitTransaction(bytes memory data) public onlyMember
+    function SubmitTransaction(address dst, bytes memory data) public onlyOwner
     {
-        require(external_call(data.length, data), "Transaction failed");
+        require(external_call(dst, data.length, data), "General Transaction failed");
+    }
+
+    function SubmitDriveTransaction(bytes memory data) public onlyMember
+    {
+        require(external_call(drive, data.length, data), "Drive Transaction failed");
     }
 
     // call has been separated into its own function in order to take advantage
     // of the Solidity's code generator to produce a loop that copies tx.data into memory.
-    function external_call(uint _dataLength, bytes memory _data) internal returns (bool) {
-        address destination = drive;
+    function external_call(address destination, uint _dataLength, bytes memory _data) internal returns (bool) {
         bool result;
         assembly {
             let x := mload(0x40)   // "Allocate" memory for output (0x40 is where "free memory" pointer is stored by convention)
