@@ -24,6 +24,8 @@ interface IDrive {
 
     function AddMember(address _member, uint256 role) external;
 
+    function RemoveSelf() external;
+
     function RemoveMember(address _member) external;
 
     function Members() external view returns (address[] memory);

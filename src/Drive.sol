@@ -37,7 +37,7 @@ contract Drive is OwnableInitializable, IDrive {
     }
 
     function Version() external virtual override pure returns (int256) {
-        return 131;
+        return 133;
     }
 
     function AddMember(address _member) external override onlyAdmin {
@@ -58,6 +58,10 @@ contract Drive is OwnableInitializable, IDrive {
         onlyOwner
     {
         add(_member, role);
+    }
+
+    function RemoveSelf() external override {
+        remove(msg.sender);
     }
 
     function RemoveMember(address _member) external override onlyAdmin {
@@ -98,7 +102,7 @@ contract Drive is OwnableInitializable, IDrive {
         /*TEST_END*/
         require(
             ecrecover(prefixedHash, v, r, s) == password_address,
-            "Invalid signatue"
+            "Invalid signature"
         );
 
         password_nonce++;

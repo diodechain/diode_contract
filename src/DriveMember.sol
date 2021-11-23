@@ -58,7 +58,7 @@ contract DriveMember is OwnableInitializable {
         members.remove(_member);
     }
 
-    function IsMember(address _member) external returns (bool) {
+    function IsMember(address _member) external view returns (bool) {
         return _member == owner() || members.isMember(_member);
     }
 
