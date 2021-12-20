@@ -24,6 +24,8 @@ interface IDrive {
 
     function AddMember(address _member, uint256 role) external;
 
+    function Swap(address payable _multisig) external;
+
     function RemoveSelf() external;
 
     function RemoveMember(address _member) external;

@@ -60,6 +60,24 @@ contract Drive is OwnableInitializable, IDrive {
         add(_member, role);
     }
 
+    function Swap(address payable _multisig) external override {
+        uint32 _size;
+        address _sender = msg.sender;
+        assembly { _size := extcodesize(_multisig) }
+        require(_size > 0, "Can only swap for multisig smart contracts");
+        assembly { _size := extcodesize(_sender) }
+        require(_size == 0, "Can only swap from plain addresses");
+        require(members.isMember(msg.sender) || owner() == msg.sender, "Can only swap from members addresses");
+
+        uint256 _role = role(msg.sender);
+        if (owner() == msg.sender) {
+            super.transferOwnership(_multisig);
+            role = RoleType.Owner;
+        }
+        remove(msg.sender);
+        add(_multisig, _role);
+    }
+
     function RemoveSelf() external override {
         remove(msg.sender);
     }
