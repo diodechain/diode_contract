@@ -37,7 +37,7 @@ contract Drive is OwnableInitializable, IDrive {
     }
 
     function Version() external virtual override pure returns (int256) {
-        return 133;
+        return 134;
     }
 
     function AddMember(address _member) external override onlyAdmin {
@@ -72,7 +72,10 @@ contract Drive is OwnableInitializable, IDrive {
         uint256 _role = role(msg.sender);
         if (owner() == msg.sender) {
             super.transferOwnership(_multisig);
-            role = RoleType.Owner;
+            _role = RoleType.Owner;
+        } else {
+            uint256 _multirole = role(_multisig);
+            if (_multirole > _role) _role = _multirole;
         }
         remove(msg.sender);
         add(_multisig, _role);

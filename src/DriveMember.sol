@@ -17,7 +17,10 @@ import "./deps/Set.sol";
  *
  * The "owner" will always be the initial "master key". The contract is being deployed using the DriveFactory.sol
  * and thus upgradeable by the `owner()` only. 
- * 
+ *
+ * "additional_drives" is temporary to store multiple Zones all used with this same identity. Will be replaced
+ * once the client can handle multiple identity connections.
+ *
  * TODO:
  * Implement fallback recovery options, such as social recovery or a PIN/PUK style cold storage backup master to
  * recover from cases when the "master key" got stolen.
@@ -27,6 +30,7 @@ contract DriveMember is OwnableInitializable {
     Set.Data members;
     bool protected;
     address drive;
+    address[] additional_drives;
 
     modifier onlyMember {
         if (protected) {
@@ -43,7 +47,7 @@ contract DriveMember is OwnableInitializable {
     }
 
     function Version() external virtual pure returns (int256) {
-        return 100;
+        return 111;
     }
 
     function Protect(bool _protect) external onlyMember {
@@ -62,6 +66,10 @@ contract DriveMember is OwnableInitializable {
         return _member == owner() || members.isMember(_member);
     }
 
+    function Members() external view returns (address[] memory) {
+        return members.members();
+    }
+
     function Destroy() external onlyOwner {
         selfdestruct(msg.sender);
     }
@@ -70,8 +78,19 @@ contract DriveMember is OwnableInitializable {
         return drive;
     }
 
-    function SetDrive(address _drive) external virtual onlyOwner {
+    function SetDrive(address _drive) external onlyMember {
         drive = _drive;
+    }
+
+    function AddDrive(address _drive) external onlyMember {
+        for (uint32 i = 0; i < additional_drives.length; i++) {
+            if (additional_drives[i] == _drive) return;
+        }
+        additional_drives.push(_drive);
+    }
+
+    function Drives() external view returns (address[] memory) {
+        return additional_drives;
     }
 
     function SubmitTransaction(address dst, bytes memory data) public onlyOwner
