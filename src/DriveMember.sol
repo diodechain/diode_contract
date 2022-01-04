@@ -47,7 +47,7 @@ contract DriveMember is OwnableInitializable {
     }
 
     function Version() external virtual pure returns (int256) {
-        return 111;
+        return 112;
     }
 
     function Protect(bool _protect) external onlyMember {
@@ -93,7 +93,7 @@ contract DriveMember is OwnableInitializable {
         return additional_drives;
     }
 
-    function SubmitTransaction(address dst, bytes memory data) public onlyOwner
+    function SubmitTransaction(address dst, bytes memory data) public onlyMember
     {
         require(external_call(dst, data.length, data), "General Transaction failed");
     }
