@@ -74,15 +74,4 @@ contract FleetContract is OwnableInitializable {
     {
         return allowlist[_client];
     }
-
-    /*******************************
-     **   DEPRECATED FUNCTIONS    **
-     *******************************/
-    function SetDeviceWhitelist(address _client, bool _value) external {
-        SetDeviceAllowlist(_client, _value);
-    }
-
-    function deviceWhitelist(address _client) external view returns (bool) {
-        return DeviceAllowlist(_client);
-    }
 }
