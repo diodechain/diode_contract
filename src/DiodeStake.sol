@@ -7,7 +7,7 @@ import "./deps/Diode.sol";
 import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
 import "./deps/Address.sol";
-import "./FleetContract.sol";
+import "./IFleetContract.sol";
 
 /**
  * DiodeStake
@@ -168,21 +168,21 @@ contract DiodeStake {
     revert("Unhandled argument");
   }
 
-  function ContractStake(FleetContract _fleet) public payable onlyAccountant(_fleet) {
+  function ContractStake(IFleetContract _fleet) public payable onlyAccountant(_fleet) {
     contractStake[address(_fleet)] = _contractStake(_fleet).addStake(msg.value);
     emit Staked(true, address(_fleet), msg.value);
   }
 
-  function _contractValue(FleetContract _fleet) internal view returns(uint256) {
+  function _contractValue(IFleetContract _fleet) internal view returns(uint256) {
     return _contractStake(_fleet).stakedValue();
   }
 
-  function ContractUnstake(FleetContract _fleet, uint256 _value) public onlyAccountant(_fleet) {
+  function ContractUnstake(IFleetContract _fleet, uint256 _value) public onlyAccountant(_fleet) {
     contractStake[address(_fleet)] = _contractStake(_fleet).subStake(_value);
     emit Unstaked(true, address(_fleet), _value);
   }
 
-  function ContractWithdraw(FleetContract _fleet) public onlyAccountant(_fleet) {
+  function ContractWithdraw(IFleetContract _fleet) public onlyAccountant(_fleet) {
     address payable contractAccountant = _fleet.Accountant();
     Stake.Data memory stake = _contractStake(_fleet);
     uint256 _value = stake.claimableValue();

@@ -3,11 +3,12 @@
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.6.0;
 import "./DiodeRegistry.sol";
+import "./IFleetContract.sol";
 
 /**
  * FleetContract
  */
-contract FleetContract {
+contract FleetContract is IFleetContract {
   DiodeRegistry private registry;
   address public operator;
   address payable public accountant;
@@ -59,7 +60,7 @@ contract FleetContract {
     SetDeviceAllowlist(_client, _value);
   }
 
-  function deviceWhitelist(address _client) external view returns (bool) {
+  function deviceWhitelist(address _client) override external view returns (bool) {
     return DeviceAllowlist(_client);
   }
 

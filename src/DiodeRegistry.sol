@@ -7,7 +7,7 @@ pragma experimental ABIEncoderV2;
 import "./deps/Diode.sol";
 import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
-import "./FleetContract.sol";
+import "./IFleetContract.sol";
 import "./DiodeStake.sol";
 
 /**
@@ -76,9 +76,9 @@ contract DiodeRegistry is DiodeStake {
   mapping(address => uint256) rollupReward;
 
   // These two together form an iterable map for this Epochs activity
-  FleetContract[] fleetArray;
+  IFleetContract[] fleetArray;
   mapping(address => FleetStats) fleetStats;
-  function _fleetStats(FleetContract _fleet) internal view returns (FleetStats storage) { return fleetStats[address(_fleet)]; }
+  function _fleetStats(IFleetContract _fleet) internal view returns (FleetStats storage) { return fleetStats[address(_fleet)]; }
 
   // This is the minimal fee above 0
   uint256 constant MinimumFee = 100;
@@ -142,7 +142,7 @@ contract DiodeRegistry is DiodeStake {
   }
 
   event Ticket(
-    FleetContract indexed fleetContract,
+    IFleetContract indexed fleetContract,
     address indexed node,
     address indexed client
   );
@@ -269,7 +269,7 @@ contract DiodeRegistry is DiodeStake {
 
     // Q: Is it better to copy fleetArray.length into a uint256 local var first?
     for (f = 0; f < fleetArray.length; f++) {
-      FleetContract fleetContract = fleetArray[f];
+      IFleetContract fleetContract = fleetArray[f];
 
       uint256 fleetValue = _contractValue(fleetContract);
       reward = fleetValue.div(100);
@@ -342,13 +342,13 @@ contract DiodeRegistry is DiodeStake {
 
     for (uint256 i = 0; i < _connectionTicket.length; i += 9) {
       bytes32[3] memory deviceSignature = [_connectionTicket[i+6], _connectionTicket[i+7], _connectionTicket[i+8]];
-      SubmitTicket(uint256(_connectionTicket[i+0]), FleetContract(Utils.bytes32ToAddress(_connectionTicket[i+1])),
+      SubmitTicket(uint256(_connectionTicket[i+0]), IFleetContract(Utils.bytes32ToAddress(_connectionTicket[i+1])),
                              Utils.bytes32ToAddress(_connectionTicket[i+2]), uint256(_connectionTicket[i+3]),
                    uint256(_connectionTicket[i+4]), _connectionTicket[i+5], deviceSignature);
     }
   }
 
-  function SubmitTicket(uint256 blockHeight, FleetContract fleetContract, address nodeAddress,
+  function SubmitTicket(uint256 blockHeight, IFleetContract fleetContract, address nodeAddress,
                         uint256 totalConnections, uint256 totalBytes,
                         bytes32 localAddress, bytes32[3] memory signature) public lastEpoch(blockHeight) {
     require(totalConnections | totalBytes != 0, "Invalid ticket value");
@@ -378,7 +378,7 @@ contract DiodeRegistry is DiodeStake {
 
   // These types only exist for external accessors, hence avoid using mappings
   struct Fleet {
-    FleetContract fleet;
+    IFleetContract fleet;
     uint256 totalConnections;
     uint256 totalBytes;
     address[] nodes;
@@ -398,16 +398,16 @@ contract DiodeRegistry is DiodeStake {
   }
 
   // These functions are only called by Web3 contract explorers
-  function EpochFleets() external view returns (FleetContract[] memory) {
+  function EpochFleets() external view returns (IFleetContract[] memory) {
     return fleetArray;
   }
 
-  function EpochFleet(FleetContract _fleet) external view returns (Fleet memory) {
+  function EpochFleet(IFleetContract _fleet) external view returns (Fleet memory) {
     FleetStats storage stats = _fleetStats(_fleet);
     return Fleet(_fleet, stats.totalConnections, stats.totalBytes, stats.nodeArray);
   }
 
-  function EpochFleetNode(FleetContract _fleet, address _node) external view returns (Node memory) {
+  function EpochFleetNode(IFleetContract _fleet, address _node) external view returns (Node memory) {
     FleetStats storage stats = _fleetStats(_fleet);
     NodeStats storage nstats = stats.nodeStats[_node];
     uint len = nstats.clientArray.length;
@@ -433,7 +433,7 @@ contract DiodeRegistry is DiodeStake {
   // ====================================================================================
   // ============================= INTERNAL FUNCTIONS ===================================
   // ====================================================================================
-  function updateTrafficCount(FleetContract fleetContract, address nodeAddress, address clientAddress,
+  function updateTrafficCount(IFleetContract fleetContract, address nodeAddress, address clientAddress,
                               uint256 totalConnections, uint256 totalBytes) internal {
     FleetStats storage fleet = _fleetStats(fleetContract);
 
@@ -475,8 +475,8 @@ contract DiodeRegistry is DiodeStake {
     //    more complicated.
   }
 
-  function validateFleetAccess(FleetContract fleetContract, address client) internal view {
-    FleetContract fc = FleetContract(fleetContract);
+  function validateFleetAccess(IFleetContract fleetContract, address client) internal view {
+    IFleetContract fc = IFleetContract(fleetContract);
     requiref(fc.deviceWhitelist(client), "Unregistered device", client);
   }
 
