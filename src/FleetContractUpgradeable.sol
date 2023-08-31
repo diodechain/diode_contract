@@ -78,15 +78,15 @@ contract FleetContractUpgradeable is IFleetContract {
     }
 
     constructor() public initializer {
-        initialize(DiodeRegistry(0), msg.sender, msg.sender);
+        initialize(msg.sender);
     }
 
-    function initialize(DiodeRegistry _registry, address _operator, address payable _accountant) public initializer payable {
-        registry = _registry;
-        operator = _operator;
-        accountant = _accountant;
+    function initialize(address payable _owner) public initializer payable {
+        registry = DiodeRegistry(0x5000000000000000000000000000000000000000);
+        operator = _owner;
+        accountant = _owner;
         if (msg.value > 0)
-            _registry.ContractStake{value: msg.value, gas: gasleft()}(this);
+            registry.ContractStake{value: msg.value, gas: gasleft()}(this);
     }
 
     function Accountant() override external view returns (address payable) {
