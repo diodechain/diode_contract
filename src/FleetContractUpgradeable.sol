@@ -2,12 +2,13 @@
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.6.0;
-import "./deps/OwnableInitializable.sol";
+import "./DiodeRegistry.sol";
+import "./IFleetContract.sol";
 
 /**
  * FleetContract
  */
-contract FleetContractUpgradeable {
+contract FleetContractUpgradeable is IFleetContract {
     DiodeRegistry private registry;
     address public operator;
     address payable public accountant;
@@ -76,8 +77,8 @@ contract FleetContractUpgradeable {
         _;
     }
 
-    constructor() public {
-        initialize(address(0), msg.sender, msg.sender);
+    constructor() public initializer {
+        initialize(DiodeRegistry(0), msg.sender, msg.sender);
     }
 
     function initialize(DiodeRegistry _registry, address _operator, address payable _accountant) public initializer payable {
@@ -88,7 +89,7 @@ contract FleetContractUpgradeable {
             _registry.ContractStake{value: msg.value, gas: gasleft()}(this);
     }
 
-    function Accountant() external view returns (address payable) {
+    function Accountant() override external view returns (address payable) {
         return accountant;
     }
 
@@ -112,4 +113,16 @@ contract FleetContractUpgradeable {
     {
         return allowlist[_client];
     }
+
+
+  /*******************************
+   **   DEPRECATED FUNCTIONS    **
+   *******************************/
+  function SetDeviceWhitelist(address _client, bool _value) external {
+    SetDeviceAllowlist(_client, _value);
+  }
+
+  function deviceWhitelist(address _client) override external view returns (bool) {
+    return DeviceAllowlist(_client);
+  }
 }
