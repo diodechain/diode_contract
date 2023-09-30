@@ -114,7 +114,7 @@ library Stake {
   }
 }
 
-contract DiodeStake {
+contract DiodeStakeLight {
   using Stake for Stake.Data;
   using SafeMath for uint256;
 
@@ -123,7 +123,7 @@ contract DiodeStake {
   uint256 public stakeCount;
   uint256 public unstakeCount;
   mapping(address => IFleetContract) public _reserved_3;
-  mapping(address => Stake.Data) private minerStake;
+  mapping(address => Stake.Data) private _reserved_4;
   mapping(address => Stake.Data) private contractStake;
   function _contractStake(IFleetContract _fleet) internal view returns (Stake.Data memory) { return contractStake[address(_fleet)]; }
 
@@ -190,49 +190,5 @@ contract DiodeStake {
     contractStake[address(_fleet)] = stake.claimStake(_value);
     contractAccountant.transfer(_value);
     emit Withdrawn(true, address(_fleet), _value);
-  }
-
-  function MinerValue(uint8 pending, address miner) public view returns (uint256) {
-    return _miner(pending, miner);
-  }
-
-  function _miner(uint8 pending, address miner) internal view returns (uint256) {
-    if (pending == 0)
-      return minerStake[miner].stakedValue();
-    else if (pending == 1)
-      return minerStake[miner].pendingValue();
-    else if (pending == 2)
-      return minerStake[miner].lockedValue();
-    else if (pending == 3)
-      return minerStake[miner].claimableValue();
-    revert("Unhandled argument");
-  }
-
-  function MinerStake() public payable {
-    _minerStake(msg.sender, msg.value);
-  }
-
-  function _minerStake(address miner, uint256 _value) internal {
-    minerStake[miner] = minerStake[miner].addStake(_value);
-    emit Staked(false, miner, _value);
-  }
-  function _minerStakeNow(address miner, uint256 _value) internal {
-    minerStake[miner] = minerStake[miner].addStakeNow(_value);
-  }
-
-  function MinerUnstake(uint256 _value) public {
-    address miner = msg.sender;
-    minerStake[miner] = minerStake[miner].subStake(_value);
-    emit Unstaked(false, miner, _value);
-  }
-
-  function MinerWithdraw() public {
-    address payable miner = msg.sender;
-    Stake.Data memory stake = minerStake[miner];
-    uint256 _value = stake.claimableValue();
-    require(_value > 0, "Can't withdraw 0");
-    minerStake[miner] = stake.claimStake(_value);
-    miner.transfer(_value);
-    emit Withdrawn(false, miner, _value);
   }
 }
