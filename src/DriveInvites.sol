@@ -20,6 +20,11 @@ contract DriveInvites {
     using Set for Set.Data;
 
     mapping(address => Set.Data) invites;
+    address private immutable FACTORY;
+
+    constructor(address _factory) public {
+        FACTORY = _factory;
+    }
 
     // To be called by drive contract (msg.sender)
     function Invite(address driveId, address whom) public {
@@ -56,7 +61,6 @@ contract DriveInvites {
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
 
     function factory() internal virtual view returns (IDriveFactory) {
-        return IDriveFactory(0x932ca256C8F912A9BaFAAf4bD598FCD22b8E21b7);
+        return IDriveFactory(FACTORY);
     }
-
 }

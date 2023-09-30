@@ -17,6 +17,7 @@ contract FleetContractUpgradeable is IFleetContract {
     bytes32 private _reserved_3;
     mapping(address => bool) private allowlist;
     mapping(address => mapping(address => bool)) private _reserved_4;
+    address private immutable REGISTRY;
 
     /**
     * @dev Indicates that the contract has been initialized.
@@ -77,12 +78,13 @@ contract FleetContractUpgradeable is IFleetContract {
         _;
     }
 
-    constructor() public initializer {
-        initialize(msg.sender);
+    constructor(address _registry) public initializer {
+        REGISTRY = _registry;
+        initialized = true;
     }
 
     function initialize(address payable _owner) public initializer payable {
-        registry = DiodeRegistry(0x5000000000000000000000000000000000000000);
+        registry = DiodeRegistry(REGISTRY);
         operator = _owner;
         accountant = _owner;
         if (msg.value > 0)

@@ -22,6 +22,7 @@ contract Drive is OwnableInitializable, IDrive {
     uint256 password_nonce;
     bytes   bns_name;
     uint256 bns_members;
+    address private immutable BNS;
 
     modifier onlyAdmin {
         require(
@@ -32,7 +33,8 @@ contract Drive is OwnableInitializable, IDrive {
         _;
     }
 
-    constructor() public {
+    constructor(address bns) public {
+        BNS = bns;
         initialize(msg.sender);
     }
 
@@ -153,7 +155,7 @@ contract Drive is OwnableInitializable, IDrive {
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
 
     function bns() internal virtual view returns (IBNS) {
-        return IBNS(0xaF60fAA5cd840b724742f1AF116168276112d6A6);
+        return IBNS(BNS);
     }
 
     function register() internal {

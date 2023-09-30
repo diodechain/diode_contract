@@ -36,7 +36,7 @@ contract FleetContract is IFleetContract {
       _registry.ContractStake{value: msg.value, gas: gasleft()}(this);
   }
 
-  function Accountant() external view returns (address payable) {
+  function Accountant() external override view returns (address payable) {
     return accountant;
   }
 
