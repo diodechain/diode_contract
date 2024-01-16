@@ -7,25 +7,13 @@ import "../contracts/Drive.sol";
 import "../contracts/DriveInvites.sol";
 import "../contracts/DriveFactory.sol";
 
-contract TestDrive is Drive {
-    BNS bns_addr;
-    function SetBNS(BNS _bns) public { bns_addr = _bns; }
-    function bns() internal override view returns (IBNS) { return bns_addr; }
-}
-
-contract TestDriveInvites is DriveInvites {
-    IDriveFactory f_addr;
-    function SetFactory(IDriveFactory addr) public { f_addr = addr; }
-    function factory() internal override view returns (IDriveFactory) { return f_addr; }
-}
-
 contract DriveTest {
     BNS bns;
-    TestDriveInvites invites;
+    DriveInvites invites;
     DriveFactory factory;
     address salt;
     bytes32 salt32;
-    TestDrive drive;
+    Drive drive;
     address number1;
     address number2;
     address number3;
@@ -34,13 +22,11 @@ contract DriveTest {
     constructor() public {
         bns = new BNS();
         factory = new DriveFactory();
-        TestDrive code = new TestDrive();
+        Drive code = new Drive(address(bns));
         salt = address(code);
         salt32 = bytes32(uint256(salt));
-        drive = TestDrive(factory.Create(payable(address(this)), salt32, address(code)));
-        drive.SetBNS(bns);
-        invites = new TestDriveInvites();
-        invites.SetFactory(IDriveFactory(address(factory)));
+        drive = Drive(factory.Create(payable(address(this)), salt32, address(code)));
+        invites = new DriveInvites(address(factory));
         number1 = address(new CallForwarder(address(drive)));
         number2 = address(new CallForwarder(address(drive)));
         number3 = address(new CallForwarder(address(invites)));

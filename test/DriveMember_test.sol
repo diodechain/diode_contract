@@ -6,24 +6,18 @@ import "../contracts/BNS.sol";
 import "../contracts/DriveFactory.sol";
 import "../contracts/Drive.sol";
 
-contract TestDrive is Drive {
-    BNS bns_addr;
-    constructor(BNS _bns) Drive() public { bns_addr = _bns; }
-    function bns() internal override view returns (IBNS) { return bns_addr; }
-}
-
 contract Dummy {
 }
 
 contract DriveMemberTest {
     BNS bns;
-    TestDrive drive_impl;
+    Drive drive_impl;
     DriveMember member_impl;
     address number1;
     DriveFactory factory;
 
     constructor() public {
-        drive_impl = new TestDrive(bns);
+        drive_impl = new Drive(address(bns));
         member_impl = new DriveMember();
         factory = new DriveFactory();
     
