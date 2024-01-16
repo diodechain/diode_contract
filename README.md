@@ -11,7 +11,6 @@ We're using node v12.16.1 (npm v6.14.7) and yarn for development. Best is to use
 ## Setup environment:
 
 
-
 ```BASH
 $ nvm use
 $ yarn
