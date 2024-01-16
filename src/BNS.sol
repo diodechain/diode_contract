@@ -19,9 +19,10 @@ contract BNS is IBNS {
   }
 
   mapping(address => ReverseEntry) public reverse;
+  bytes32[] public namesIndex;
 
   function Version() external override pure returns (int) {
-    return 312;
+    return 314;
   }
 
   /**
@@ -256,7 +257,7 @@ contract BNS is IBNS {
     return block.number < current.leaseEnd || (current.leaseEnd == 0 && current.owner != address(0));
   }
 
-  function isLocked(BNSEntry memory current) internal view returns (bool) {
+  function isLocked(BNSEntry memory current) internal pure returns (bool) {
     return current.owner != address(0);
   }
 
@@ -271,6 +272,9 @@ contract BNS is IBNS {
 
     BNSEntry memory current = names[_hash];
     require(current.owner == msg.sender || !isLocked(current), "This name is already taken");
+    if (current.owner == address(0)) {
+      namesIndex.push(_hash);
+    }
     current.destination = destinations[0];
     current.destinations = destinations;
     current.owner = msg.sender;
