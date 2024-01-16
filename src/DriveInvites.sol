@@ -30,7 +30,7 @@ contract DriveInvites {
     function Invite(address driveId, address whom) public {
         require(driveId != address(0), "driveId can't be zero");
         require(factory() != IDriveFactory(0), "factory() can't be zero");
-        IDrive drive = factory().Create2Address(bytes32(uint256(driveId)));
+        // IDrive drive = factory().Create2Address(bytes32(uint256(driveId)));
         // require(drive != IDrive(0), "drive can't be zero");
         // require(drive.Role(msg.sender) >= RoleType.Admin, "Only Admins can invite");
         invites[whom].add(driveId);

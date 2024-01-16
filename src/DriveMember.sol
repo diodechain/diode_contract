@@ -4,8 +4,7 @@
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
-import "./deps/OwnableInitializable.sol";
-import "./deps/Set.sol";
+import "./Group.sol";
 
 /**
  * DriveMember and Identity Smart Contract
@@ -25,9 +24,7 @@ import "./deps/Set.sol";
  * Implement fallback recovery options, such as social recovery or a PIN/PUK style cold storage backup master to
  * recover from cases when the "master key" got stolen.
  */
-contract DriveMember is OwnableInitializable {
-    using Set for Set.Data;
-    Set.Data members;
+contract DriveMember is Group {
     bool protected;
     address drive;
     address[] additional_drives;

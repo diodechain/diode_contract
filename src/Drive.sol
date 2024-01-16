@@ -6,16 +6,12 @@ pragma experimental ABIEncoderV2;
 
 import "./IBNS.sol";
 import "./IDrive.sol";
-import "./deps/OwnableInitializable.sol";
-import "./deps/Set.sol";
+import "./Group.sol";
 
 /**
  * Drive Smart Contract
  */
-contract Drive is OwnableInitializable, IDrive {
-    using Set for Set.Data;
-    Set.Data members;
-
+contract Drive is Group, IDrive {
     mapping(address => uint256) roles;
 
     address password_address;
