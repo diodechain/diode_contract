@@ -18,7 +18,43 @@ contract Group is Storage, OwnableInitializable {
     constructor() public {
     }
 
-    // function initialize(address _owner) public initializer {
-    //     OwnableInitializable.initialize(_owner);
-    // }
+    function IsMember(address _member) external view returns (bool) {
+        return _member == owner() || members.isMember(_member);
+    }
+
+    function Members() external view virtual returns (address[] memory) {
+        return members.members();
+    }
+
+    function SetMemberValue(uint256 key, uint256 value) public {
+        require(owner() == msg.sender || members.isMember(msg.sender), "Only members can set member values");
+    }
+
+    function SetOwnerValue(uint256 key, uint256 value) public {
+        require(owner() == msg.sender, "Only owners can set owner values");
+    }
+
+
+
+    // call has been separated into its own function in order to take advantage
+    // of the Solidity's code generator to produce a loop that copies tx.data into memory.
+    function external_call(address destination, uint _dataLength, bytes memory _data) internal returns (bool) {
+        bool result;
+        assembly {
+            let x := mload(0x40)   // "Allocate" memory for output (0x40 is where "free memory" pointer is stored by convention)
+            let d := add(_data, 32) // First 32 bytes are the padded length of data, so exclude that
+            result := call(
+                sub(gas(), 34710),   // 34710 is the value that solidity is currently emitting
+                                   // It includes callGas (700) + callVeryLow (3, to pay for SUB) + callValueTransferGas (9000) +
+                                   // callNewAccountGas (25000, in case the destination address does not exist and needs creating)
+                destination,
+                0,                 // value is always zero
+                d,
+                _dataLength,        // Size of the input (in bytes) - this is what fixes the padding problem
+                x,
+                0                  // Output is ignored, therefore the output size is zero
+            )
+        }
+        return result;
+    }    
 }

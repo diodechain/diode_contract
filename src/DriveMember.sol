@@ -59,14 +59,6 @@ contract DriveMember is Group {
         members.remove(_member);
     }
 
-    function IsMember(address _member) external view returns (bool) {
-        return _member == owner() || members.isMember(_member);
-    }
-
-    function Members() external view returns (address[] memory) {
-        return members.members();
-    }
-
     function Destroy() external onlyOwner {
         selfdestruct(msg.sender);
     }
@@ -98,27 +90,5 @@ contract DriveMember is Group {
     function SubmitDriveTransaction(bytes memory data) public onlyMember
     {
         require(external_call(drive, data.length, data), "Drive Transaction failed");
-    }
-
-    // call has been separated into its own function in order to take advantage
-    // of the Solidity's code generator to produce a loop that copies tx.data into memory.
-    function external_call(address destination, uint _dataLength, bytes memory _data) internal returns (bool) {
-        bool result;
-        assembly {
-            let x := mload(0x40)   // "Allocate" memory for output (0x40 is where "free memory" pointer is stored by convention)
-            let d := add(_data, 32) // First 32 bytes are the padded length of data, so exclude that
-            result := call(
-                sub(gas(), 34710),   // 34710 is the value that solidity is currently emitting
-                                   // It includes callGas (700) + callVeryLow (3, to pay for SUB) + callValueTransferGas (9000) +
-                                   // callNewAccountGas (25000, in case the destination address does not exist and needs creating)
-                destination,
-                0,                 // value is always zero
-                d,
-                _dataLength,        // Size of the input (in bytes) - this is what fixes the padding problem
-                x,
-                0                  // Output is ignored, therefore the output size is zero
-            )
-        }
-        return result;
     }
 }

@@ -87,7 +87,7 @@ contract Drive is Group, IDrive {
         remove(_member);
     }
 
-    function Members() external override view returns (address[] memory) {
+    function Members() external view override(Group, IDrive) returns (address[] memory) {
         return members.members();
     }
 
