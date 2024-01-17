@@ -1,5 +1,5 @@
 // Diode Contracts
-// Copyright 2021 Diode
+// Copyright 2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
@@ -145,15 +145,19 @@ contract Drive is RoleGroup, IDrive, IProxyResolver {
         chat_contracts[initial_key] = address(chat);
     }
 
+    function Chat(address initial_key) external view returns (address) {
+        return chat_contracts[initial_key];
+    }
+
+    function Chats() external view virtual returns (address[] memory) {
+        return chats.members();
+    }
+
     function resolve(bytes32 ref) external view override returns (address) {
         if (ref == CHAT_REF) {
             return address(CHAT_IMPL);
         }
         return address(0);
-    }
-
-    function Chat(address initial_key) external view returns (address) {
-        return chat_contracts[initial_key];
     }
 
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
