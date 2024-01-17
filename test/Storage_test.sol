@@ -6,6 +6,7 @@ import "../contracts/Storage.sol";
 contract StorageTest is Storage {
     uint256 simple_number_1;
     mapping(uint256 => uint256) hash_number_2;
+    uint256[] list_number_3;
 
     constructor() public {}
 
@@ -29,5 +30,25 @@ contract StorageTest is Storage {
 
         hash_set_at(slot, 349, 16);
         Assert.equal(hash_number_2[349], 16, "hash_set_at() should set the value");
+    }
+
+    function checkList() public {
+        uint256 slot;
+        assembly { slot := list_number_3_slot }
+
+        list_number_3.push(15);
+        Assert.equal(list_number_3[0], list_at(slot, 0), "list_at() should return the same");
+        Assert.equal(1, list_size(slot), "list_size() should be one");
+
+        Assert.equal(15, list_pop(slot), "list_pop() should return 15");
+        Assert.equal(0, list_size(slot), "list_size() should return 0");
+
+        list_push(slot, 38);
+        Assert.equal(1, list_size(slot), "list_size() should return 1");
+        Assert.equal(list_number_3[0], list_at(slot, 0), "list_at() should return the same");
+        Assert.equal(38, list_at(slot, 0), "list_at() should return the same");
+        list_set_at(slot, 0, 39);
+        Assert.equal(39, list_number_3[0], "list_at() should return the same");
+
     }
 }

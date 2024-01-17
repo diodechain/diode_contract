@@ -11,28 +11,55 @@ import "./Storage.sol";
  */
 contract Storage {
     function at(uint256 slot) public view returns (uint256 _value) {
-        assembly {
-            _value := sload(slot)
-        }
+        assembly { _value := sload(slot) }
     }
 
     function set_at(uint256 slot, uint256 value) internal {
-        assembly {
-            sstore(slot, value)
-        }
+        assembly { sstore(slot, value) }
     }
 
-    function hash_at(uint256 base, uint256 key) public view returns (uint256 _value) {
-        uint256 slot = hash_slot(base, key);
-        _value = at(slot);
+    function hash_at(uint256 base, uint256 key) public view returns (uint256) {
+        return at(hash_slot(base, key));
     }
 
     function hash_set_at(uint256 base, uint256 key, uint256 value) public {
-        uint256 slot = hash_slot(base, key);
-        set_at(slot, value);
+        set_at(hash_slot(base, key), value);
     }
 
     function hash_slot(uint256 base, uint256 key) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(key, base)));
     }
+
+    function list_size(uint256 base) public view returns (uint256) {
+        return at(base);
+    }
+
+    function list_set_size(uint256 base, uint256 size) public {
+        set_at(base, size);
+    }
+
+    function list_at(uint256 base, uint256 key) public view returns (uint256) {
+        return at(list_slot(base, key));
+    }
+
+    function list_set_at(uint256 base, uint256 key, uint256 value) public {
+        set_at(list_slot(base, key), value);
+    }
+
+    function list_push(uint256 base, uint256 value) public {
+        uint256 size = list_size(base);
+        list_set_at(base, size, value);
+        list_set_size(base, size + 1);
+    }
+
+    function list_pop(uint256 base) public returns (uint256) {
+        uint256 size = list_size(base) - 1;
+        list_set_size(base, size);
+        return list_at(base, size);
+    }
+
+    function list_slot(uint256 base, uint256 key) internal pure returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(base))) + key;
+    }
+
 }
