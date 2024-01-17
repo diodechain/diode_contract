@@ -23,6 +23,10 @@ contract Chat is RoleGroup {
         list_push(GROUP_KEYS, uint256(key));
     }
 
+    function Key(uint256 index) external view returns (address) {
+        return address(list_at(GROUP_KEYS, index));
+    }
+
     function AddMember(address _member) external onlyAdmin {
         add(_member, RoleType.Member);
     }

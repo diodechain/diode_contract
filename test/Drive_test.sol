@@ -3,6 +3,7 @@ pragma experimental ABIEncoderV2;
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/BNS.sol";
+import "../contracts/Chat.sol";
 import "../contracts/Drive.sol";
 import "../contracts/DriveInvites.sol";
 import "../contracts/DriveFactory.sol";
@@ -110,5 +111,12 @@ contract DriveTest {
         drive.transferOwnership(payable(members[1]));
         Assert.equal(members[1], drive.owner(), "members[1] should be the owner");
         Assert.equal(RoleType.Admin, drive.Role(members[2]), "members[2] should be admin now");
+    }
+
+    function checkChat() public {
+        drive.AddChat(address(this), number1);
+        Chat chat = Chat(drive.Chat(number1));
+        Assert.notEqual(address(chat), address(0), "Chat should not be 0");
+        Assert.equal(number1, chat.Key(0), "Initial key should match number1");
     }
 }

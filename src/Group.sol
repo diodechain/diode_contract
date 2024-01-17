@@ -61,6 +61,10 @@ contract Group is Storage, OwnableInitializable {
         return hash_at(DATA_SLOT, uint256(keccak256(abi.encodePacked(class, key))));
     }
 
+    function DataValue(uint256 class, uint256 key) external view returns (uint256) {
+        return hash_at(DATA_SLOT, uint256(keccak256(abi.encodePacked(class, key))));
+    }
+
     // call has been separated into its own function in order to take advantage
     // of the Solidity's code generator to produce a loop that copies tx.data into memory.
     function external_call(address destination, uint _dataLength, bytes memory _data) internal returns (bool) {
