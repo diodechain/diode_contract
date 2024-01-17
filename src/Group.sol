@@ -5,6 +5,7 @@ pragma solidity ^0.6.5;
 pragma experimental ABIEncoderV2;
 
 import "./Storage.sol";
+import "./Roles.sol";
 import "./deps/OwnableInitializable.sol";
 import "./deps/Set.sol";
 
@@ -14,8 +15,16 @@ import "./deps/Set.sol";
 contract Group is Storage, OwnableInitializable {
     using Set for Set.Data;
     Set.Data members;
+    uint256 constant DATA_SLOT = uint256(keccak256("DATA_SLOT"));
+
+    modifier onlyMember virtual {
+        require(owner() == msg.sender || members.isMember(msg.sender), "Only members can call this");
+
+        _;
+    }
 
     constructor() public {
+        initialize(msg.sender);
     }
 
     function IsMember(address _member) external view returns (bool) {
@@ -28,13 +37,29 @@ contract Group is Storage, OwnableInitializable {
 
     function SetMemberValue(uint256 key, uint256 value) public {
         require(owner() == msg.sender || members.isMember(msg.sender), "Only members can set member values");
+        setDataValue(uint256(msg.sender), key, value);
+    }
+
+    function MemberValue(address member, uint256 key) public view returns (uint256) { 
+        return dataValue(uint256(member), key);
     }
 
     function SetOwnerValue(uint256 key, uint256 value) public {
         require(owner() == msg.sender, "Only owners can set owner values");
+        setDataValue(RoleType.Owner, key, value);
     }
 
+    function OwnerValue(uint256 key) public view returns (uint256) { 
+        return dataValue(RoleType.Owner, key);
+    }
 
+    function setDataValue(uint256 class, uint256 key, uint256 value) internal {
+        hash_set_at(DATA_SLOT, uint256(keccak256(abi.encodePacked(class, key))), value);
+    }
+
+    function dataValue(uint256 class, uint256 key) internal view returns (uint256) {
+        return hash_at(DATA_SLOT, uint256(keccak256(abi.encodePacked(class, key))));
+    }
 
     // call has been separated into its own function in order to take advantage
     // of the Solidity's code generator to produce a loop that copies tx.data into memory.

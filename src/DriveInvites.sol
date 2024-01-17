@@ -6,6 +6,7 @@ pragma experimental ABIEncoderV2;
 
 import "./deps/Set.sol";
 import "./IDrive.sol";
+import "./Roles.sol";
 
 /**
  * Drive Smart Contract

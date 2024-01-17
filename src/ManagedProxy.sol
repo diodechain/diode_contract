@@ -1,14 +1,14 @@
 // Diode Contracts
-// Copyright 2021 Diode
+// Copyright 2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.6.5;
-import "./ProxyResolver.sol";
+import "./IProxyResolver.sol";
 
 contract ManagedProxy {
     bytes32 immutable ref;
-    ProxyResolver immutable resolver;
+    IProxyResolver immutable resolver;
 
-    constructor(ProxyResolver _resolver, bytes32 _ref) public {
+    constructor(IProxyResolver _resolver, bytes32 _ref) public {
         ref = _ref;
         resolver = _resolver; 
     } 

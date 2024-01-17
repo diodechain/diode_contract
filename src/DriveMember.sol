@@ -29,7 +29,7 @@ contract DriveMember is Group {
     address drive;
     address[] additional_drives;
 
-    modifier onlyMember {
+    modifier onlyMember override {
         if (protected) {
             require(owner() == msg.sender, "Only the owner can call this in protected mode");
         } else {

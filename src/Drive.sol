@@ -6,28 +6,26 @@ pragma experimental ABIEncoderV2;
 
 import "./IBNS.sol";
 import "./IDrive.sol";
-import "./Group.sol";
+import "./RoleGroup.sol";
+import "./Roles.sol";
+import "./Chat.sol";
+import "./ManagedProxy.sol";
+import "./IProxyResolver.sol";
 
 /**
  * Drive Smart Contract
  */
-contract Drive is Group, IDrive {
-    mapping(address => uint256) roles;
-
+contract Drive is RoleGroup, IDrive, IProxyResolver {
     address password_address;
     uint256 password_nonce;
     bytes   bns_name;
     uint256 bns_members;
     address private immutable BNS;
+    address private immutable CHAT_IMPL = address(new Chat());
+    bytes32 constant CHAT_REF = keccak256("CHAT_REF");
 
-    modifier onlyAdmin {
-        require(
-            role(msg.sender) >= RoleType.Admin,
-            "Only Admins and Owners can call this"
-        );
-
-        _;
-    }
+    Set.Data chats;
+    mapping(address => address) chat_contracts;
 
     constructor(address bns) public {
         BNS = bns;
@@ -35,7 +33,7 @@ contract Drive is Group, IDrive {
     }
 
     function Version() external virtual override pure returns (int256) {
-        return 134;
+        return 135;
     }
 
     function AddMember(address _member) external override onlyAdmin {
@@ -137,14 +135,26 @@ contract Drive is Group, IDrive {
 
     function Migrate() public override {
         add(owner(), RoleType.Owner);
-        register();
     }
 
-    function transferOwnership(address payable newOwner) public override onlyOwner {
-        add(owner(), RoleType.Admin);
-        super.transferOwnership(newOwner);
-        add(owner(), RoleType.Owner);
-    }    
+    function AddChat(address owner, address initial_key) external onlyMember {
+        require(chat_contracts[initial_key] == address(0), "Chat already exists");
+        Chat chat = Chat(address(new ManagedProxy(this, CHAT_REF)));
+        chat.initialize(payable(owner), initial_key);
+        chats.add(address(chat));
+        chat_contracts[initial_key] = address(chat);
+    }
+
+    function resolve(bytes32 ref) external view override returns (address) {
+        if (ref == CHAT_REF) {
+            return address(CHAT_IMPL);
+        }
+        return address(0);
+    }
+
+    function Chat(address initial_key) external view returns (address) {
+        return chat_contracts[initial_key];
+    }
 
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
     // ######## ######## ########   Internal only functions  ######## ######## ########
@@ -162,21 +172,14 @@ contract Drive is Group, IDrive {
         }
     }
 
-    function add(address _member, uint256 _role) internal {
-        members.add(_member);
-        roles[_member] = _role;
+    function add(address _member, uint256 _role) internal override {
+        super.add(_member, _role);
         register();
     }
 
-    function remove(address _member) internal {
-        members.remove(_member);
-        delete roles[_member];
+    function remove(address _member) internal override {
+        super.remove(_member);
         register();
-    }
-
-    function role(address _member) internal view returns (uint256) {
-        if (_member == owner()) return RoleType.Owner;
-        return roles[_member];
     }
 
     bytes constant chars = "0123456789abcdefghijklmnopqrstuvwxyz";
