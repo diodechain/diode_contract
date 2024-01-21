@@ -15,7 +15,7 @@ import "./IProxyResolver.sol";
 /**
  * Drive Smart Contract
  */
-contract Drive is RoleGroup, IDrive, IProxyResolver {
+contract Drive is IDrive, RoleGroup, IProxyResolver {
     address password_address;
     uint256 password_nonce;
     bytes   bns_name;
@@ -89,10 +89,6 @@ contract Drive is RoleGroup, IDrive, IProxyResolver {
         return members.members();
     }
 
-    function Role(address _member) public override view returns (uint256) {
-        return role(_member);
-    }
-
     function SetPasswordPublic(address _password) external override onlyOwner {
         password_address = _password;
         password_nonce = 0;
@@ -145,12 +141,23 @@ contract Drive is RoleGroup, IDrive, IProxyResolver {
         chat_contracts[initial_key] = address(chat);
     }
 
+    function RemoveChat(address chat) external onlyMember {
+        require(chats.isMember(chat), "Chat does not exist");
+        require(role(msg.sender) >= RoleType.Admin || Chat(chat).Role(msg.sender) >= RoleType.Owner, "Only admins can remove chats");
+        chats.remove(chat);
+        chat_contracts[Chat(chat).Key(0)] = address(0);
+    }
+
     function Chat(address initial_key) external view returns (address) {
         return chat_contracts[initial_key];
     }
 
     function Chats() external view virtual returns (address[] memory) {
         return chats.members();
+    }
+
+    function Role(address _member) external view override(IDrive, RoleGroup) returns (uint256) {
+        return role(_member);
     }
 
     function resolve(bytes32 ref) external view override returns (address) {

@@ -8,6 +8,13 @@ import "../contracts/Drive.sol";
 import "../contracts/DriveInvites.sol";
 import "../contracts/DriveFactory.sol";
 
+contract TestDrive is Drive {
+    constructor() public Drive(address(0x0)) {}
+    function name_slot() public view returns (uint256 _value) {
+        assembly { _value := bns_name_slot }
+    }
+}
+
 contract DriveTest {
     BNS bns;
     DriveInvites invites;
@@ -118,5 +125,18 @@ contract DriveTest {
         Chat chat = Chat(drive.Chat(number1));
         Assert.notEqual(address(chat), address(0), "Chat should not be 0");
         Assert.equal(number1, chat.Key(0), "Initial key should match number1");
+
+        address[] memory chats = drive.Chats();
+        Assert.equal(chats.length, 1, "There should be exactly one chat");
+        Assert.equal(chats[0], address(chat), "chat == chats[0]");
+
+        drive.RemoveChat(address(chat));
+        address[] memory chats2 = drive.Chats();
+        Assert.equal(chats2.length, 0, "Chat should be removed now");
+    }
+
+    function checkSlotPos() public {
+        TestDrive test = new TestDrive();
+        Assert.equal(test.name_slot(), 57, "name_slot should be at 57");
     }
 }

@@ -46,4 +46,8 @@ contract RoleGroup is Group {
         if (_member == owner()) return RoleType.Owner;
         return roles[_member];
     }
+
+    function Role(address _member) virtual external view returns (uint256) {
+        return role(_member);
+    }
 }
