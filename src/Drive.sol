@@ -36,24 +36,12 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         return 135;
     }
 
-    function AddMember(address _member) external override onlyAdmin {
-        add(_member, RoleType.Member);
-    }
-
     function AddReader(address _member) external override onlyAdmin {
         add(_member, RoleType.Reader);
     }
 
     function AddBackup(address _member) external override onlyAdmin {
         add(_member, RoleType.BackupBot);
-    }
-
-    function AddMember(address _member, uint256 role)
-        external
-        override
-        onlyOwner
-    {
-        add(_member, role);
     }
 
     function Swap(address payable _multisig) external override {
@@ -75,18 +63,6 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         }
         remove(msg.sender);
         add(_multisig, _role);
-    }
-
-    function RemoveSelf() external override {
-        remove(msg.sender);
-    }
-
-    function RemoveMember(address _member) external override onlyAdmin {
-        remove(_member);
-    }
-
-    function Members() external view override(Group, IDrive) returns (address[] memory) {
-        return members.members();
     }
 
     function SetPasswordPublic(address _password) external override onlyOwner {
@@ -156,15 +132,39 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         return chats.members();
     }
 
-    function Role(address _member) external view override(IDrive, RoleGroup) returns (uint256) {
-        return role(_member);
-    }
-
     function resolve(bytes32 ref) external view override returns (address) {
         if (ref == CHAT_REF) {
             return address(CHAT_IMPL);
         }
         return address(0);
+    }
+
+    // ######## ######## ######## ######## ######## ######## ######## ######## ########
+    // ######## ######## ########   Overrides                ######## ######## ########
+    // ######## ######## ######## ######## ######## ######## ######## ######## ########
+
+    function AddMember(address _member) external override(IDrive, RoleGroup) onlyAdmin {
+        add(_member, RoleType.Member);
+    }
+
+    function AddMember(address _member, uint256 _role) external override(IDrive, RoleGroup) onlyOwner {
+        add(_member, _role);
+    }
+
+    function RemoveSelf() external override(IDrive, RoleGroup) {
+        remove(msg.sender);
+    }
+
+    function RemoveMember(address _member) external override(IDrive, RoleGroup) onlyAdmin {
+        remove(_member);
+    }
+
+    function Members() external view override(IDrive, Group) returns (address[] memory) {
+        return members.members();
+    }
+
+    function Role(address _member) external view override(IDrive, RoleGroup) returns (uint256) {
+        return role(_member);
     }
 
     // ######## ######## ######## ######## ######## ######## ######## ######## ########

@@ -10,7 +10,7 @@ import "../contracts/DriveFactory.sol";
 
 contract TestDrive is Drive {
     constructor() public Drive(address(0x0)) {}
-    function name_slot() public view returns (uint256 _value) {
+    function name_slot() public pure returns (uint256 _value) {
         assembly { _value := bns_name_slot }
     }
 }

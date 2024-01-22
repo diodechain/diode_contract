@@ -50,4 +50,20 @@ contract RoleGroup is Group {
     function Role(address _member) virtual external view returns (uint256) {
         return role(_member);
     }
+
+    function AddMember(address _member) virtual external onlyAdmin {
+        add(_member, RoleType.Member);
+    }
+
+    function AddMember(address _member, uint256 role) virtual external onlyOwner {
+        add(_member, role);
+    }
+
+    function RemoveSelf() virtual external {
+        remove(msg.sender);
+    }
+
+    function RemoveMember(address _member) virtual external onlyAdmin {
+        remove(_member);
+    }    
 }

@@ -26,13 +26,4 @@ contract Chat is RoleGroup {
     function Key(uint256 index) external view returns (address) {
         return address(list_at(GROUP_KEYS, index));
     }
-
-    function AddMember(address _member) external onlyAdmin {
-        add(_member, RoleType.Member);
-    }
-
-    function AddMember(address _member, uint256 role) external onlyOwner {
-        add(_member, role);
-    }
-    
 }
