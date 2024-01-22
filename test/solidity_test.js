@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0

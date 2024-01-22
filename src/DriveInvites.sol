@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.5;
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./deps/Set.sol";
@@ -23,7 +24,7 @@ contract DriveInvites {
     mapping(address => Set.Data) invites;
     address private immutable FACTORY;
 
-    constructor(address _factory) public {
+    constructor(address _factory) {
         FACTORY = _factory;
     }
 

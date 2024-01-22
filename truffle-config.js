@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
@@ -35,7 +36,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "0.6.5",
+      version: "0.7.6",
       settings: {
        optimizer: {
          enabled: true,

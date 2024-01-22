@@ -1,4 +1,5 @@
-pragma solidity ^0.6.5;
+// SPDX-License-Identifier: DIODE
+pragma solidity ^0.7.6;
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/DriveMember.sol";
@@ -16,7 +17,7 @@ contract DriveMemberTest {
     address number1;
     DriveFactory factory;
 
-    constructor() public {
+    constructor() {
         drive_impl = new Drive(address(bns));
         member_impl = new DriveMember();
         factory = new DriveFactory();

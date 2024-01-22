@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2024 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.5;
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./RoleGroup.sol";
@@ -9,7 +10,7 @@ import "./RoleGroup.sol";
 /**
  * Chat Smart Contract
  */
-contract Chat is RoleGroup {
+contract ChatGroup is RoleGroup {
     // List of group keys, only the most recent key should be
     // used for encryption
     uint256 constant GROUP_KEYS = uint256(keccak256("GROUP_KEYS"));

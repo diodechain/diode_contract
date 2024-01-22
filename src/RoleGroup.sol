@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2024 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.5;
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./Group.sol";
@@ -10,6 +11,7 @@ import "./Group.sol";
  * Generic Group
  */
 contract RoleGroup is Group {
+    using Set for Set.Data;
     mapping(address => uint256) roles; 
 
     modifier onlyAdmin {
@@ -55,8 +57,8 @@ contract RoleGroup is Group {
         add(_member, RoleType.Member);
     }
 
-    function AddMember(address _member, uint256 role) virtual external onlyOwner {
-        add(_member, role);
+    function AddMember(address _member, uint256 _role) virtual external onlyOwner {
+        add(_member, _role);
     }
 
     function RemoveSelf() virtual external {

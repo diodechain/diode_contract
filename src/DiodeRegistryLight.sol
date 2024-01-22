@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./deps/Diode.sol";
@@ -39,7 +40,7 @@ contract DiodeRegistryLight is DiodeStakeLight {
   uint64 constant BlocksPerEpoch = 40320;
   /*TEST_END*/
   uint256 constant BlockReward = 1 ether;
-  uint256 constant MinBlockRewards = 1 finney;
+  uint256 constant MinBlockRewards = 1000000000000000; // 1 finney
   uint256 constant Fractionals = 10000;
   uint256 constant MaxBlockSize = 20000000;
   uint256 constant UpperBlockSize = 10000000;
@@ -72,7 +73,7 @@ contract DiodeRegistryLight is DiodeStakeLight {
    * well as on the Fleet level.
    *
    */
-  address[] rollupArray;
+  address[] public rollupArray;
   mapping(address => uint256) rollupReward;
 
   // These two together form an iterable map for this Epochs activity
@@ -136,7 +137,7 @@ contract DiodeRegistryLight is DiodeStakeLight {
     uint256 indexed amount
   );
 
-  constructor(address _tester, address payable _foundation) DiodeStakeLight() public {
+  constructor(address _tester, address payable _foundation) DiodeStakeLight() {
     Tester = _tester;
     Foundation = _foundation;
   }
@@ -330,7 +331,7 @@ contract DiodeRegistryLight is DiodeStakeLight {
   }
 
   function FeePool() external view returns (uint256) {
-    feePool;
+    return feePool;
   }
 
   // ====================================================================================
@@ -384,7 +385,7 @@ contract DiodeRegistryLight is DiodeStakeLight {
   }
 
   /* TEST_IF
-  function requiref(bool _test, string memory _format, address _arg) internal pure returns (string memory) {
+  function requiref(bool _test, string memory _format, address _arg) internal pure {
     if (!_test) {
       string memory output = string(abi.encodePacked(_format, " (", tohex(_arg), ")"));
       revert(output);
@@ -403,7 +404,7 @@ contract DiodeRegistryLight is DiodeStakeLight {
     return ret;
   }
   /*TEST_ELSE*/
-  function requiref(bool _test, string memory _format, address) internal pure returns (string memory) {
+  function requiref(bool _test, string memory _format, address) internal pure {
     require(_test, _format);
   }
   /*TEST_END*/

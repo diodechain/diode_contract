@@ -1,17 +1,18 @@
-pragma solidity ^0.6.5;
+// SPDX-License-Identifier: DIODE
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/BNS.sol";
-import "../contracts/Chat.sol";
+import "../contracts/ChatGroup.sol";
 import "../contracts/Drive.sol";
 import "../contracts/DriveInvites.sol";
 import "../contracts/DriveFactory.sol";
 
 contract TestDrive is Drive {
-    constructor() public Drive(address(0x0)) {}
+    constructor() Drive(address(0x0)) {}
     function name_slot() public pure returns (uint256 _value) {
-        assembly { _value := bns_name_slot }
+        assembly { _value := bns_name.slot }
     }
 }
 
@@ -27,7 +28,7 @@ contract DriveTest {
     address number3;
     address number4;
 
-    constructor() public {
+    constructor() {
         bns = new BNS();
         factory = new DriveFactory();
         Drive code = new Drive(address(bns));
@@ -122,7 +123,7 @@ contract DriveTest {
 
     function checkChat() public {
         drive.AddChat(address(this), number1);
-        Chat chat = Chat(drive.Chat(number1));
+        ChatGroup chat = ChatGroup(drive.Chat(number1));
         Assert.notEqual(address(chat), address(0), "Chat should not be 0");
         Assert.equal(number1, chat.Key(0), "Initial key should match number1");
 

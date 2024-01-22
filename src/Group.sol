@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2024 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.5;
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./Storage.sol";
@@ -23,7 +24,7 @@ contract Group is Storage, OwnableInitializable {
         _;
     }
 
-    constructor() public {
+    constructor() {
         initialize(msg.sender);
     }
 

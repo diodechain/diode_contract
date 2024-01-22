@@ -1,4 +1,5 @@
-pragma solidity ^0.6.5;
+// SPDX-License-Identifier: DIODE
+pragma solidity ^0.7.6;
 library Assert {
   event AssertionEvent(
     bool passed,

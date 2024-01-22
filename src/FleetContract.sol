@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.6;
 import "./DiodeRegistry.sol";
 import "./IFleetContract.sol";
 
@@ -28,7 +29,7 @@ contract FleetContract is IFleetContract {
     _;
   }
 
-  constructor (DiodeRegistry _registry, address _operator, address payable _accountant) public payable {
+  constructor (DiodeRegistry _registry, address _operator, address payable _accountant) payable {
     registry = _registry;
     operator = _operator;
     accountant = _accountant;

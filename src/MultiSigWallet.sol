@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.6;
 
 // From https://github.com/gnosis/MultiSigWallet/blob/master/contracts/MultiSigWallet.sol @ 95d51ae
 /// @title Multisignature wallet - Allows multiple parties to agree on transactions before execution.
@@ -107,7 +108,6 @@ contract MultiSigWallet {
     /// @param _owners List of initial owners.
     /// @param _required Number of required confirmations.
     constructor(address[] memory _owners, uint _required) payable
-        public
         validRequirement(_owners.length, _required)
     {
         for (uint i=0; i<_owners.length; i++) {
@@ -277,6 +277,7 @@ contract MultiSigWallet {
             if (count == required)
                 return true;
         }
+        return false;
     }
 
     /*

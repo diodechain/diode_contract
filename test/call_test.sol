@@ -1,4 +1,5 @@
-pragma solidity ^0.6.5;
+// SPDX-License-Identifier: DIODE
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./Assert.sol";
@@ -8,7 +9,7 @@ contract DelegateCall {
     address TARGET = msg.sender;
     fallback() external payable{
         assembly {
-            let target := sload(TARGET_slot)
+            let target := sload(TARGET.slot)
             calldatacopy(0x0, 0x0, calldatasize())
             let result := delegatecall(gas(), target, 0, calldatasize(), 0x0, 0)
             returndatacopy(0x0, 0x0, returndatasize())
@@ -23,7 +24,7 @@ contract CallCode {
     address TARGET = msg.sender;
     fallback() external payable {
         assembly {
-            let target := sload(TARGET_slot)
+            let target := sload(TARGET.slot)
             calldatacopy(0x0, 0x0, calldatasize())
             let result := callcode(gas(), target, 0, 0x0, calldatasize(), 0x0, 0)
             returndatacopy(0x0, 0x0, returndatasize())
@@ -37,7 +38,7 @@ contract Call {
     address TARGET = msg.sender;
     fallback() external payable {
         assembly {
-            let target := sload(TARGET_slot)
+            let target := sload(TARGET.slot)
             calldatacopy(0x0, 0x0, calldatasize())
             let result := call(gas(), target, 0, 0x0, calldatasize(), 0x0, 0)
             returndatacopy(0x0, 0x0, returndatasize())
@@ -53,7 +54,7 @@ contract CallTest {
     CallCode private cc;
     Call private ca;
 
-    constructor() public {
+    constructor() {
         TARGET = address(this);
         dc = new DelegateCall();
         cc = new CallCode();

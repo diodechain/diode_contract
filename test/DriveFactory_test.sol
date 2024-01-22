@@ -1,4 +1,5 @@
-pragma solidity ^0.6.5;
+// SPDX-License-Identifier: DIODE
+pragma solidity ^0.7.6;
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/BNS.sol";
@@ -6,7 +7,7 @@ import "../contracts/DriveFactory.sol";
 import "../contracts/Drive.sol";
 
 contract TestDrive2 is Drive {
-    constructor(address _bns) Drive(_bns) public {}
+    constructor(address _bns) Drive(_bns) {}
     function Version() external override pure returns (int256) { return 200; }
 }
 
@@ -20,7 +21,7 @@ contract DriveFactoryTest {
     address number1;
     DriveFactory factory;
 
-    constructor() public {
+    constructor() {
         version1 = new Drive(address(bns));
         version2 = new TestDrive2(address(bns));
         factory = new DriveFactory();

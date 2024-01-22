@@ -1,4 +1,5 @@
-pragma solidity ^0.6.5;
+// SPDX-License-Identifier: DIODE
+pragma solidity ^0.7.6;
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/BNS.sol";
@@ -8,7 +9,7 @@ contract BNSTest {
     BNS instance;
     CallForwarder instanceVia; // used as second account 
     Proxy proxy; // test proxy 
-    constructor() public {
+    constructor() {
         instance = new BNS();
         instanceVia = new CallForwarder(address(instance));
         proxy = new Proxy(address(instance), address(this));

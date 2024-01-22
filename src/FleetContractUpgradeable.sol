@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.6;
 import "./DiodeRegistry.sol";
 import "./IFleetContract.sol";
 
@@ -78,7 +79,7 @@ contract FleetContractUpgradeable is IFleetContract {
         _;
     }
 
-    constructor(address _registry) public initializer {
+    constructor(address _registry) initializer {
         REGISTRY = _registry;
         initialized = true;
     }

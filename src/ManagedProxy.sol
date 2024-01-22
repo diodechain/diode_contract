@@ -1,14 +1,15 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2024 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.5;
+pragma solidity ^0.7.6;
 import "./IProxyResolver.sol";
 
 contract ManagedProxy {
     bytes32 immutable ref;
     IProxyResolver immutable resolver;
 
-    constructor(IProxyResolver _resolver, bytes32 _ref) public {
+    constructor(IProxyResolver _resolver, bytes32 _ref) {
         ref = _ref;
         resolver = _resolver; 
     } 

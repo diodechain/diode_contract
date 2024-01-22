@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.6;
 
 import "./deps/Diode.sol";
 import "./deps/Utils.sol";
@@ -145,7 +146,7 @@ contract DiodeStake {
     uint256 indexed amount
   );
 
-  constructor() public {
+  constructor() {
   }
 
   modifier onlyAccountant(IFleetContract _fleet) {

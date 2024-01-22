@@ -1,4 +1,5 @@
-pragma solidity ^0.6.5;
+// SPDX-License-Identifier: DIODE
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 import "./Assert.sol";
 import "../contracts/Storage.sol";
@@ -8,11 +9,11 @@ contract StorageTest is Storage {
     mapping(uint256 => uint256) hash_number_2;
     uint256[] list_number_3;
 
-    constructor() public {}
+    constructor() {}
 
     function checkSimple() public {
         uint256 slot;
-        assembly { slot := simple_number_1_slot }
+        assembly { slot := simple_number_1.slot }
 
         simple_number_1 = 15;
         Assert.equal(simple_number_1, at(slot), "at() should return the same");
@@ -23,7 +24,7 @@ contract StorageTest is Storage {
 
     function checkHash() public {
         uint256 slot;
-        assembly { slot := hash_number_2_slot }
+        assembly { slot := hash_number_2.slot }
 
         hash_number_2[349] = 15;
         Assert.equal(hash_number_2[349], hash_at(slot, 349), "hash_at() should return the same");
@@ -34,7 +35,7 @@ contract StorageTest is Storage {
 
     function checkList() public {
         uint256 slot;
-        assembly { slot := list_number_3_slot }
+        assembly { slot := list_number_3.slot }
 
         list_number_3.push(15);
         Assert.equal(list_number_3[0], list_at(slot, 0), "list_at() should return the same");

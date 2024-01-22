@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.0;
+pragma solidity ^0.7.6;
 import "./FleetContract.sol";
 import "./deps/Set.sol";
 
@@ -13,7 +14,7 @@ contract ManagableFleetContract is FleetContract {
 
   Set.Data members;
 
-  constructor (DiodeRegistry _registry, address _operator, address payable _accountant) FleetContract(_registry, _operator, _accountant) public {
+  constructor (DiodeRegistry _registry, address _operator, address payable _accountant) FleetContract(_registry, _operator, _accountant) {
   }
 
   function SetDeviceAllowlist(address _client, bool _value) public override onlyOperator {

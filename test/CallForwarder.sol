@@ -1,12 +1,13 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.5;
+pragma solidity ^0.7.6;
 
 contract CallForwarder {
     address immutable target;
 
-    constructor(address _target) public {
+    constructor(address _target) {
         target = _target; 
     } 
 

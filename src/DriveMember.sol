@@ -1,7 +1,8 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.5;
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./Group.sol";
@@ -25,6 +26,7 @@ import "./Group.sol";
  * recover from cases when the "master key" got stolen.
  */
 contract DriveMember is Group {
+    using Set for Set.Data;
     bool protected;
     address drive;
     address[] additional_drives;
@@ -39,7 +41,7 @@ contract DriveMember is Group {
         _;
     }
 
-    constructor() public {
+    constructor() {
         initialize(msg.sender);
     }
 

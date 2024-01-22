@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.6;
 
 import "./deps/Ownable.sol";
 import "./deps/SafeMath.sol";
@@ -38,25 +39,25 @@ contract TokenVestingNative is Ownable {
      * @dev Creates a vesting contract that vests its balance of Eth to the
      * beneficiary, gradually in a linear fashion until start + duration. By then all
      * of the balance will have vested.
-     * @param beneficiary address of the beneficiary to whom vested tokens are transferred
+     * @param arg_beneficiary address of the beneficiary to whom vested tokens are transferred
      * @param cliffDuration duration in seconds of the cliff in which tokens will begin to vest
-     * @param start the time (as Unix time) at which point vesting starts
-     * @param duration duration in seconds of the period in which the tokens will vest
-     * @param revocable whether the vesting is revocable or not
+     * @param arg_start the time (as Unix time) at which point vesting starts
+     * @param arg_duration duration in seconds of the period in which the tokens will vest
+     * @param arg_revocable whether the vesting is revocable or not
      */
-    constructor (address payable beneficiary, uint256 start, uint256 cliffDuration, uint256 duration, bool revocable) payable public {
-        require(beneficiary != address(0), "TokenVesting: beneficiary is the zero address");
+    constructor (address payable arg_beneficiary, uint256 arg_start, uint256 cliffDuration, uint256 arg_duration, bool arg_revocable) payable {
+        require(arg_beneficiary != address(0), "TokenVesting: beneficiary is the zero address");
         // solhint-disable-next-line max-line-length
-        require(cliffDuration <= duration, "TokenVesting: cliff is longer than duration");
-        require(duration > 0, "TokenVesting: duration is 0");
+        require(cliffDuration <= arg_duration, "TokenVesting: cliff is longer than duration");
+        require(arg_duration > 0, "TokenVesting: duration is 0");
         // solhint-disable-next-line max-line-length
-        require(start.add(duration) > block.timestamp, "TokenVesting: final time is before current time");
+        require(arg_start.add(arg_duration) > block.timestamp, "TokenVesting: final time is before current time");
 
-        _beneficiary = beneficiary;
-        _revocable = revocable;
-        _duration = duration;
-        _cliff = start.add(cliffDuration);
-        _start = start;
+        _beneficiary = arg_beneficiary;
+        _revocable = arg_revocable;
+        _duration = arg_duration;
+        _cliff = arg_start.add(cliffDuration);
+        _start = arg_start;
     }
 
 

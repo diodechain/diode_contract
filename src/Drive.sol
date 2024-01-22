@@ -1,14 +1,15 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2024 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.6.5;
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./IBNS.sol";
 import "./IDrive.sol";
 import "./RoleGroup.sol";
 import "./Roles.sol";
-import "./Chat.sol";
+import "./ChatGroup.sol";
 import "./ManagedProxy.sol";
 import "./IProxyResolver.sol";
 
@@ -16,19 +17,20 @@ import "./IProxyResolver.sol";
  * Drive Smart Contract
  */
 contract Drive is IDrive, RoleGroup, IProxyResolver {
+    using Set for Set.Data;
     address password_address;
     uint256 password_nonce;
     bytes   bns_name;
     uint256 bns_members;
     address private immutable BNS;
-    address private immutable CHAT_IMPL = address(new Chat());
+    address private immutable CHAT_IMPL = address(new ChatGroup());
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
 
-    constructor(address bns) public {
-        BNS = bns;
+    constructor(address _bns) {
+        BNS = _bns;
         initialize(msg.sender);
     }
 
@@ -111,7 +113,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
 
     function AddChat(address owner, address initial_key) external onlyMember {
         require(chat_contracts[initial_key] == address(0), "Chat already exists");
-        Chat chat = Chat(address(new ManagedProxy(this, CHAT_REF)));
+        ChatGroup chat = ChatGroup(address(new ManagedProxy(this, CHAT_REF)));
         chat.initialize(payable(owner), initial_key);
         chats.add(address(chat));
         chat_contracts[initial_key] = address(chat);
@@ -119,9 +121,9 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
 
     function RemoveChat(address chat) external onlyMember {
         require(chats.isMember(chat), "Chat does not exist");
-        require(role(msg.sender) >= RoleType.Admin || Chat(chat).Role(msg.sender) >= RoleType.Owner, "Only admins can remove chats");
+        require(role(msg.sender) >= RoleType.Admin || ChatGroup(chat).Role(msg.sender) >= RoleType.Owner, "Only admins can remove chats");
         chats.remove(chat);
-        chat_contracts[Chat(chat).Key(0)] = address(0);
+        chat_contracts[ChatGroup(chat).Key(0)] = address(0);
     }
 
     function Chat(address initial_key) external view returns (address) {
@@ -143,7 +145,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     // ######## ######## ########   Overrides                ######## ######## ########
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
 
-    function AddMember(address _member) external override(IDrive, RoleGroup) onlyAdmin {
+    function AddMember(address _member) external override(RoleGroup, IDrive) onlyAdmin { 
         add(_member, RoleType.Member);
     }
 

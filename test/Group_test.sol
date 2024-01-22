@@ -1,4 +1,5 @@
-pragma solidity ^0.6.5;
+// SPDX-License-Identifier: DIODE
+pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 import "./Assert.sol";
 import "./CallForwarder.sol";
@@ -8,7 +9,7 @@ contract GroupTest {
     Group group;
     address member1;
 
-    constructor() public {
+    constructor() {
         group = new Group();
         member1 = address(new CallForwarder(address(group)));
     }

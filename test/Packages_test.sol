@@ -1,4 +1,5 @@
-pragma solidity ^0.6.5;
+// SPDX-License-Identifier: DIODE
+pragma solidity ^0.7.6;
 import "./Assert.sol";
 import "../contracts/BNS.sol";
 import "../contracts/Packages.sol";
@@ -6,7 +7,7 @@ import "../contracts/Packages.sol";
 contract PackagesTest {
     BNS bns;
     Packages packages;
-    constructor() public {
+    constructor() {
         bns = new BNS();
         packages = new Packages(bns);
     }

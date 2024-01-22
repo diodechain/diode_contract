@@ -3,7 +3,7 @@
 Files are compiled with 
 
     - 0.6.12+commit.27d51765 (starting Nov 17th 2021)
-    - 0.6.5+commit.f956cc89
+    - 0.7.6+commit.f956cc89
     - EVM Version: constantinople
     - Enable optimization: 200 iters
     - Deployment address: 0xb80dd8fF9D7C1c81Cfa55F0F984B4a9f543a51c6

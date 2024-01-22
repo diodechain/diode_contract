@@ -1,4 +1,5 @@
-pragma solidity ^0.6.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.6;
 
 import "./Initializable.sol";
 import "./Context.sol";
@@ -22,9 +23,9 @@ contract OwnableInitializable is Context, Initializable {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    function initialize(address payable owner) initializer public {
-        _owner = owner;
-        emit OwnershipTransferred(address(0), owner);
+    function initialize(address payable arg_owner) initializer public {
+        _owner = arg_owner;
+        emit OwnershipTransferred(address(0), arg_owner);
     }
 
     /**

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: DIODE
 // Diode Contracts
 // Copyright 2021 Diode
 // Licensed under the Diode License, Version 1.0
@@ -13,15 +14,17 @@ contract('Create2Test', async function (accounts) {
 
     it("should transfer funds to static address", async () => {
         let test = await Create2Test.new({ gasLimit: 10000000 });
-        await test.transfer(account.address, { gasLimit: 10000000, value: 10000000000000000 });
+        await test.transfer(account.address, { gasLimit: 10000000, value: 1000000000000000000 });
         code = test.constructor._json.bytecode;
     });
 
     it("should generate static address contract", async () => {
+        assert.equal(1000000000000000000, await web3.eth.getBalance(account.address));
+
         let tx = await web3.eth.sendTransaction({
             from: account,
             data: code,
-            gas: 10000000,
+            gas: 4000000,
             nonce: 0
         });
 
@@ -42,5 +45,4 @@ contract('Create2Test', async function (accounts) {
         result = await test2.result2();
         assert.equal(result, "0x0000000000000000000000000000000000000000")
     });
-
 });
