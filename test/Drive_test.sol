@@ -84,6 +84,7 @@ contract DriveTest {
         members = drive.Members();
         Assert.equal(members.length, 3, "Members() should return three members");
         Assert.equal(members[2], drive.owner(), "members[2] should be the owner");
+        Assert.equal(members[2], address(this), "members[2] should be (this)");
     }
 
     function checkDomain() public {
@@ -122,10 +123,10 @@ contract DriveTest {
     }
 
     function checkChat() public {
-        drive.AddChat(address(this), number1);
-        ChatGroup chat = ChatGroup(drive.Chat(number1));
+        drive.AddChat(address(this), number2);
+        ChatGroup chat = ChatGroup(drive.Chat(number2));
         Assert.notEqual(address(chat), address(0), "Chat should not be 0");
-        Assert.equal(number1, chat.Key(0), "Initial key should match number1");
+        Assert.equal(number2, chat.Key(0), "Initial key should match number2");
 
         address[] memory chats = drive.Chats();
         Assert.equal(chats.length, 1, "There should be exactly one chat");
@@ -134,6 +135,15 @@ contract DriveTest {
         drive.RemoveChat(address(chat));
         address[] memory chats2 = drive.Chats();
         Assert.equal(chats2.length, 0, "Chat should be removed now");
+
+        Assert.equal(chat.owner(), address(this), "Chat owner should be (this)");
+        chat.AddMember(number1);
+        chat.transferOwnership(payable(number1));
+        Assert.equal(chat.owner(), number1, "Chat owner should be number1");
+        Assert.equal(drive.Role(address(this)) >= RoleType.Admin, true, "(this) should be role admin");
+        drive.RemoveMember(number1);
+        chat.ElectNewOwner(payable(address(this)));
+        Assert.equal(chat.owner(), address(this), "Chat owner be reset to (this)");
     }
 
     function checkSlotPos() public {

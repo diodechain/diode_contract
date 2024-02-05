@@ -60,6 +60,14 @@ contract OwnableInitializable is Context, Initializable {
      * Can only be called by the current owner.
      */
     function transferOwnership(address payable newOwner) public virtual onlyOwner {
+        moveOwnership(newOwner);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function moveOwnership(address payable newOwner) internal {
         require(newOwner != address(0), "Ownable: new owner is the zero address");
         emit OwnershipTransferred(_owner, newOwner);
         _owner = newOwner;

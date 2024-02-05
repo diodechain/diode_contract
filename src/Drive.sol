@@ -35,7 +35,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function Version() external virtual override pure returns (int256) {
-        return 135;
+        return 136;
     }
 
     function AddReader(address _member) external override onlyAdmin {
@@ -114,7 +114,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     function AddChat(address owner, address initial_key) external onlyMember {
         require(chat_contracts[initial_key] == address(0), "Chat already exists");
         ChatGroup chat = ChatGroup(address(new ManagedProxy(this, CHAT_REF)));
-        chat.initialize(payable(owner), initial_key);
+        chat.initialize(payable(owner), address(this), initial_key);
         chats.add(address(chat));
         chat_contracts[initial_key] = address(chat);
     }
