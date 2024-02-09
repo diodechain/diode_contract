@@ -29,13 +29,23 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     Set.Data chats;
     mapping(address => address) chat_contracts;
 
+    struct JoinCode {
+        address secret;
+        uint256 nonce;
+        uint256 expiry_time;
+        uint256 expiry_count;
+        uint256 target_role;
+    }
+    Set.Data join_code_set;
+    mapping(address => JoinCode) join_code_data;
+
     constructor(address _bns) {
         BNS = _bns;
         initialize(msg.sender);
     }
 
     function Version() external virtual override pure returns (int256) {
-        return 136;
+        return 137;
     }
 
     function AddReader(address _member) external override onlyAdmin {
@@ -76,26 +86,50 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         return password_nonce;
     }
 
+    function AddJoinCode(address _secret, uint256 _expiry_time, uint256 _expiry_count, uint256 _target_role) external {
+        uint256 _role = role(msg.sender);
+        require(_role >= RoleType.Admin, "Only Admins can call this");
+        require(_target_role < _role, "Can only create invites to lower roles");
+        require(join_code_set.isMember(_secret) == false, "Join code already exists");
+        join_code_set.add(_secret);
+        join_code_data[_secret] = JoinCode(_secret, 0, _expiry_time, _expiry_count, _target_role);
+    }
+
+    function UpdateJoinCode(address _secret, uint256 _expiry_time, uint256 _expiry_count, uint256 _target_role) external {
+        uint256 _role = role(msg.sender);
+        require(_role >= RoleType.Admin, "Only Admins can call this");
+        require(_target_role < _role, "Can only update invites to lower roles");
+        require(join_code_set.isMember(_secret), "Join code does not exist");
+        JoinCode storage jc = join_code_data[_secret];
+        require(jc.target_role < _role, "Can only update invites with lower roles");
+        jc.expiry_time = _expiry_time;
+        jc.expiry_count = _expiry_count;
+        jc.target_role = _target_role;
+    }
+
+    function Join(
+        address _secret,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) external {
+        require(join_code_set.isMember(_secret), "Join code does not exist");
+        JoinCode storage jc = join_code_data[_secret];
+        require(block.timestamp < jc.expiry_time, "Join code time expired");
+        require(jc.expiry_count > 0, "Join code count expired");
+        require(jc.target_role > 0, "Target role undefined");
+        validate_join_code(jc.secret, jc.nonce, v, r, s);
+        jc.nonce++;
+        jc.expiry_count--;
+        add(msg.sender, jc.target_role);
+    }
+
     function Join(
         uint8 v,
         bytes32 r,
         bytes32 s
     ) external override {
-        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        /*TEST_IF
-        bytes32 prefixedHash = keccak256(
-            abi.encodePacked(prefix, address(0), password_nonce)
-        );
-        /*TEST_ELSE*/
-        bytes32 prefixedHash = keccak256(
-            abi.encodePacked(prefix, msg.sender, password_nonce)
-        );
-        /*TEST_END*/
-        require(
-            ecrecover(prefixedHash, v, r, s) == password_address,
-            "Invalid signature"
-        );
-
+        validate_join_code(password_address, password_nonce, v, r, s);
         password_nonce++;
         add(msg.sender, RoleType.Member);
     }
@@ -205,4 +239,27 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         return ret;
     }
 
+    function validate_join_code(
+        address password_address,
+        uint256 password_nonce,
+        uint8 v,
+        bytes32 r,
+        bytes32 s
+    ) internal {
+        bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+        /*TEST_IF
+        bytes32 prefixedHash = keccak256(
+            abi.encodePacked(prefix, address(0), password_nonce)
+        );
+        /*TEST_ELSE*/
+        bytes32 prefixedHash = keccak256(
+            abi.encodePacked(prefix, msg.sender, password_nonce)
+        );
+        /*TEST_END*/
+        require(
+            ecrecover(prefixedHash, v, r, s) == password_address,
+            "Invalid signature"
+        );
+
+    }
 }
