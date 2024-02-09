@@ -240,24 +240,24 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function validate_join_code(
-        address password_address,
-        uint256 password_nonce,
+        address _password_address,
+        uint256 _password_nonce,
         uint8 v,
         bytes32 r,
         bytes32 s
-    ) internal {
+    ) internal view {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
         /*TEST_IF
         bytes32 prefixedHash = keccak256(
-            abi.encodePacked(prefix, address(0), password_nonce)
+            abi.encodePacked(prefix, address(0), _password_nonce)
         );
         /*TEST_ELSE*/
         bytes32 prefixedHash = keccak256(
-            abi.encodePacked(prefix, msg.sender, password_nonce)
+            abi.encodePacked(prefix, msg.sender, _password_nonce)
         );
         /*TEST_END*/
         require(
-            ecrecover(prefixedHash, v, r, s) == password_address,
+            ecrecover(prefixedHash, v, r, s) == _password_address,
             "Invalid signature"
         );
 
