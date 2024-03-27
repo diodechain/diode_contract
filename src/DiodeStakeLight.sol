@@ -74,11 +74,7 @@ library Stake {
     TimeLockedStake.Data staked;
     TimeLockedStake.Data unstaked;
   }
-  function addStake(Data memory dat, uint256 _stake) internal view returns(Data memory) {
-    dat.staked = dat.staked.add(_stake);
-    return dat;
-  }
-  // This function skips the time lock - is used for added stake from mining
+  // This function skips the time lock - is used for adding stake from mining
   function addStakeNow(Data memory dat, uint256 _stake) internal pure returns(Data memory) {
     dat.staked.doneAmount = dat.staked.doneAmount.add(_stake);
     return dat;
@@ -170,7 +166,7 @@ contract DiodeStakeLight {
   }
 
   function ContractStake(IFleetContract _fleet) public payable onlyAccountant(_fleet) {
-    contractStake[address(_fleet)] = _contractStake(_fleet).addStake(msg.value);
+    contractStake[address(_fleet)] = _contractStake(_fleet).addStakeNow(msg.value);
     emit Staked(true, address(_fleet), msg.value);
   }
 

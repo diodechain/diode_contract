@@ -1,5 +1,8 @@
 # Logs
 /_build
+/out
+/cache
+/deps
 /deps
 /logs
 *.log
