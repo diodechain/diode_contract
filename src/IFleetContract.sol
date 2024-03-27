@@ -3,7 +3,6 @@
 // Copyright 2023 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
-import "./DiodeRegistry.sol";
 
 /**
  * IFleetContract
