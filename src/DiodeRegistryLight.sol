@@ -6,11 +6,9 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./deps/IERC20.sol";
-import "./deps/Diode.sol";
 import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
 import "./IFleetContract.sol";
-import "./DiodeStakeLight.sol";
 
 /**
  * DiodeRegistry
@@ -30,10 +28,9 @@ import "./DiodeStakeLight.sol";
  *
  */
 
-contract DiodeRegistryLight is DiodeStakeLight {
+contract DiodeRegistryLight {
     using SafeMath for uint256;
 
-    uint256 currentEpoch;
     uint64 constant SecondsPerEpoch = 2_592_000;
     uint64 constant Fractionals = 1000;
     address payable immutable Foundation;
@@ -67,23 +64,28 @@ contract DiodeRegistryLight is DiodeStakeLight {
     address[] public rollupArray;
     mapping(address => uint256) rollupReward;
 
+    uint256 currentEpoch;
+    uint256 currentEpochStart;
+    uint256 previousEpochStart;
+
+    uint256 foundationTaxRate;
+    uint256 foundationWithdrawableBalance;
+    uint256 connectionScore;
+    uint256 byteScore;
+
     // These two together form an iterable map for this Epochs activity
     IFleetContract[] fleetArray;
     mapping(address => FleetStats) fleetStats;
-    function _fleetStats(
-        IFleetContract _fleet
-    ) internal view returns (FleetStats storage) {
-        return fleetStats[address(_fleet)];
-    }
-
-    uint256 currentEpochStart;
-    uint256 previousEpochStart;
 
     // ==================== DATA STRUCTURES ==================
     struct FleetStats {
         bool exists;
-        uint256 totalConnections;
-        uint256 totalBytes;
+        uint256 currentBalance;
+        uint256 withdrawRequestSize;
+        uint256 withdrawableBalance;
+
+        uint256 currentEpoch;
+        uint256 score;
         // These two together form an iterable map
         address[] nodeArray;
         mapping(address => NodeStats) nodeStats;
@@ -91,8 +93,7 @@ contract DiodeRegistryLight is DiodeStakeLight {
 
     struct NodeStats {
         bool exists;
-        uint256 totalConnections;
-        uint256 totalBytes;
+        uint256 score;
         // These two together form an iterable map
         address[] clientArray;
         mapping(address => ClientStats) clientStats;
@@ -100,43 +101,51 @@ contract DiodeRegistryLight is DiodeStakeLight {
 
     struct ClientStats {
         bool exists;
-        uint256 clientIndex;
-        uint256 totalConnections;
-        uint256 totalBytes;
+        uint256 score;
     }
 
-    modifier lastEpoch(uint256 blockHeight) {
-        require(blockHeight < block.number, "Ticket from the future?");
-        require(blockHeight > previousEpochStart, "Wrong epoch");
+    modifier onlyFoundation() {
+        require(msg.sender == Foundation, "Foundation only");
         _;
     }
 
-    event Ticket(
-        IFleetContract indexed fleetContract,
-        address indexed node,
-        address indexed client
-    );
-
-    event Rewards(address indexed node, uint256 indexed amount);
-
-    constructor(address payable _foundation, IERC20 _token) DiodeStakeLight() {
+    constructor(address payable _foundation, IERC20 _token) {
         Foundation = _foundation;
         Token = _token;
         currentEpoch = Epoch();
         currentEpochStart = block.number;
         previousEpochStart = block.number;
+        foundationTaxRate = 10;
     }
 
-    // BlockTimeGoal is 15 seconds
+    function setFoundationTax(uint256 _taxRate) external onlyFoundation {
+        foundationTaxRate = _taxRate;
+    }
+
+    function setByteScore(uint256 _byteScore) external onlyFoundation {
+        byteScore = _byteScore;
+    }
+
+    function setConnectionScore(uint256 _connectionScore) external onlyFoundation {
+        connectionScore = _connectionScore;
+    }
+
     // One Epoch should be roughly one month
     function Epoch() public view returns (uint256) {
         return block.timestamp.div(SecondsPerEpoch);
     }
 
-    function endEpoch() private {
+    function EndEpoch() public {
         // This call is private and only done in the per block call
         if (currentEpoch == Epoch()) revert("Can't end the current epoch");
 
+        // Update epoch
+        currentEpoch = Epoch();
+        previousEpochStart = currentEpochStart;
+        currentEpochStart = block.number;
+    }
+
+    function EndEpochForAllFleets() public {
         // Each fleet has a total value
         // We do have a fixed amount of revenue to distribute
         // Each fleets value should be distributed by share
@@ -153,48 +162,47 @@ contract DiodeRegistryLight is DiodeStakeLight {
         // We distribute each round %1 percent of Fleet Contract Stake
 
         // Q: Is it better to copy fleetArray.length into a uint256 local var first?
+        EndEpoch();
         for (uint f = 0; f < fleetArray.length; f++) {
-            endEpochForFleet(fleetArray[f]);
+            EndEpochForFleet(fleetArray[f]);
         }
         // Global cleanup
         delete fleetArray;
-
-        // Update epoch
-        currentEpoch = Epoch();
-        currentEpochStart = block.timestamp;
     }
 
-    function endEpochForFleet(IFleetContract fleetContract) internal {
-        uint256 fleetValue = _contractValue(fleetContract);
-        uint256 reward = fleetValue.div(100);
+    function EndEpochForFleet(IFleetContract fleetContract) public {
+        FleetStats storage fleet = fleetStats[address(fleetContract)];
+        if (!fleet.exists) return;
+        
+        uint256 epoch = fleet.currentEpoch + 1;
+        if (epoch >= currentEpoch) return;
 
+        uint256 fleetBalance = fleet.currentBalance;
+        uint256 reward = fleetBalance / 100;
+        // No traffic => no reward, and no tax
+        if (fleet.score == 0) reward = 0;
+
+        uint256 foundationTax = reward * foundationTaxRate / 100;
+
+        // Still updating the withdrawable balance even if there is no reward
+        fleet.currentBalance -= reward;
+        if (fleet.currentBalance > fleet.withdrawRequestSize) {
+            fleet.withdrawableBalance += fleet.withdrawRequestSize;
+            fleet.currentBalance -= fleet.withdrawRequestSize;
+        } else {
+            fleet.currentBalance = 0;
+            fleet.withdrawableBalance += fleet.currentBalance;
+        }
+
+        // No need to continue beyond this point, if there is nothing to distribute
         if (reward == 0) return;
-
-        FleetStats storage fleet = _fleetStats(fleetContract);
-        uint256 fleetPoints = fleet.totalBytes.add(
-            fleet.totalConnections.mul(1024)
-        );
-        if (fleetPoints == 0) return;
 
         for (uint256 n = 0; n < fleet.nodeArray.length; n++) {
             address nodeAddress = fleet.nodeArray[n];
             NodeStats storage node = fleet.nodeStats[nodeAddress];
 
-            uint256 nodePoints = node.totalBytes.add(
-                node.totalConnections.mul(1024)
-            );
-            // Out of all delivered fleetPoints the nodePoints are attributable to this node
-            // next we're calculcating the corresponding reward from the reward pool of this fleet.
-            // This nodes reward = nodePoints * (reward / fleetPoints)
-            // This is multipled with 1000 to account for fractionals, needs to be divided
-            // after summation.
-            // uint256 nodeReward = nodePoints.mul(Fractionals).mul(reward).div(fleetPoints);
-            nodePoints = nodePoints.mul(Fractionals).mul(reward).div(
-                fleetPoints
-            );
-
             // Summarizing in one reward per node to be applying capping and allow fractionals
-            _rollup(nodeAddress, nodePoints);
+            _rollup(nodeAddress, node.score);
 
             for (uint256 c = 0; c < node.clientArray.length; c++) {
                 // Client Map Cleanup
@@ -266,7 +274,9 @@ contract DiodeRegistryLight is DiodeStakeLight {
         uint256 totalBytes,
         bytes32 localAddress,
         bytes32[3] memory signature
-    ) public lastEpoch(blockHeight) {
+    ) public {
+        require(blockHeight < block.number, "Ticket from the future?");
+        require(blockHeight > previousEpochStart, "Wrong epoch");
         require(totalConnections | totalBytes != 0, "Invalid ticket value");
 
         // ======= CLIENT SIGNATURE RECOVERY =======
@@ -294,8 +304,6 @@ contract DiodeRegistryLight is DiodeStakeLight {
             totalConnections,
             totalBytes
         );
-
-        emit Ticket(fleetContract, nodeAddress, client);
     }
 
     // ====================================================================================
@@ -310,13 +318,6 @@ contract DiodeRegistryLight is DiodeStakeLight {
         address[] nodes;
     }
 
-    struct Node {
-        address node;
-        uint256 totalConnections;
-        uint256 totalBytes;
-        Client[] clients;
-    }
-
     struct Client {
         address client;
         uint256 totalConnections;
@@ -326,46 +327,6 @@ contract DiodeRegistryLight is DiodeStakeLight {
     // These functions are only called by Web3 contract explorers
     function EpochFleets() external view returns (IFleetContract[] memory) {
         return fleetArray;
-    }
-
-    function EpochFleet(
-        IFleetContract _fleet
-    ) external view returns (Fleet memory) {
-        FleetStats storage stats = _fleetStats(_fleet);
-        return
-            Fleet(
-                _fleet,
-                stats.totalConnections,
-                stats.totalBytes,
-                stats.nodeArray
-            );
-    }
-
-    function EpochFleetNode(
-        IFleetContract _fleet,
-        address _node
-    ) external view returns (Node memory) {
-        FleetStats storage stats = _fleetStats(_fleet);
-        NodeStats storage nstats = stats.nodeStats[_node];
-        uint len = nstats.clientArray.length;
-        Node memory node = Node(
-            _node,
-            nstats.totalConnections,
-            nstats.totalBytes,
-            new Client[](len)
-        );
-
-        for (uint i = 0; i < len; i++) {
-            address client = nstats.clientArray[i];
-            ClientStats memory cstats = nstats.clientStats[client];
-            node.clients[i] = Client(
-                client,
-                cstats.totalConnections,
-                cstats.totalBytes
-            );
-        }
-
-        return node;
     }
 
     function CurrentEpoch() external view returns (uint256) {
@@ -382,7 +343,8 @@ contract DiodeRegistryLight is DiodeStakeLight {
         uint256 totalConnections,
         uint256 totalBytes
     ) internal {
-        FleetStats storage fleet = _fleetStats(fleetContract);
+        FleetStats storage fleet = fleetStats[address(fleetContract)];
+        uint256 score = totalConnections * connectionScore + totalBytes * byteScore;
 
         if (fleet.exists == false) {
             fleet.exists = true;
@@ -401,25 +363,9 @@ contract DiodeRegistryLight is DiodeStakeLight {
             node.clientArray.push(clientAddress);
         }
 
-        if (totalConnections > client.totalConnections) {
-            uint256 newConnections = totalConnections - client.totalConnections;
-
-            client.totalConnections = totalConnections;
-            node.totalConnections = node.totalConnections.add(newConnections);
-            fleet.totalConnections = fleet.totalConnections.add(newConnections);
+        if (score > client.score) {
+            client.score = score;
         }
-
-        if (totalBytes > client.totalBytes) {
-            uint256 newBytes = totalBytes - client.totalBytes;
-
-            client.totalBytes = totalBytes;
-            node.totalBytes = node.totalBytes.add(newBytes);
-            fleet.totalBytes = fleet.totalBytes.add(newBytes);
-        }
-
-        // Question should we revert() when there is no change ?
-        //    Reverting might be cleaner but would also make batch submission of tickets
-        //    more complicated.
     }
 
     function validateFleetAccess(
