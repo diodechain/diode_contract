@@ -23,7 +23,7 @@ contract BNS is IBNS {
   bytes32[] public namesIndex;
 
   function Version() external override pure returns (int) {
-    return 314;
+    return 315;
   }
 
   /**
@@ -233,6 +233,16 @@ contract BNS is IBNS {
     BNSEntry memory entry = resolveEntry(rentry.name);
     forwardLookup(_address, entry);
     return rentry.name;
+  }
+
+  /**
+   */
+  function AllNames() external view returns (bytes32[] memory) {
+    return namesIndex;
+  }
+
+  function AllNamesLength() external view returns (uint) {
+    return namesIndex.length;
   }
 
   /*******************************************************
