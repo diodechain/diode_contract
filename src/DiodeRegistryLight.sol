@@ -6,6 +6,7 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./deps/IERC20.sol";
+import "./deps/SafeERC20.sol";
 import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
 import "./IFleetContract.sol";
@@ -30,10 +31,11 @@ import "./IFleetContract.sol";
 
 contract DiodeRegistryLight {
     using SafeMath for uint256;
+    using SafeERC20 for IERC20;
 
     uint64 constant SecondsPerEpoch = 2_592_000;
     uint64 constant Fractionals = 1000;
-    address payable immutable Foundation;
+    address immutable Foundation;
     IERC20 immutable Token;
 
     /**
@@ -64,7 +66,7 @@ contract DiodeRegistryLight {
     address[] public rollupArray;
     mapping(address => uint256) rollupReward;
 
-    uint256 currentEpoch;
+    uint256 public currentEpoch;
     uint256 currentEpochStart;
     uint256 previousEpochStart;
 
@@ -74,7 +76,7 @@ contract DiodeRegistryLight {
     uint256 byteScore;
 
     // These two together form an iterable map for this Epochs activity
-    IFleetContract[] fleetArray;
+    IFleetContract[] public fleetArray;
     mapping(address => FleetStats) fleetStats;
 
     // ==================== DATA STRUCTURES ==================
@@ -109,7 +111,7 @@ contract DiodeRegistryLight {
         _;
     }
 
-    constructor(address payable _foundation, IERC20 _token) {
+    constructor(address _foundation, IERC20 _token) {
         Foundation = _foundation;
         Token = _token;
         currentEpoch = Epoch();
@@ -117,6 +119,35 @@ contract DiodeRegistryLight {
         previousEpochStart = block.number;
         foundationTaxRate = 10;
     }
+
+  function ContractStake(IFleetContract _fleet, uint256 amount) public {
+    require(_fleet.Accountant() == msg.sender, "Only the fleet accountant can do this");
+
+    FleetStats storage fleet = fleetStats[address(_fleet)];
+
+    if (fleet.exists == false) {
+      fleet.exists = true;
+      fleetArray.push(_fleet);
+    }
+
+    Token.safeTransferFrom(msg.sender, address(this), amount);
+    fleet.currentBalance += amount;
+  }
+
+  function ContractUnstake(IFleetContract _fleet, uint256 amount) public {
+    require(_fleet.Accountant() == msg.sender, "Only the fleet accountant can do this");
+    FleetStats storage fleet = fleetStats[address(_fleet)];
+    require(fleet.exists, "Only existing fleets can be unstaked");
+    fleet.withdrawRequestSize = amount;
+  }
+  
+  function ContractWithdraw(IFleetContract _fleet) public {
+    require(_fleet.Accountant() == msg.sender, "Only the fleet accountant can do this");
+    FleetStats storage fleet = fleetStats[address(_fleet)];
+    require(fleet.withdrawableBalance > 0, "Nothing to withdraw");
+    Token.safeTransfer(msg.sender, fleet.withdrawableBalance);
+    fleet.withdrawableBalance = 0;
+  }
 
     function setFoundationTax(uint256 _taxRate) external onlyFoundation {
         foundationTaxRate = _taxRate;
@@ -304,33 +335,6 @@ contract DiodeRegistryLight {
             totalConnections,
             totalBytes
         );
-    }
-
-    // ====================================================================================
-    // ============================= EXPLORATIVE ACCESSORS ================================
-    // ====================================================================================
-
-    // These types only exist for external accessors, hence avoid using mappings
-    struct Fleet {
-        IFleetContract fleet;
-        uint256 totalConnections;
-        uint256 totalBytes;
-        address[] nodes;
-    }
-
-    struct Client {
-        address client;
-        uint256 totalConnections;
-        uint256 totalBytes;
-    }
-
-    // These functions are only called by Web3 contract explorers
-    function EpochFleets() external view returns (IFleetContract[] memory) {
-        return fleetArray;
-    }
-
-    function CurrentEpoch() external view returns (uint256) {
-        return currentEpoch;
     }
 
     // ====================================================================================

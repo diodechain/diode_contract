@@ -5,6 +5,7 @@ import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/BNS.sol";
 import "../contracts/Proxy.sol";
+import "./forge-std/Test.sol";
 
 contract TBNS is BNS {
     function UnlimitedLease(string calldata _name) external {
@@ -15,7 +16,7 @@ contract TBNS is BNS {
     }
 }
 
-contract BNSTest {
+contract BNSTest is Test {
     TBNS instance;
     CallForwarder instanceVia; // used as second account
     Proxy proxy; // test proxy
@@ -25,7 +26,7 @@ contract BNSTest {
         proxy = new Proxy(address(instance), address(this));
     }
 
-    function checkGoodname() public {
+    function testGoodname() public {
         string memory name = "loooooooong";
         instance.Register(name, msg.sender);
         Assert.equal(
@@ -35,7 +36,7 @@ contract BNSTest {
         );
     }
 
-    function checkGoodnameProxy() public {
+    function testGoodnameProxy() public {
         string memory name = "loooooooong";
         BNS proxied = BNS(address(proxy));
         proxied.Register(name, msg.sender);
@@ -46,7 +47,7 @@ contract BNSTest {
         );
     }
 
-    function checkGoodname2() public returns (bool) {
+    function testGoodname2() public returns (bool) {
         string memory name = "loooooooong2";
         bool success = _register(name, msg.sender);
         Assert.equal(
@@ -57,7 +58,7 @@ contract BNSTest {
         return Assert.ok(success, "Registering should succeed");
     }
 
-    function checkInvalidNamesRevert() public {
+    function testInvalidNamesRevert() public {
         fail("short", "registering a too short name should revert");
         fail(
             "0123456789012345678901234567890123456789",
@@ -75,7 +76,7 @@ contract BNSTest {
         Assert.notOk(success, message);
     }
 
-    function checkDoubleRegister() public {
+    function testDoubleRegister() public {
         string memory name = "sample-name";
         Assert.equal(
             _register(name, msg.sender),
@@ -99,25 +100,25 @@ contract BNSTest {
         );
     }
 
-    function checkReRegisterFails() public {
+    function testReRegisterFails() public {
         string memory name = "sample-name";
-        address prev = instance.Resolve(name);
+        _register(name, address(this));
         address test = address(msg.sender);
         Assert.notEqual(
-            prev,
+            instance.Resolve(name),
             test,
             "before test runs prev and test should not be equal"
         );
         bool success = _register2(name, test);
         Assert.notEqual(
-            prev,
+            instance.Resolve(name),
             test,
             "after test runs prev and test should still not be equal"
         );
         Assert.notOk(success, "register should have failed");
     }
 
-    function checkReverse() public {
+    function testReverse() public {
         string memory name = "sample-name";
 
         // Setting up registered name to points to two different addresses
@@ -189,7 +190,7 @@ contract BNSTest {
         );
     }
 
-    function checkDoubleRegisterUnlimited() public {
+    function testDoubleRegisterUnlimited() public {
         string memory name = "sample-name-unlimited";
         Assert.equal(
             _register(name, msg.sender),
@@ -215,25 +216,25 @@ contract BNSTest {
         );
     }
 
-    function checkReRegisterFailsUnlimited() public {
+    function testReRegisterFailsUnlimited() public {
         string memory name = "sample-name-unlimited";
-        address prev = instance.Resolve(name);
+        _register(name, address(this));
         address test = address(msg.sender);
         Assert.notEqual(
-            prev,
+            instance.Resolve(name),
             test,
             "before test runs prev and test should not be equal"
         );
         bool success = _register2(name, test);
         Assert.notEqual(
-            prev,
+            instance.Resolve(name),
             test,
             "after test runs prev and test should still not be equal"
         );
         Assert.notOk(success, "register should have failed");
     }
 
-    function checkReverseUnlimited() public {
+    function testReverseUnlimited() public {
         string memory name = "sample-name-unlimited";
 
         // Setting up registered name to points to two different addresses
@@ -298,7 +299,7 @@ contract BNSTest {
         );
     }
 
-    function checkProperties() public {
+    function testProperties() public {
         string memory name = "sample-name-props";
 
         // Setting up registered name
@@ -346,7 +347,7 @@ contract BNSTest {
         );
     }
 
-    function checkPropertiesUnlimited() public {
+    function testPropertiesUnlimited() public {
         string memory name = "sample-name-props-unlimited";
 
         // Setting up registered name

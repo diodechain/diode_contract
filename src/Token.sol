@@ -41,8 +41,8 @@ contract DiodeToken is ERC20 {
         transferAllowlist[account] = allow;
     }
 
-    function transfer(address recipient, uint256 amount) public override returns (bool) {
-        require(transferable || transferAllowlist[msg.sender], "DiodeToken: transfer not allowed");
-        return super.transfer(recipient, amount);
+    function _transfer(address sender, address recipient, uint256 amount) internal virtual override {
+        require(transferable || transferAllowlist[sender] || transferAllowlist[recipient], "DiodeToken: transfer not allowed");
+        return super._transfer(sender, recipient, amount);
     }
 }
