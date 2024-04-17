@@ -1,4 +1,3 @@
-DOCGEN := ./node_modules/.bin/solidity-docgen
 PRE := cat
 
 deps := $(patsubst src/deps/%,contracts/deps/%,$(wildcard src/deps/*.sol))
@@ -25,15 +24,6 @@ contracts/%.sol: test/%.sol contracts/deps
 .PHONY: compile
 compile: $(prod)
 	forge compile
-
-.PHONY: migrate
-migrate: $(prod) $(test_contracts)
-	$(TRUFFLE) migrate
-
-.PHONY: docs
-.PHONY: docs
-docs: $(prod)
-	$(DOCGEN)
 
 .PHONY: test
 test: PRE := sed -e 's:TEST_IF:TEST_IF\*/:g' -e 's:TEST_ELSE\*/:TEST_ELSE:g'
