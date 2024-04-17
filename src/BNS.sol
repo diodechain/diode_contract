@@ -246,18 +246,6 @@ contract BNS is IBNS {
   }
 
   /*******************************************************
-   ***********   TEST FUNCTIONS     **********************
-   *******************************************************/
-  /*TEST_IF
-  function UnlimitedLease(string calldata _name) external {
-    BNSEntry storage current = names[convert(_name)];
-    // requireOnlyOwner(current);
-    current.leaseEnd = 0;
-    current.lockEnd = 0;
-  }
-  /*TEST_END*/
-
-  /*******************************************************
    ***********   INTERNAL FUNCTIONS **********************
    *******************************************************/
   function requireOnlyOwner(BNSEntry storage current) internal view {
