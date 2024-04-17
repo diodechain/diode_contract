@@ -1,4 +1,3 @@
-TRUFFLE := node_modules/.bin/truffle
 DOCGEN := ./node_modules/.bin/solidity-docgen
 PRE := cat
 
@@ -7,9 +6,6 @@ contracts := $(patsubst src/%,contracts/%,$(wildcard src/*.sol))
 test_contracts := $(patsubst test/%,contracts/%,$(wildcard test/*.sol))
 
 prod := $(deps) $(contracts)
-
-
-
 
 .PHONY: all
 all: compile
@@ -28,7 +24,7 @@ contracts/%.sol: test/%.sol contracts/deps
 
 .PHONY: compile
 compile: $(prod)
-	$(TRUFFLE) compile
+	forge compile
 
 .PHONY: migrate
 migrate: $(prod) $(test_contracts)
@@ -42,13 +38,12 @@ docs: $(prod)
 .PHONY: test
 test: PRE := sed -e 's:TEST_IF:TEST_IF\*/:g' -e 's:TEST_ELSE\*/:TEST_ELSE:g'
 test: $(test_contracts) $(prod)
-	$(TRUFFLE) test
-	# $(TRUFFLE) test test/solidity_test.js
+	forge test
 
 .PHONY: compile_test
 compile_test: PRE := sed -e 's:TEST_IF:TEST_IF\*/:g' -e 's:TEST_ELSE\*/:TEST_ELSE:g'
 compile_test: $(test_contracts) $(prod)
-	$(TRUFFLE) compile
+	forge compile
 
 .PHONY: clean
 clean:

@@ -71,6 +71,7 @@ contract DriveJoinTest {
         Drive(number1).Join(pass, rec, r, s);
 
         address[] memory members = drive.Members();
+        Assert.equal(members[0], number1, "members[0] should be the number1");
         Assert.equal(drive.IsMember(number1), true, "number1 be a member now");
         Assert.equal(drive.Role(number1), RoleType.Reader, "number1 be a reader now");
     }
