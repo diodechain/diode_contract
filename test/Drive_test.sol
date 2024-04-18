@@ -40,7 +40,7 @@ contract DriveTest {
         number3 = address(new CallForwarder(address(invites)));
     }
 
-    function checkOwner() public {
+    function testOwner() public {
         Assert.equal(address(this), drive.owner(), "address(this) should be owner");
         Assert.ok(drive.Role(address(this)) == RoleType.Owner, "address(this) should be RoleType.Owner");
         drive.AddMember(number1, RoleType.Admin);
@@ -50,7 +50,8 @@ contract DriveTest {
         Assert.equal(members[0], number1, "Members() should return [number1]");
     }
 
-    function checkAdmin() public {
+    function testAdmin() public {
+        drive.AddMember(number1, RoleType.Admin);
         Assert.ok(drive.Role(number1) == RoleType.Admin, "number1 should be RoleAdmin");
         Drive(number1).AddMember(number2);
 
@@ -60,11 +61,13 @@ contract DriveTest {
         Assert.equal(members[1], number2, "Members()[1] should return [number2]");
     }
 
-    function checkMember() public view {
+    function testMember() public {
+        drive.AddMember(number1, RoleType.Admin);
+        Drive(number1).AddMember(number2);
         Assert.ok(drive.Role(number2) == RoleType.Member, "number2 should be RoleMember");
     }
 
-    function checkInvite() public {
+    function testInvite() public {
         Assert.equal(address(this), drive.owner(), "address(this) should be owner");
         invites.Invite(salt, number3);
         
@@ -75,7 +78,10 @@ contract DriveTest {
         Assert.equal(recvd[0], address(salt), "number3s invites should be for drive");
     }
 
-    function checkMigrate() public {
+    function testMigrate() public {
+        drive.AddMember(number1, RoleType.Admin);
+        drive.AddMember(number2);
+
         address[] memory members = drive.Members();
         Assert.equal(members.length, 2, "Members() should return two members");
         drive.Migrate();
@@ -85,7 +91,7 @@ contract DriveTest {
         Assert.equal(members[2], address(this), "members[2] should be (this)");
     }
 
-    function checkDomain() public {
+    function testDomain() public {
         string memory name = drive.Name();
         Assert.greaterThan(bytes(name).length, uint256(0), "name should be longer than 0");
         address[] memory members = drive.Members(); 
@@ -95,7 +101,11 @@ contract DriveTest {
         }
     }
 
-    function checkTransfer() public {
+    function testTransfer() public {
+        drive.AddMember(number1, RoleType.Admin);
+        drive.AddMember(number2);
+        drive.Migrate();
+
         address[] memory members = drive.Members();
         Assert.equal(members[2], drive.owner(), "members[2] should be the owner");
         drive.transferOwnership(payable(members[1]));
@@ -103,7 +113,7 @@ contract DriveTest {
         Assert.equal(RoleType.Admin, drive.Role(members[2]), "members[2] should be admin now");
     }
 
-    function checkChat() public {
+    function testChat() public {
         drive.AddChat(address(this), number2);
         ChatGroup chat = ChatGroup(drive.Chat(number2));
         Assert.notEqual(address(chat), address(0), "Chat should not be 0");
@@ -127,7 +137,7 @@ contract DriveTest {
         Assert.equal(chat.owner(), address(this), "Chat owner be reset to (this)");
     }
 
-    function checkSlotPos() public {
+    function testSlotPos() public {
         TestDrive test = new TestDrive();
         Assert.equal(test.name_slot(), 57, "name_slot should be at 57");
     }

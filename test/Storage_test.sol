@@ -11,7 +11,7 @@ contract StorageTest is Storage {
 
     constructor() {}
 
-    function checkSimple() public {
+    function testSimple() public {
         uint256 slot;
         assembly { slot := simple_number_1.slot }
 
@@ -22,7 +22,7 @@ contract StorageTest is Storage {
         Assert.equal(simple_number_1, 16, "set_at() should set the value");
     }
 
-    function checkHash() public {
+    function testHash() public {
         uint256 slot;
         assembly { slot := hash_number_2.slot }
 
@@ -33,7 +33,7 @@ contract StorageTest is Storage {
         Assert.equal(hash_number_2[349], 16, "hash_set_at() should set the value");
     }
 
-    function checkList() public {
+    function testList() public {
         uint256 slot;
         assembly { slot := list_number_3.slot }
 

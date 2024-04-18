@@ -12,7 +12,7 @@ contract PackagesTest {
         packages = new Packages(bns);
     }
 
-    function checkPackage() public {
+    function testPackage() public {
         string memory domain_name = "loooooooong";
         bns.Register(domain_name, msg.sender);
         Assert.equal(bns.Resolve(domain_name), msg.sender, "domain_name should resolve to msg.sender");

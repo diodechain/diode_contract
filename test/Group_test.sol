@@ -14,7 +14,7 @@ contract GroupTest {
         member1 = address(new CallForwarder(address(group)));
     }
 
-    function checkOwner() public {
+    function testOwner() public {
         Assert.equal(address(this), group.owner(), "owner() should be this");
 
         group.SetOwnerValue(1, 15);
@@ -26,7 +26,7 @@ contract GroupTest {
         Assert.equal(36, group.DataValue(uint256(address(this)), 1), "DataValue should be 36");
     }
 
-    // function checkMember() public {
+    // function testMember() public {
 
     // }
 }
