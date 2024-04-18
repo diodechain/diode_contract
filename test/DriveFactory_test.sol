@@ -29,7 +29,7 @@ contract DriveFactoryTest {
         number1 = address(new Dummy());
     }
 
-    function checkCreate2() public {
+    function testCreate2() public {
         bytes32 salt = hex"0011001100110011001100110011001100110011001100110011001100110011";
         address should = factory.Create2Address(salt);
         address raw = factory.Create(payable(address(this)), salt, address(version1));

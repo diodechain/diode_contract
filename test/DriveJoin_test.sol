@@ -8,6 +8,7 @@ import "../contracts/ChatGroup.sol";
 import "../contracts/Drive.sol";
 import "../contracts/DriveInvites.sol";
 import "../contracts/DriveFactory.sol";
+import "./forge-std/Test.sol";
 
 contract TestDrive is Drive {
     constructor() Drive(address(0x0)) {}
@@ -16,7 +17,7 @@ contract TestDrive is Drive {
     }
 }
 
-contract DriveJoinTest {
+contract DriveJoinTest is Test {
     BNS bns;
     DriveFactory factory;
     address salt;
@@ -34,11 +35,12 @@ contract DriveJoinTest {
         number1 = address(new CallForwarder(address(drive)));
     }
 
-    function checkJoin() public {
-        Assert.equal(drive.IsMember(number1), false, "number1 shouldn't be a member yet");
+    function testJoin() public {
+        address newMember = address(0);
+        Assert.equal(drive.IsMember(newMember), false, "newMember shouldn't be a member yet");
 
-        // This is a pregenerated signature, during test runs the msg.sender() check
-        // in Drive.sol is disabled (fixed to 0) to make this possible with dynamic accounts
+        // This is a pregenerated signature, for address(0) during test runs the msg.sender() check
+        // in Drive.sol is tricked using vm.prank() from forge
         // Password: lol => 0x2B502D064Bd908805EA02E6A6F799c11F87AeCcc
         address pass = address(0x2B502D064Bd908805EA02E6A6F799c11F87AeCcc);
         uint8 rec = 27;
@@ -46,21 +48,22 @@ contract DriveJoinTest {
         bytes32 s = bytes32(0x5617d73d70019ccb2612aba50f32d4a965b02d095d2b4f78b828e0e24ba9f8a0);
         
         drive.SetPasswordPublic(pass);
-        Drive(number1).Join(rec, r, s);
+        vm.prank(newMember);
+        drive.Join(rec, r, s);
 
         address[] memory members = drive.Members();
         Assert.equal(members.length, 1, "Members() should return 1 members");
-        Assert.equal(members[0], number1, "members[0] should be the number1");
-        Assert.equal(drive.IsMember(number1), true, "number1 should be a member now");
-        Assert.equal(drive.Role(number1), RoleType.Member, "number1 should be a member now");
+        Assert.equal(members[0], newMember, "members[0] should be the newMember");
+        Assert.equal(drive.IsMember(newMember), true, "newMember should be a member now");
+        Assert.equal(drive.Role(newMember), RoleType.Member, "newMember should be a member now");
     }
 
-    function checkJoinTwo() public {
-        drive.RemoveMember(number1);
-        Assert.equal(drive.IsMember(number1), false, "number1 shouldn't be a member yet");
+    function testJoinTwo() public {
+        address newMember = address(0);
+        Assert.equal(drive.IsMember(newMember), false, "newMember shouldn't be a member yet");
 
-        // This is a pregenerated signature, during test runs the msg.sender() check
-        // in Drive.sol is disabled (fixed to 0) to make this possible with dynamic accounts
+        // This is a pregenerated signature, for address(0) during test runs the msg.sender() check
+        // in Drive.sol is tricked using vm.prank() from forge
         // Password: lol => 0x2B502D064Bd908805EA02E6A6F799c11F87AeCcc
         address pass = address(0x2B502D064Bd908805EA02E6A6F799c11F87AeCcc);
         uint8 rec = 27;
@@ -68,11 +71,12 @@ contract DriveJoinTest {
         bytes32 s = bytes32(0x5617d73d70019ccb2612aba50f32d4a965b02d095d2b4f78b828e0e24ba9f8a0);
         
         drive.AddJoinCode(pass, uint256(-1), 1, RoleType.Reader);
-        Drive(number1).Join(pass, rec, r, s);
+        vm.prank(newMember);
+        drive.Join(pass, rec, r, s);
 
         address[] memory members = drive.Members();
-        Assert.equal(members[0], number1, "members[0] should be the number1");
-        Assert.equal(drive.IsMember(number1), true, "number1 be a member now");
-        Assert.equal(drive.Role(number1), RoleType.Reader, "number1 be a reader now");
+        Assert.equal(members[0], newMember, "members[0] should be the newMember");
+        Assert.equal(drive.IsMember(newMember), true, "newMember be a member now");
+        Assert.equal(drive.Role(newMember), RoleType.Reader, "newMember be a reader now");
     }
 }

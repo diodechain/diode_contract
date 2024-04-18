@@ -25,7 +25,7 @@ contract DriveMemberTest {
         number1 = address(new Dummy());
     }
 
-    function checkMembership() public {
+    function testMembership() public {
         bytes32 salt = hex"0011001100110011001100110011001100110011001100110011001100110011";
 
         address raw_member = factory.Create(payable(address(this)), salt, address(member_impl));

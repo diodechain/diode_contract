@@ -247,15 +247,9 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         bytes32 s
     ) internal view {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        /*TEST_IF
-        bytes32 prefixedHash = keccak256(
-            abi.encodePacked(prefix, address(0), _password_nonce)
-        );
-        /*TEST_ELSE*/
         bytes32 prefixedHash = keccak256(
             abi.encodePacked(prefix, msg.sender, _password_nonce)
         );
-        /*TEST_END*/
         require(
             ecrecover(prefixedHash, v, r, s) == _password_address,
             "Invalid signature"

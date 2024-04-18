@@ -73,7 +73,7 @@ contract CallTest {
         return Info(tx.origin, msg.sender, address(this), msg.value, storage_id);
     }
 
-    function checkDelegateCall() payable public {
+    function testDelegateCall() payable public {
         CallTest test = CallTest(address(dc));
         Info memory info = test.getInfo{value: 123}();
 
@@ -84,7 +84,7 @@ contract CallTest {
         Assert.equal(info.storage_id, 2, "dc storage_id should match 2");
     }
 
-    function checkCallCode() payable public {
+    function testCallCode() payable public {
         CallTest test = CallTest(address(cc));
         Info memory info = test.getInfo{value: 124}();
 
@@ -95,7 +95,7 @@ contract CallTest {
         Assert.equal(info.storage_id, 3, "cc storage_id should match 3");
     }
 
-    function checkCall() payable public {
+    function testCall() payable public {
         CallTest test = CallTest(address(ca));
         Info memory info = test.getInfo{value: 125}();
 
