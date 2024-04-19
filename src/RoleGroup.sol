@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2024 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
@@ -24,9 +24,9 @@ contract RoleGroup is Group {
     }
 
     function transferOwnership(address payable newOwner) public override onlyOwner {
-        add(owner(), RoleType.Admin);
+        _add(owner(), RoleType.Admin);
         super.transferOwnership(newOwner);
-        add(owner(), RoleType.Owner);
+        _add(owner(), RoleType.Owner);
     }
 
     function SetRoleValue(uint256 _role, uint256 _key, uint256 _value) public {
@@ -34,13 +34,13 @@ contract RoleGroup is Group {
         setDataValue(_role, _key, _value);
     }
 
-    function add(address _member, uint256 _role) virtual internal {
-        members.add(_member);
+    function _add(address _member, uint256 _role) virtual internal {
+        members.Add(_member);
         roles[_member] = _role;
     }
 
     function remove(address _member) virtual internal {
-        members.remove(_member);
+        members.Remove(_member);
         delete roles[_member];
     }
 
@@ -54,11 +54,11 @@ contract RoleGroup is Group {
     }
 
     function AddMember(address _member) virtual external onlyAdmin {
-        add(_member, RoleType.Member);
+        _add(_member, RoleType.Member);
     }
 
     function AddMember(address _member, uint256 _role) virtual external onlyOwner {
-        add(_member, _role);
+        _add(_member, _role);
     }
 
     function RemoveSelf() virtual external {

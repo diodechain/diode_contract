@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2024 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
@@ -19,7 +19,7 @@ contract Group is Storage, OwnableInitializable {
     uint256 constant DATA_SLOT = uint256(keccak256("DATA_SLOT"));
 
     modifier onlyMember virtual {
-        require(owner() == msg.sender || members.isMember(msg.sender), "Only members can call this");
+        require(owner() == msg.sender || members.IsMember(msg.sender), "Only members can call this");
 
         _;
     }
@@ -29,15 +29,15 @@ contract Group is Storage, OwnableInitializable {
     }
 
     function IsMember(address _member) external view returns (bool) {
-        return _member == owner() || members.isMember(_member);
+        return _member == owner() || members.IsMember(_member);
     }
 
     function Members() external view virtual returns (address[] memory) {
-        return members.members();
+        return members.Members();
     }
 
     function SetMemberValue(uint256 key, uint256 value) public {
-        require(owner() == msg.sender || members.isMember(msg.sender), "Only members can set member values");
+        require(owner() == msg.sender || members.IsMember(msg.sender), "Only members can set member values");
         setDataValue(uint256(msg.sender), key, value);
     }
 

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2021 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 import "./DiodeRegistry.sol";
@@ -92,7 +92,7 @@ contract FleetContractUpgradeable is IFleetContract {
             registry.ContractStake{value: msg.value, gas: gasleft()}(this);
     }
 
-    function Accountant() override external view returns (address payable) {
+    function Accountant() override external view returns (address) {
         return accountant;
     }
 

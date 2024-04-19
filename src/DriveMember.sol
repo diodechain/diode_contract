@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2021 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
@@ -35,7 +35,7 @@ contract DriveMember is Group {
         if (protected) {
             require(owner() == msg.sender, "Only the owner can call this in protected mode");
         } else {
-            require(owner() == msg.sender || members.isMember(msg.sender), "Only members can call this");
+            require(owner() == msg.sender || members.IsMember(msg.sender), "Only members can call this");
         }
 
         _;
@@ -54,11 +54,11 @@ contract DriveMember is Group {
     }
 
     function AddMember(address _member) external onlyMember {
-        members.add(_member);
+        members.Add(_member);
     }
 
     function RemoveMember(address _member) external onlyMember {
-        members.remove(_member);
+        members.Remove(_member);
     }
 
     function Destroy() external onlyOwner {

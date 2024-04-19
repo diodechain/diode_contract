@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2021 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 import "./DiodeRegistry.sol";
@@ -10,9 +10,9 @@ import "./IFleetContract.sol";
  * FleetContract
  */
 contract FleetContract is IFleetContract {
-  DiodeRegistry private registry;
+  address private _reserved_0;
   address public operator;
-  address payable public accountant;
+  address public accountant;
   uint256 private _reserved_1;
   bytes32 private _reserved_2;
   bytes32 private _reserved_3;
@@ -29,15 +29,12 @@ contract FleetContract is IFleetContract {
     _;
   }
 
-  constructor (DiodeRegistry _registry, address _operator, address payable _accountant) payable {
-    registry = _registry;
+  constructor (address _operator, address _accountant) payable {
     operator = _operator;
     accountant = _accountant;
-    if (msg.value > 0)
-      _registry.ContractStake{value: msg.value, gas: gasleft()}(this);
   }
 
-  function Accountant() external override view returns (address payable) {
+  function Accountant() external override view returns (address) {
     return accountant;
   }
 
