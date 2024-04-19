@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2021 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 
@@ -184,7 +184,7 @@ contract DiodeStake {
   }
 
   function ContractWithdraw(IFleetContract _fleet) public onlyAccountant(_fleet) {
-    address payable contractAccountant = _fleet.Accountant();
+    address payable contractAccountant = payable(_fleet.Accountant());
     Stake.Data memory stake = _contractStake(_fleet);
     uint256 _value = stake.claimableValue();
     require(_value > 0, "Can't withdraw 0");

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2021 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 import "./FleetContract.sol";
@@ -9,7 +9,7 @@ import "./FleetContract.sol";
  * DevFleetContract
  */
 contract DevFleetContract is FleetContract {
-  constructor (DiodeRegistry _registry, address payable _admin) FleetContract(_registry, _admin, _admin) {
+  constructor (address payable _admin) FleetContract(_admin, _admin) {
   }
 
   function DeviceAllowlist(address) public pure override returns (bool) {

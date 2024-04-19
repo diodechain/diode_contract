@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2024 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
@@ -16,9 +16,10 @@ contract DiodeToken is ERC20 {
     bool public transferable = false;
     mapping (address=>bool) transferAllowlist;
 
-    constructor(address _foundation, address _bridge) ERC20("Diode", "DIODE") {
+    constructor(address _foundation, address _bridge, bool _transferable) ERC20("Diode", "DIODE") {
         foundation = _foundation;
         bridge = _bridge;
+        transferable = _transferable;
     }
 
     function mint(address to, uint256 amount) public {

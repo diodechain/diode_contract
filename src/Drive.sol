@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2024 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
@@ -49,11 +49,11 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function AddReader(address _member) external override onlyAdmin {
-        add(_member, RoleType.Reader);
+        _add(_member, RoleType.Reader);
     }
 
     function AddBackup(address _member) external override onlyAdmin {
-        add(_member, RoleType.BackupBot);
+        _add(_member, RoleType.BackupBot);
     }
 
     function Swap(address payable _multisig) external override {
@@ -63,7 +63,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         require(_size > 0, "Can only swap for multisig smart contracts");
         assembly { _size := extcodesize(_sender) }
         require(_size == 0, "Can only swap from plain addresses");
-        require(members.isMember(msg.sender) || owner() == msg.sender, "Can only swap from members addresses");
+        require(members.IsMember(msg.sender) || owner() == msg.sender, "Can only swap from members addresses");
 
         uint256 _role = role(msg.sender);
         if (owner() == msg.sender) {
@@ -74,7 +74,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
             if (_multirole > _role) _role = _multirole;
         }
         remove(msg.sender);
-        add(_multisig, _role);
+        _add(_multisig, _role);
     }
 
     function SetPasswordPublic(address _password) external override onlyOwner {
@@ -90,8 +90,8 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         uint256 _role = role(msg.sender);
         require(_role >= RoleType.Admin, "Only Admins can call this");
         require(_target_role < _role, "Can only create invites to lower roles");
-        require(join_code_set.isMember(_secret) == false, "Join code already exists");
-        join_code_set.add(_secret);
+        require(join_code_set.IsMember(_secret) == false, "Join code already exists");
+        join_code_set.Add(_secret);
         join_code_data[_secret] = JoinCode(_secret, 0, _expiry_time, _expiry_count, _target_role);
     }
 
@@ -99,7 +99,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         uint256 _role = role(msg.sender);
         require(_role >= RoleType.Admin, "Only Admins can call this");
         require(_target_role < _role, "Can only update invites to lower roles");
-        require(join_code_set.isMember(_secret), "Join code does not exist");
+        require(join_code_set.IsMember(_secret), "Join code does not exist");
         JoinCode storage jc = join_code_data[_secret];
         require(jc.target_role < _role, "Can only update invites with lower roles");
         jc.expiry_time = _expiry_time;
@@ -113,7 +113,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         bytes32 r,
         bytes32 s
     ) external {
-        require(join_code_set.isMember(_secret), "Join code does not exist");
+        require(join_code_set.IsMember(_secret), "Join code does not exist");
         JoinCode storage jc = join_code_data[_secret];
         require(block.timestamp < jc.expiry_time, "Join code time expired");
         require(jc.expiry_count > 0, "Join code count expired");
@@ -121,7 +121,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         validate_join_code(jc.secret, jc.nonce, v, r, s);
         jc.nonce++;
         jc.expiry_count--;
-        add(msg.sender, jc.target_role);
+        _add(msg.sender, jc.target_role);
     }
 
     function Join(
@@ -131,7 +131,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     ) external override {
         validate_join_code(password_address, password_nonce, v, r, s);
         password_nonce++;
-        add(msg.sender, RoleType.Member);
+        _add(msg.sender, RoleType.Member);
     }
 
     function Name() public override returns (string memory) {
@@ -142,21 +142,21 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function Migrate() public override {
-        add(owner(), RoleType.Owner);
+        _add(owner(), RoleType.Owner);
     }
 
     function AddChat(address owner, address initial_key) external onlyMember {
         require(chat_contracts[initial_key] == address(0), "Chat already exists");
         ChatGroup chat = ChatGroup(address(new ManagedProxy(this, CHAT_REF)));
         chat.initialize(payable(owner), address(this), initial_key);
-        chats.add(address(chat));
+        chats.Add(address(chat));
         chat_contracts[initial_key] = address(chat);
     }
 
     function RemoveChat(address chat) external onlyMember {
-        require(chats.isMember(chat), "Chat does not exist");
+        require(chats.IsMember(chat), "Chat does not exist");
         require(role(msg.sender) >= RoleType.Admin || ChatGroup(chat).Role(msg.sender) >= RoleType.Owner, "Only admins can remove chats");
-        chats.remove(chat);
+        chats.Remove(chat);
         chat_contracts[ChatGroup(chat).Key(0)] = address(0);
     }
 
@@ -165,7 +165,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function Chats() external view virtual returns (address[] memory) {
-        return chats.members();
+        return chats.Members();
     }
 
     function resolve(bytes32 ref) external view override returns (address) {
@@ -180,11 +180,11 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
 
     function AddMember(address _member) external override(RoleGroup, IDrive) onlyAdmin { 
-        add(_member, RoleType.Member);
+        _add(_member, RoleType.Member);
     }
 
     function AddMember(address _member, uint256 _role) external override(IDrive, RoleGroup) onlyOwner {
-        add(_member, _role);
+        _add(_member, _role);
     }
 
     function RemoveSelf() external override(IDrive, RoleGroup) {
@@ -196,7 +196,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function Members() external view override(IDrive, Group) returns (address[] memory) {
-        return members.members();
+        return members.Members();
     }
 
     function Role(address _member) external view override(IDrive, RoleGroup) returns (uint256) {
@@ -212,15 +212,15 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function register() internal {
-        uint256 size = members.size();
+        uint256 size = members.Size();
         if (size > 0 && size != bns_members && bns() != IBNS(0)) {
-            bns().RegisterMultiple(Name(), members.members());
+            bns().RegisterMultiple(Name(), members.Members());
             bns_members = size;
         }
     }
 
-    function add(address _member, uint256 _role) internal override {
-        super.add(_member, _role);
+    function _add(address _member, uint256 _role) internal override {
+        super._add(_member, _role);
         register();
     }
 

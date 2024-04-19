@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2021 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
@@ -35,7 +35,7 @@ contract DriveInvites {
         // IDrive drive = factory().Create2Address(bytes32(uint256(driveId)));
         // require(drive != IDrive(0), "drive can't be zero");
         // require(drive.Role(msg.sender) >= RoleType.Admin, "Only Admins can invite");
-        invites[whom].add(driveId);
+        invites[whom].Add(driveId);
     }
 
     // To be called by drive contract (msg.sender)
@@ -45,17 +45,17 @@ contract DriveInvites {
             drive.Role(msg.sender) >= RoleType.Admin,
             "Only Admins can manage invites"
         );
-        invites[whom].remove(driveId);
+        invites[whom].Remove(driveId);
     }
 
     // Called by the invitess to check (user)
     function Invites() public view returns (address[] memory) {
-        return invites[msg.sender].members();
+        return invites[msg.sender].Members();
     }
 
     // Called by the invitess to remove an invite after use (user)
     function PopInvite(address driveId) public {
-        return invites[msg.sender].remove(driveId);
+        return invites[msg.sender].Remove(driveId);
     }
 
     // ######## ######## ######## ######## ######## ######## ######## ######## ########

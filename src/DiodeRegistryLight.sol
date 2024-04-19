@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2021 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
@@ -16,16 +16,8 @@ import "./IFleetContract.sol";
  *
  * This registry implements
  *
- * 1. Registering Fleets & Devices
- *
+ * 1. Registering Fleets
  * 2. Submitting Service Tickets for Traffic and Connections
- *
- * 3. Per block evaluation
- * 3. 1. including distributing block rewards
- * 3. 2. including end of epoch distribution of service rewards
- *
- * NOTES:
- *    submitTicket is not secure because it depends on Fleetcontract.checkDevice
  *
  */
 
@@ -52,7 +44,7 @@ contract DiodeRegistryLight {
      * For accounting the activity from devices we maintain a three
      * level tree of iterable maps:
      *
-     * FleetContracts => Miners(aka Nodes) => Devices(aka Client)
+     * FleetContracts => Relays => Devices(aka Client)
      *
      *   fleetStats[fleet].nodeStats[node].clientStats[client]
      *
@@ -85,7 +77,6 @@ contract DiodeRegistryLight {
         uint256 currentBalance;
         uint256 withdrawRequestSize;
         uint256 withdrawableBalance;
-
         uint256 currentEpoch;
         uint256 score;
         // These two together form an iterable map
@@ -120,34 +111,43 @@ contract DiodeRegistryLight {
         foundationTaxRate = 10;
     }
 
-  function ContractStake(IFleetContract _fleet, uint256 amount) public {
-    require(_fleet.Accountant() == msg.sender, "Only the fleet accountant can do this");
+    function ContractStake(IFleetContract _fleet, uint256 amount) public {
+        require(
+            _fleet.Accountant() == msg.sender,
+            "Only the fleet accountant can do this"
+        );
 
-    FleetStats storage fleet = fleetStats[address(_fleet)];
+        FleetStats storage fleet = fleetStats[address(_fleet)];
 
-    if (fleet.exists == false) {
-      fleet.exists = true;
-      fleetArray.push(_fleet);
+        if (fleet.exists == false) {
+            fleet.exists = true;
+            fleetArray.push(_fleet);
+        }
+
+        Token.safeTransferFrom(msg.sender, address(this), amount);
+        fleet.currentBalance += amount;
     }
 
-    Token.safeTransferFrom(msg.sender, address(this), amount);
-    fleet.currentBalance += amount;
-  }
+    function ContractUnstake(IFleetContract _fleet, uint256 amount) public {
+        require(
+            _fleet.Accountant() == msg.sender,
+            "Only the fleet accountant can do this"
+        );
+        FleetStats storage fleet = fleetStats[address(_fleet)];
+        require(fleet.exists, "Only existing fleets can be unstaked");
+        fleet.withdrawRequestSize = amount;
+    }
 
-  function ContractUnstake(IFleetContract _fleet, uint256 amount) public {
-    require(_fleet.Accountant() == msg.sender, "Only the fleet accountant can do this");
-    FleetStats storage fleet = fleetStats[address(_fleet)];
-    require(fleet.exists, "Only existing fleets can be unstaked");
-    fleet.withdrawRequestSize = amount;
-  }
-  
-  function ContractWithdraw(IFleetContract _fleet) public {
-    require(_fleet.Accountant() == msg.sender, "Only the fleet accountant can do this");
-    FleetStats storage fleet = fleetStats[address(_fleet)];
-    require(fleet.withdrawableBalance > 0, "Nothing to withdraw");
-    Token.safeTransfer(msg.sender, fleet.withdrawableBalance);
-    fleet.withdrawableBalance = 0;
-  }
+    function ContractWithdraw(IFleetContract _fleet) public {
+        require(
+            _fleet.Accountant() == msg.sender,
+            "Only the fleet accountant can do this"
+        );
+        FleetStats storage fleet = fleetStats[address(_fleet)];
+        require(fleet.withdrawableBalance > 0, "Nothing to withdraw");
+        Token.safeTransfer(msg.sender, fleet.withdrawableBalance);
+        fleet.withdrawableBalance = 0;
+    }
 
     function setFoundationTax(uint256 _taxRate) external onlyFoundation {
         foundationTaxRate = _taxRate;
@@ -157,7 +157,9 @@ contract DiodeRegistryLight {
         byteScore = _byteScore;
     }
 
-    function setConnectionScore(uint256 _connectionScore) external onlyFoundation {
+    function setConnectionScore(
+        uint256 _connectionScore
+    ) external onlyFoundation {
         connectionScore = _connectionScore;
     }
 
@@ -204,7 +206,7 @@ contract DiodeRegistryLight {
     function EndEpochForFleet(IFleetContract fleetContract) public {
         FleetStats storage fleet = fleetStats[address(fleetContract)];
         if (!fleet.exists) return;
-        
+
         uint256 epoch = fleet.currentEpoch + 1;
         if (epoch >= currentEpoch) return;
 
@@ -213,7 +215,7 @@ contract DiodeRegistryLight {
         // No traffic => no reward, and no tax
         if (fleet.score == 0) reward = 0;
 
-        uint256 foundationTax = reward * foundationTaxRate / 100;
+        uint256 foundationTax = (reward * foundationTaxRate) / 100;
 
         // Still updating the withdrawable balance even if there is no reward
         fleet.currentBalance -= reward;
@@ -338,6 +340,55 @@ contract DiodeRegistryLight {
     }
 
     // ====================================================================================
+    // ============================= EXPLORATIVE ACCESSORS ================================
+    // ====================================================================================
+
+    // These types only exist for external accessors, hence avoid using mappings
+    struct FleetStat {
+        bool exists;
+        uint256 currentBalance;
+        uint256 withdrawRequestSize;
+        uint256 withdrawableBalance;
+        uint256 currentEpoch;
+        uint256 score;
+    }
+
+    struct Node {
+        address node;
+        uint256 totalConnections;
+        uint256 totalBytes;
+        Client[] clients;
+    }
+
+    struct Client {
+        address client;
+        uint256 totalConnections;
+        uint256 totalBytes;
+    }
+
+    // These functions are only called by Web3 contract explorers
+    function FleetArray() external view returns (IFleetContract[] memory) {
+        return fleetArray;
+    }
+
+    function FleetArrayLength() external view returns (uint) {
+        return fleetArray.length;
+    }
+
+    function GetFleet(IFleetContract _fleet) external view returns (FleetStat memory) {
+        FleetStats storage f = fleetStats[address(_fleet)];
+        return
+            FleetStat(
+                f.exists,
+                f.currentBalance,
+                f.withdrawRequestSize,
+                f.withdrawableBalance,
+                f.currentEpoch,
+                f.score
+            );
+    }
+
+    // ====================================================================================
     // ============================= INTERNAL FUNCTIONS ===================================
     // ====================================================================================
     function updateTrafficCount(
@@ -348,7 +399,10 @@ contract DiodeRegistryLight {
         uint256 totalBytes
     ) internal {
         FleetStats storage fleet = fleetStats[address(fleetContract)];
-        uint256 score = totalConnections * connectionScore + totalBytes * byteScore;
+        uint256 score = totalConnections *
+            connectionScore +
+            totalBytes *
+            byteScore;
 
         if (fleet.exists == false) {
             fleet.exists = true;

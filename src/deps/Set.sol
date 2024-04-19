@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: DIODE
 // Diode Contracts
-// Copyright 2021 Diode
+// Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 
@@ -10,15 +10,15 @@ library Set {
     address[] items;
   }
 
-  function add(Data storage self, address _item) internal {
-      if (isMember(self, _item)) {
+  function Add(Data storage self, address _item) internal {
+      if (IsMember(self, _item)) {
           return;
       }
       self.items.push(_item);
       self.indexes[_item] = self.items.length;
   }
 
-  function remove(Data storage self, address _item) internal {
+  function Remove(Data storage self, address _item) internal {
       uint256 idx = self.indexes[_item];
       if (idx == 0) {
           return;
@@ -34,7 +34,7 @@ library Set {
       delete self.indexes[_item];
   }
 
-  function isMember(Data storage self, address _item) internal view returns (bool) {
+  function IsMember(Data storage self, address _item) internal view returns (bool) {
       uint256 idx = self.indexes[_item];
       if (idx == 0 || idx > self.items.length) {
         return false;
@@ -42,15 +42,15 @@ library Set {
       return self.items[idx - 1] == _item;
   }
 
-  function members(Data storage self) internal view returns (address[] storage) {
+  function Members(Data storage self) internal view returns (address[] storage) {
     return self.items;
   }
 
-  function size(Data storage self) internal view returns (uint256) {
+  function Size(Data storage self) internal view returns (uint256) {
     return self.items.length;
   }
 
-  function clear(Data storage self) internal {
+  function Clear(Data storage self) internal {
     for (uint i = self.items.length; i > 0; i--) {
       address item = self.items[i-1];
       self.items.pop();
