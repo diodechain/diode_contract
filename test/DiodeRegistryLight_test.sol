@@ -73,8 +73,10 @@ contract DiodeRegistryLightTest is Test {
         uint totalConnections = 3;
         uint totalBytes = 5;
         bytes32 localAddress = "fake";
+        vm.roll(block.number + 2);
+
         bytes32[] memory ticket = new bytes32[](6);
-        ticket[0] = bytes32(blockHeight);
+        ticket[0] = blockhash(blockHeight);
         ticket[1] = Utils.addressToBytes32(address(fleet1));
         ticket[2] = Utils.addressToBytes32(address(relay));
         ticket[3] = bytes32(totalConnections);
@@ -86,9 +88,10 @@ contract DiodeRegistryLightTest is Test {
             Utils.bytes32Hash(ticket)
         );
 
-        bytes32[3] memory sig = [bytes32(uint256(v)), r, s];
+        bytes32[3] memory sig = [r, s, bytes32(uint256(v))];
 
-        vm.roll(block.number + 2);
+        fleet1.SetDeviceAllowlist(alice, true);
+
         reg.SubmitTicket(
             blockHeight,
             fleet1,
@@ -98,5 +101,13 @@ contract DiodeRegistryLightTest is Test {
             localAddress,
             sig
         );
+
+        vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
+        reg.EndEpochForAllFleets();
+
+        DiodeRegistryLight.FleetStat memory f = reg.GetFleet(fleet1);
+        assertEq(f.currentBalance, 0, "currentBalance==0");
+        assertEq(f.withdrawRequestSize, 0, "withdrawRequestSize==0");
+        assertEq(f.withdrawableBalance, amount, "withdrawableBalance==amount");
     }
 }
