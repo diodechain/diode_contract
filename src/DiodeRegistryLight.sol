@@ -25,7 +25,7 @@ contract DiodeRegistryLight {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    uint64 constant SecondsPerEpoch = 2_592_000;
+    uint64 constant public SecondsPerEpoch = 2_592_000;
     uint64 constant Fractionals = 1000;
     address immutable Foundation;
     IERC20 immutable Token;
@@ -207,7 +207,7 @@ contract DiodeRegistryLight {
         FleetStats storage fleet = fleetStats[address(fleetContract)];
         if (!fleet.exists) return;
 
-        uint256 epoch = fleet.currentEpoch + 1;
+        uint256 epoch = fleet.currentEpoch++;
         if (epoch >= currentEpoch) return;
 
         uint256 fleetBalance = fleet.currentBalance;
@@ -223,9 +223,10 @@ contract DiodeRegistryLight {
             fleet.withdrawableBalance += fleet.withdrawRequestSize;
             fleet.currentBalance -= fleet.withdrawRequestSize;
         } else {
-            fleet.currentBalance = 0;
             fleet.withdrawableBalance += fleet.currentBalance;
+            fleet.currentBalance = 0;
         }
+        fleet.withdrawRequestSize = 0;
 
         // No need to continue beyond this point, if there is nothing to distribute
         if (reward == 0) return;
