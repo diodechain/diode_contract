@@ -102,12 +102,31 @@ contract DiodeRegistryLightTest is Test {
             sig
         );
 
+        DiodeRegistryLight.FleetStat memory f = reg.GetFleet(fleet1);
+        assertEq(f.score, 3077, "prev fleetScore==3077");
+        assertEq(f.currentBalance, amount, "currentBalance==amount");
+        assertEq(f.withdrawRequestSize, 0, "withdrawRequestSize==0");
+
         vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
         reg.EndEpochForAllFleets();
 
-        DiodeRegistryLight.FleetStat memory f = reg.GetFleet(fleet1);
-        assertEq(f.currentBalance, 0, "currentBalance==0");
-        assertEq(f.withdrawRequestSize, 0, "withdrawRequestSize==0");
-        assertEq(f.withdrawableBalance, amount, "withdrawableBalance==amount");
+        f = reg.GetFleet(fleet1);
+        uint expectedReward = amount / 100;
+        uint expectedTax = expectedReward / 100;
+
+        assertEq(f.score, 0, "fleetScore==0");
+        assertEq(f.currentBalance, amount - expectedReward, "currentBalance==0");
+        assertEq(reg.foundationWithdrawableBalance(), expectedTax, "foundationWithdrawableBalance==10");
+        assertEq(reg.relayRewards(address(relay)), expectedReward - expectedTax, "relayRewards==1000");
+
+        reg.FoundationWithdraw();
+        reg.RelayWithdraw(address(relay));
+
+        assertEq(reg.foundationWithdrawableBalance(), 0, "foundationWithdrawableBalance==0");
+        assertEq(reg.relayRewards(address(relay)), 0, "relayRewards==0");
+
+        assertEq(diode.balanceOf(address(relay)), expectedReward - expectedTax);
+        assertEq(diode.balanceOf(foundation), expectedTax);
+        assertEq(diode.balanceOf(address(reg)), amount - expectedReward);
     }
 }
