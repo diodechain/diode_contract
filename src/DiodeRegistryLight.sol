@@ -55,17 +55,17 @@ contract DiodeRegistryLight {
      * well as on the Fleet level.
      *
      */
-    address[] public rollupArray;
-    mapping(address => uint256) rollupReward;
+    address[] public relayArray;
+    mapping(address => uint256) public relayRewards;
 
     uint256 public currentEpoch;
-    uint256 currentEpochStart;
-    uint256 previousEpochStart;
+    uint256 public currentEpochStart;
+    uint256 public previousEpochStart;
 
-    uint256 foundationTaxRate;
-    uint256 foundationWithdrawableBalance;
-    uint256 connectionScore;
-    uint256 byteScore;
+    uint256 public foundationTaxRate = 1;
+    uint256 public foundationWithdrawableBalance;
+    uint256 public connectionScore = 1024;
+    uint256 public byteScore = 1;
 
     // These two together form an iterable map for this Epochs activity
     IFleetContract[] public fleetArray;
@@ -108,7 +108,6 @@ contract DiodeRegistryLight {
         currentEpoch = Epoch();
         currentEpochStart = block.number;
         previousEpochStart = block.number;
-        foundationTaxRate = 10;
     }
 
     function ContractStake(IFleetContract _fleet, uint256 amount) public {
@@ -144,20 +143,29 @@ contract DiodeRegistryLight {
             "Only the fleet accountant can do this"
         );
         FleetStats storage fleet = fleetStats[address(_fleet)];
-        require(fleet.withdrawableBalance > 0, "Nothing to withdraw");
         Token.safeTransfer(msg.sender, fleet.withdrawableBalance);
         fleet.withdrawableBalance = 0;
     }
 
-    function setFoundationTax(uint256 _taxRate) external onlyFoundation {
+    function FoundationWithdraw() public {
+        Token.safeTransfer(Foundation, foundationWithdrawableBalance);
+        foundationWithdrawableBalance = 0;
+    }
+
+    function RelayWithdraw(address nodeAddress) public {
+        Token.safeTransfer(nodeAddress, relayRewards[nodeAddress]);
+        relayRewards[nodeAddress] = 0;
+    }
+
+    function SetFoundationTax(uint256 _taxRate) external onlyFoundation {
         foundationTaxRate = _taxRate;
     }
 
-    function setByteScore(uint256 _byteScore) external onlyFoundation {
+    function SetByteScore(uint256 _byteScore) external onlyFoundation {
         byteScore = _byteScore;
     }
 
-    function setConnectionScore(
+    function SetConnectionScore(
         uint256 _connectionScore
     ) external onlyFoundation {
         connectionScore = _connectionScore;
@@ -186,15 +194,11 @@ contract DiodeRegistryLight {
 
         // ==ConnectionTickets (CTs)
         // CTs are calculcated as worth 1kb or traffic or 1024 totalBytes in
-        // TrafficTickets (TTs)
+        // TrafficTickets (TTs) by default
 
         // ==Reward
-        // Is either the sum of all active Fleet Contracts or the Value of all
-        // each registered...
-        // It's easier to just calculcate the value of each fleet contract
-        // We distribute each round %1 percent of Fleet Contract Stake
+        // Distribute each round %1 percent of Fleet Contract Stake
 
-        // Q: Is it better to copy fleetArray.length into a uint256 local var first?
         EndEpoch();
         for (uint f = 0; f < fleetArray.length; f++) {
             EndEpochForFleet(fleetArray[f]);
@@ -229,14 +233,24 @@ contract DiodeRegistryLight {
         fleet.withdrawRequestSize = 0;
 
         // No need to continue beyond this point, if there is nothing to distribute
+        reward -= foundationTax;
         if (reward == 0) return;
+        uint rest = reward;
+        
 
         for (uint256 n = 0; n < fleet.nodeArray.length; n++) {
             address nodeAddress = fleet.nodeArray[n];
             NodeStats storage node = fleet.nodeStats[nodeAddress];
 
-            // Summarizing in one reward per node to be applying capping and allow fractionals
-            _rollup(nodeAddress, node.score);
+            uint value = reward * node.score / fleet.score;
+
+            if (value > 0) {
+                if (relayRewards[nodeAddress] == 0) {
+                    relayArray.push(nodeAddress);
+                }
+                relayRewards[nodeAddress] += value;
+                rest -= value;
+            }
 
             for (uint256 c = 0; c < node.clientArray.length; c++) {
                 // Client Map Cleanup
@@ -245,17 +259,11 @@ contract DiodeRegistryLight {
             // Node Cleanup
             delete fleet.nodeStats[nodeAddress];
         }
+        
+        foundationWithdrawableBalance += foundationTax + rest; 
         // Fleet Cleanup
-        delete fleetStats[address(fleetContract)];
-    }
-
-    function _rollup(address miner, uint256 value) internal {
-        if (value > 0) {
-            if (rollupReward[miner] == 0) {
-                rollupArray.push(miner);
-            }
-            rollupReward[miner] = rollupReward[miner].add(value);
-        }
+        fleet.score = 0;
+        delete fleet.nodeArray;
     }
 
     /**
@@ -376,6 +384,14 @@ contract DiodeRegistryLight {
         return fleetArray.length;
     }
 
+    function RelayArray() external view returns (address[] memory) {
+        return relayArray;
+    }
+
+    function RelayArrayLength() external view returns (uint) {
+        return relayArray.length;
+    }
+
     function GetFleet(IFleetContract _fleet) external view returns (FleetStat memory) {
         FleetStats storage f = fleetStats[address(_fleet)];
         return
@@ -423,7 +439,10 @@ contract DiodeRegistryLight {
         }
 
         if (score > client.score) {
-            client.score = score;
+            uint256 delta = score - client.score;
+            client.score += delta;
+            fleet.score += delta;
+            node.score += delta;
         }
     }
 
