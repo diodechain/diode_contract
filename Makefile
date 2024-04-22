@@ -28,7 +28,7 @@ compile: $(prod)
 .PHONY: test
 test: PRE := sed -e 's:TEST_IF:TEST_IF\*/:g' -e 's:TEST_ELSE\*/:TEST_ELSE:g'
 test: $(test_contracts) $(prod)
-	forge test
+	forge test -vvv
 
 .PHONY: compile_test
 compile_test: PRE := sed -e 's:TEST_IF:TEST_IF\*/:g' -e 's:TEST_ELSE\*/:TEST_ELSE:g'
