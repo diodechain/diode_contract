@@ -25,7 +25,7 @@ contract DiodeRegistryLight {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    uint64 constant public SecondsPerEpoch = 2_592_000;
+    uint64 public constant SecondsPerEpoch = 2_592_000;
     uint64 constant Fractionals = 1000;
     address immutable Foundation;
     IERC20 immutable Token;
@@ -236,13 +236,12 @@ contract DiodeRegistryLight {
         reward -= foundationTax;
         if (reward == 0) return;
         uint rest = reward;
-        
 
         for (uint256 n = 0; n < fleet.nodeArray.length; n++) {
             address nodeAddress = fleet.nodeArray[n];
             NodeStats storage node = fleet.nodeStats[nodeAddress];
 
-            uint value = reward * node.score / fleet.score;
+            uint value = (reward * node.score) / fleet.score;
 
             if (value > 0) {
                 if (relayRewards[nodeAddress] == 0) {
@@ -259,8 +258,8 @@ contract DiodeRegistryLight {
             // Node Cleanup
             delete fleet.nodeStats[nodeAddress];
         }
-        
-        foundationWithdrawableBalance += foundationTax + rest; 
+
+        foundationWithdrawableBalance += foundationTax + rest;
         // Fleet Cleanup
         fleet.score = 0;
         delete fleet.nodeArray;
@@ -392,7 +391,9 @@ contract DiodeRegistryLight {
         return relayArray.length;
     }
 
-    function GetFleet(IFleetContract _fleet) external view returns (FleetStat memory) {
+    function GetFleet(
+        IFleetContract _fleet
+    ) external view returns (FleetStat memory) {
         FleetStats storage f = fleetStats[address(_fleet)];
         return
             FleetStat(
