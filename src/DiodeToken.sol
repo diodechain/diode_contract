@@ -2,7 +2,7 @@
 // Diode Contracts
 // Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
 import "./deps/ERC20.sol";
@@ -58,17 +58,17 @@ contract DiodeToken is ERC20 {
         transferAllowlist[account] = allow;
     }
 
-    function _transfer(
-        address sender,
-        address recipient,
-        uint256 amount
+    function _update(
+        address from,
+        address to,
+        uint256 value
     ) internal virtual override {
         require(
             transferable ||
-                transferAllowlist[sender] ||
-                transferAllowlist[recipient],
+                transferAllowlist[from] ||
+                transferAllowlist[to],
             "DiodeToken: transfer not allowed"
         );
-        return super._transfer(sender, recipient, amount);
+        return super._update(from, to, value);
     }
 }

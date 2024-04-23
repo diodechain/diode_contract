@@ -2,7 +2,7 @@
 // Diode Contracts
 // Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
 import "./deps/IERC20.sol";
