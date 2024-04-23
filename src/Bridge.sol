@@ -13,9 +13,8 @@ import "./BridgeOut.sol";
  */
 contract Bridge is BridgeIn, BridgeOut {
     constructor(
-        address _token,
+        address _foundation,
         address[] memory _validators,
         uint256 _threshold
-    ) BridgeIn(_token, _validators, _threshold) BridgeOut() {
-    }
+    ) BridgeIn(_foundation, _validators, _threshold) BridgeOut(address(diode)) {}
 }

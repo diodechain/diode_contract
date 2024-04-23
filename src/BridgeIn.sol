@@ -34,7 +34,8 @@ contract BridgeIn {
     mapping(bytes32 => mapping(address => InSig)) public in_witnesses;
     address[] public in_validators;
     uint256 public in_threshold;
-    DiodeToken immutable public diode;
+    DiodeToken public immutable diode;
+    address public immutable foundation;
 
     constructor(
         address _foundation,
@@ -44,6 +45,24 @@ contract BridgeIn {
         in_validators = _validators;
         in_threshold = _threshold;
         diode = new DiodeToken(_foundation, address(this), false);
+        foundation = _foundation;
+    }
+
+    function setValidators(address[] memory _validators) public {
+        require(
+            msg.sender == foundation,
+            "BridgeIn: only foundation can set validators"
+        );
+        in_validators = _validators;
+    }
+
+    function setThreshold(uint256 _threshold) public {
+        require(
+            msg.sender == foundation,
+            "BridgeIn: only foundation can set threshold"
+        );
+        require(_threshold > 0, "BridgeIn: threshold must be larger than 0");
+        in_threshold = _threshold;
     }
 
     function bridgeIn(
