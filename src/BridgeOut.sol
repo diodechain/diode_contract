@@ -31,7 +31,9 @@ contract BridgeOut {
     mapping(bytes32 => mapping(address => Sig)) public witnesses;
     Burnable immutable Token;
 
-    constructor() {}
+    constructor(address token) {
+        Token = Burnable(token);
+    }
 
     function bridgeOut(
         address destination,

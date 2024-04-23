@@ -22,7 +22,9 @@ contract BridgeTest is Test {
     DiodeToken moonDiode;
 
     constructor() {
-        moonBridgeIn = new BridgeIn(address(0), [address(0)], 1);
+        address[] memory validators = new address[](1);
+        validators[0] = address(0);
+        moonBridgeIn = new BridgeIn(address(0), validators, 1);
         l1BridgeOut = new BridgeOutNative();
         moonDiode = moonBridgeIn.diode();
     }
