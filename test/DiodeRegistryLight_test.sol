@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: DIODE
-pragma solidity ^0.7.6;
+pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 import "./Assert.sol";
 import "./CallForwarder.sol";

@@ -2,7 +2,7 @@
 // Diode Contracts
 // Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.7.6;
+pragma solidity >=0.7.6;
 
 library Utils {
   // spilit signature
@@ -33,7 +33,7 @@ library Utils {
     assembly {
       _address := add(_addressBytes, 0)
     }
-    return address(_address);
+    return address(uint160(_address));
   }
 
   // addressToBytes32
