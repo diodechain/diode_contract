@@ -24,7 +24,6 @@ contract BridgeOutNative {
     }
 
     mapping(uint256 => Transaction[]) public txs;
-    mapping(bytes32 => mapping(address => Sig)) public witnesses;
 
     // This should always match block.chainid
     // but for testing it makes sense to override this
@@ -34,6 +33,7 @@ contract BridgeOutNative {
     constructor(uint256 _chainid, address _foundation) {
         chainid = _chainid;
         foundation = _foundation;
+        enabledChains[1284] = true;
     }
 
     function setEnabledChain(uint256 chain, bool enabled) public {
@@ -102,10 +102,5 @@ contract BridgeOutNative {
                 historyHash: historyHash
             })
         );
-    }
-
-    function addWitness(bytes32 hashv, uint8 v, bytes32 r, bytes32 s) public {
-        address sender = ecrecover(hashv, v, r, s);
-        witnesses[hashv][sender] = Sig({v: v, r: r, s: s});
     }
 }

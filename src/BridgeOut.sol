@@ -28,7 +28,6 @@ contract BridgeOut {
     }
 
     mapping(uint256 => Transaction[]) public txs;
-    mapping(bytes32 => mapping(address => Sig)) public witnesses;
     Burnable immutable token;
     // This should always match block.chainid
     // but for testing it makes sense to override this
@@ -112,10 +111,5 @@ contract BridgeOut {
                 historyHash: historyHash
             })
         );
-    }
-
-    function addWitness(bytes32 hashv, uint8 v, bytes32 r, bytes32 s) public {
-        address sender = ecrecover(hashv, v, r, s);
-        witnesses[hashv][sender] = Sig({v: v, r: r, s: s});
     }
 }
