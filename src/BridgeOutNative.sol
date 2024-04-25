@@ -18,15 +18,31 @@ contract BridgeOutNative {
     }
 
     struct Sig {
+        uint8 v;
         bytes32 r;
         bytes32 s;
-        uint8 v;
+    }
+
+    // This should always match block.chainid
+    // but for testing it makes sense to override this
+    uint256 public immutable chainid;
+    constructor(uint256 _chainid) {
+        chainid = _chainid;
     }
 
     mapping(uint256 => Transaction[]) public txs;
     mapping(bytes32 => mapping(address => Sig)) public witnesses;
 
-    constructor() {}
+    function txsLength(uint256 chain) public view returns (uint256) {
+        return txs[chain].length;
+    }
+
+    function txsAt(
+        uint256 chain,
+        uint256 index
+    ) public view returns (Transaction memory) {
+        return txs[chain][index];
+    }
 
     function bridgeOut(
         address destination,
@@ -48,14 +64,14 @@ contract BridgeOutNative {
         uint256 destinationChain
     ) internal {
         require(
-            msg.value > 10000000000000000,
-            "BridgeOut: value must be greater than 0.01 $DIODE"
+            msg.value >= 10000000000000000,
+            "BridgeOut: value must be at least 0.01 $DIODE"
         );
         uint256 len = txs[destinationChain].length;
         bytes32 prev = len == 0
             ? keccak256(
                 abi.encodePacked(
-                    block.chainid,
+                    chainid,
                     "diode_bridge_genesis",
                     destinationChain
                 )
@@ -76,13 +92,8 @@ contract BridgeOutNative {
         );
     }
 
-    function addWitness(
-        bytes32 _historyHash,
-        bytes32 r,
-        bytes32 s,
-        uint8 v
-    ) public {
-        address sender = ecrecover(_historyHash, v, r, s);
-        witnesses[_historyHash][sender] = Sig({r: r, s: s, v: v});
+    function addWitness(bytes32 hashv, uint8 v, bytes32 r, bytes32 s) public {
+        address sender = ecrecover(hashv, v, r, s);
+        witnesses[hashv][sender] = Sig({v: v, r: r, s: s});
     }
 }

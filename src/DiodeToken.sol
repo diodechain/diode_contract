@@ -24,6 +24,13 @@ contract DiodeToken is ERC20 {
         foundation = _foundation;
         bridge = _bridge;
         transferable = _transferable;
+
+        if (foundation != address(0)) {
+            transferAllowlist[foundation] = true;
+        }
+        if (bridge != address(0)) {
+            transferAllowlist[bridge] = true;
+        }
     }
 
     function mint(address to, uint256 amount) public {
