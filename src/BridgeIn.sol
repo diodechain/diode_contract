@@ -61,7 +61,7 @@ contract BridgeIn {
         return in_txs[chain].length;
     }
 
-    function txsAt(
+    function inTxsAt(
         uint256 chain,
         uint256 index
     ) public view returns (InTransaction memory) {
