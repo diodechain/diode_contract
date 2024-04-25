@@ -39,7 +39,7 @@ contract BridgeIn {
     address[] public in_validators;
     uint256 public in_threshold;
     DiodeToken public immutable diode;
-    address public immutable foundation;
+    address public immutable in_foundation;
 
     constructor(
         address _foundation,
@@ -49,7 +49,7 @@ contract BridgeIn {
         in_validators = _validators;
         in_threshold = _threshold;
         diode = new DiodeToken(_foundation, address(this), false);
-        foundation = _foundation;
+        in_foundation = _foundation;
     }
 
     function inTxsLength(uint256 chain) public view returns (uint256) {
@@ -65,16 +65,16 @@ contract BridgeIn {
 
     function setValidators(address[] memory _validators) public {
         require(
-            msg.sender == foundation,
-            "BridgeIn: only foundation can set validators"
+            msg.sender == in_foundation,
+            "BridgeIn: only in_foundation can set validators"
         );
         in_validators = _validators;
     }
 
     function setThreshold(uint256 _threshold) public {
         require(
-            msg.sender == foundation,
-            "BridgeIn: only foundation can set threshold"
+            msg.sender == in_foundation,
+            "BridgeIn: only in_foundation can set threshold"
         );
         require(_threshold > 0, "BridgeIn: threshold must be larger than 0");
         in_threshold = _threshold;
@@ -126,10 +126,10 @@ contract BridgeIn {
         );
     }
 
-    function trustScore(
+    function hashTransactions(
         uint256 sourceChain,
         InTransactionMsg[] memory msgs
-    ) public view returns (uint256) {
+    ) public view returns (bytes32) {
         uint256 len = in_txs[sourceChain].length;
         bytes32 tmpHistoryHash = len == 0
             ? keccak256(
@@ -151,7 +151,7 @@ contract BridgeIn {
             );
         }
 
-        return calcTrustScore(tmpHistoryHash);
+        return tmpHistoryHash;
     }
 
     function trustScore(bytes32 tmpHistoryHash) public view returns (uint256) {

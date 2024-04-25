@@ -29,13 +29,21 @@ contract BridgeOut {
 
     mapping(uint256 => Transaction[]) public txs;
     mapping(bytes32 => mapping(address => Sig)) public witnesses;
-    Burnable immutable Token;
+    Burnable immutable token;
     // This should always match block.chainid
     // but for testing it makes sense to override this
     uint256 public immutable chainid;
-    constructor(uint256 _chainid, address token) {
+    mapping(uint256 => bool) public enabledChains;
+    address immutable foundation;
+    constructor(uint256 _chainid, address _foundation, address _token) {
         chainid = _chainid;
-        Token = Burnable(token);
+        foundation = _foundation;
+        token = Burnable(_token);
+    }
+
+    function setEnabledChain(uint256 chain, bool enabled) public {
+        require(msg.sender == foundation, "BridgeOutNative: only foundation can set enabled chain");
+        enabledChains[chain] = enabled;
     }
 
     function txsLength(uint256 chain) public view returns (uint256) {
@@ -47,17 +55,17 @@ contract BridgeOut {
         uint256 destinationChain,
         uint256 amount
     ) public payable {
-        Token.burn(msg.sender, amount);
+        token.burn(msg.sender, amount);
         _bridgeOut(destination, destinationChain, amount);
     }
 
     function bridgeOut(address destination, uint256 amount) public payable {
-        Token.burn(msg.sender, amount);
+        token.burn(msg.sender, amount);
         _bridgeOut(destination, 1284, amount);
     }
 
     function bridgeOut(uint256 amount) public payable {
-        Token.burn(msg.sender, amount);
+        token.burn(msg.sender, amount);
         _bridgeOut(msg.sender, 1284, amount);
     }
 
@@ -66,6 +74,10 @@ contract BridgeOut {
         uint256 destinationChain,
         uint256 amount
     ) internal {
+        require(
+            enabledChains[destinationChain],
+            "BridgeOut: destination chain is not enabled"
+        );
         require(
             msg.value >= 10000000000000000,
             "BridgeOut: value must be at least 0.01 $DIODE"
