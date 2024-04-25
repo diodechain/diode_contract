@@ -9,6 +9,10 @@ import "./DiodeToken.sol";
 
 /**
  * BridgeIn contract
+ * 
+ * This contract is responsible for receiving transactions from other non-L1 chains.
+ * Hence the BridgeIn always operates on a ERC20 Diode Token. The token is spawned
+ * as part of the initial bridge deployment.
  */
 contract BridgeIn {
     struct InTransaction {
@@ -46,6 +50,17 @@ contract BridgeIn {
         in_threshold = _threshold;
         diode = new DiodeToken(_foundation, address(this), false);
         foundation = _foundation;
+    }
+
+    function inTxsLength(uint256 chain) public view returns (uint256) {
+        return in_txs[chain].length;
+    }
+
+    function txsAt(
+        uint256 chain,
+        uint256 index
+    ) public view returns (InTransaction memory) {
+        return in_txs[chain][index];
     }
 
     function setValidators(address[] memory _validators) public {
@@ -100,13 +115,14 @@ contract BridgeIn {
                     blockNumber: block.number
                 })
             );
-            diode.mint(msgs[i].destination, msgs[i].amount);
+            diode.mint(address(this), msgs[i].amount);
+            diode.transfer(msgs[i].destination, msgs[i].amount);
         }
 
         uint256 _trustScore = calcTrustScore(historyHash);
         require(
             _trustScore >= in_threshold,
-            "BridgeOut: trust score must be greater than threshold"
+            "BridgeOut: trust score must reach at least threshold"
         );
     }
 
@@ -152,7 +168,7 @@ contract BridgeIn {
         return _trustScore;
     }
 
-    function addInWitness(bytes32 hashv, bytes32 r, bytes32 s, uint8 v) public {
+    function addInWitness(bytes32 hashv, uint8 v, bytes32 r, bytes32 s) public {
         address destination = ecrecover(hashv, v, r, s);
         in_witnesses[hashv][destination] = InSig({r: r, s: s, v: v});
     }
