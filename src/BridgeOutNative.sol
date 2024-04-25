@@ -90,7 +90,7 @@ contract BridgeOutNative {
             )
             : txs[destinationChain][len - 1].historyHash;
         bytes32 historyHash = keccak256(
-            abi.encodePacked(destination, destinationChain, msg.value, prev)
+            abi.encodePacked(destination, msg.value, prev)
         );
         txs[destinationChain].push(
             Transaction({

@@ -40,12 +40,17 @@ contract BridgeIn {
     uint256 public in_threshold;
     DiodeToken public immutable diode;
     address public immutable in_foundation;
+    // This should always match block.chainid
+    // but for testing it makes sense to override this
+    uint256 public immutable in_chainid;
 
     constructor(
+        uint256 _chainid,
         address _foundation,
         address[] memory _validators,
         uint256 _threshold
     ) {
+        in_chainid = _chainid;
         in_validators = _validators;
         in_threshold = _threshold;
         diode = new DiodeToken(_foundation, address(this), false);
@@ -98,7 +103,7 @@ contract BridgeIn {
                     abi.encodePacked(
                         sourceChain,
                         "diode_bridge_genesis",
-                        block.chainid
+                        in_chainid
                     )
                 )
                 : in_txs[sourceChain][len - 1].historyHash;
@@ -136,7 +141,7 @@ contract BridgeIn {
                 abi.encodePacked(
                     sourceChain,
                     "diode_bridge_genesis",
-                    block.chainid
+                    in_chainid
                 )
             )
             : in_txs[sourceChain][len - 1].historyHash;
