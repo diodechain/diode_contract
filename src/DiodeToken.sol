@@ -5,6 +5,7 @@
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
+import "./deps/Initializable.sol";
 import "./deps/ERC20.sol";
 
 /**
@@ -21,6 +22,24 @@ contract DiodeToken is ERC20 {
         address _bridge,
         bool _transferable
     ) ERC20("Diode", "DIODE") {
+        foundation = _foundation;
+        bridge = _bridge;
+        transferable = _transferable;
+
+        if (foundation != address(0)) {
+            transferAllowlist[foundation] = true;
+        }
+        if (bridge != address(0)) {
+            transferAllowlist[bridge] = true;
+        }
+    }
+
+    function initialize(
+        address _foundation,
+        address _bridge,
+        bool _transferable
+    ) public initializer {
+        super.initialize("Diode", "DIODE");
         foundation = _foundation;
         bridge = _bridge;
         transferable = _transferable;
@@ -71,9 +90,7 @@ contract DiodeToken is ERC20 {
         uint256 value
     ) internal virtual override {
         require(
-            transferable ||
-                transferAllowlist[from] ||
-                transferAllowlist[to],
+            transferable || transferAllowlist[from] || transferAllowlist[to],
             "DiodeToken: transfer not allowed"
         );
         return super._update(from, to, value);

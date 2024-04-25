@@ -5,6 +5,8 @@
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
+import "./deps/Initializable.sol";
+import "./Proxy.sol";
 import "./DiodeToken.sol";
 
 /**
@@ -14,7 +16,7 @@ import "./DiodeToken.sol";
  * Hence the BridgeIn always operates on a ERC20 Diode Token. The token is spawned
  * as part of the initial bridge deployment.
  */
-contract BridgeIn {
+contract BridgeIn is Initializable {
     struct InTransaction {
         address destination;
         uint256 amount;
@@ -51,10 +53,19 @@ contract BridgeIn {
         uint256 _threshold
     ) {
         in_chainid = _chainid;
+        address _diode = address(new DiodeToken(_foundation, address(this), false));
+        diode = DiodeToken(address(new Proxy(_diode, _foundation)));
+        diode.initialize(_foundation, address(this), false);
+        in_foundation = _foundation;
+        initialize(_validators, _threshold);
+    }
+
+    function initialize(
+        address[] memory _validators,
+        uint256 _threshold
+    ) public initializer {
         in_validators = _validators;
         in_threshold = _threshold;
-        diode = new DiodeToken(_foundation, address(this), false);
-        in_foundation = _foundation;
     }
 
     function inTxsLength(uint256 chain) public view returns (uint256) {
