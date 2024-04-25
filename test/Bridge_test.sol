@@ -43,7 +43,8 @@ contract BridgeTest is Test {
         validators[1] = bob;
         validators[2] = charlie;
         moonBridgeIn = new BridgeIn(address(0), validators, 2);
-        l1BridgeOut = new BridgeOutNative(moon);
+        l1BridgeOut = new BridgeOutNative(moon, address(this));
+        l1BridgeOut.setEnabledChain(moon, true);
         moonDiode = moonBridgeIn.diode();
     }
 

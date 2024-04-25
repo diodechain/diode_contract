@@ -16,5 +16,8 @@ contract Bridge is BridgeIn, BridgeOut {
         address _foundation,
         address[] memory _validators,
         uint256 _threshold
-    ) BridgeIn(_foundation, _validators, _threshold) BridgeOut(block.chainid, address(diode)) {}
+    )
+        BridgeIn(_foundation, _validators, _threshold)
+        BridgeOut(block.chainid, _foundation, address(diode))
+    {}
 }

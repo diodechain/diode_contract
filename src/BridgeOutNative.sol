@@ -23,15 +23,23 @@ contract BridgeOutNative {
         bytes32 s;
     }
 
+    mapping(uint256 => Transaction[]) public txs;
+    mapping(bytes32 => mapping(address => Sig)) public witnesses;
+
     // This should always match block.chainid
     // but for testing it makes sense to override this
     uint256 public immutable chainid;
-    constructor(uint256 _chainid) {
+    mapping(uint256 => bool) public enabledChains;
+    address immutable foundation;
+    constructor(uint256 _chainid, address _foundation) {
         chainid = _chainid;
+        foundation = _foundation;
     }
 
-    mapping(uint256 => Transaction[]) public txs;
-    mapping(bytes32 => mapping(address => Sig)) public witnesses;
+    function setEnabledChain(uint256 chain, bool enabled) public {
+        require(msg.sender == foundation, "BridgeOutNative: only foundation can set enabled chain");
+        enabledChains[chain] = enabled;
+    }
 
     function txsLength(uint256 chain) public view returns (uint256) {
         return txs[chain].length;
@@ -63,6 +71,10 @@ contract BridgeOutNative {
         address destination,
         uint256 destinationChain
     ) internal {
+        require(
+            enabledChains[destinationChain],
+            "BridgeOut: destination chain is not enabled"
+        );
         require(
             msg.value >= 10000000000000000,
             "BridgeOut: value must be at least 0.01 $DIODE"
