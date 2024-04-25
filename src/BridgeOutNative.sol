@@ -4,10 +4,12 @@
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.8.20;
 
+import "./deps/Initializable.sol";
+
 /**
  * BridgeOutNative contract
  */
-contract BridgeOutNative {
+contract BridgeOutNative is Initializable {
     struct Transaction {
         address sender;
         address destination;
@@ -33,6 +35,10 @@ contract BridgeOutNative {
     constructor(uint256 _chainid, address _foundation) {
         chainid = _chainid;
         foundation = _foundation;
+        initialize();
+    }
+
+    function initialize() public initializer {
         enabledChains[1284] = true;
     }
 

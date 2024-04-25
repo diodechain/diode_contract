@@ -4,6 +4,8 @@
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.8.20;
 
+import "./deps/Initializable.sol";
+
 interface Burnable {
     function burn(address from, uint256 amount) external;
 }
@@ -11,7 +13,7 @@ interface Burnable {
 /**
  * BridgeOut contract
  */
-contract BridgeOut {
+contract BridgeOut is Initializable {
     struct Transaction {
         address sender;
         address destination;
@@ -38,6 +40,11 @@ contract BridgeOut {
         chainid = _chainid;
         foundation = _foundation;
         token = Burnable(_token);
+        initialize();
+    }
+
+    function initialize() public initializer {
+        enabledChains[1284] = true;
     }
 
     function setEnabledChain(uint256 chain, bool enabled) public {

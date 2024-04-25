@@ -6,6 +6,8 @@ pragma solidity ^0.8.20;
 import {IERC20} from "./IERC20.sol";
 import {Context} from "./Context.sol";
 import {IERC20Errors} from "./draft-IERC6093.sol";
+import "./Initializable.sol";
+
 
 /**
  * @dev Implementation of the {IERC20} interface.
@@ -25,7 +27,7 @@ import {IERC20Errors} from "./draft-IERC6093.sol";
  * conventional and does not conflict with the expectations of ERC-20
  * applications.
  */
-abstract contract ERC20 is Context, IERC20, IERC20Errors {
+abstract contract ERC20 is Context, IERC20, IERC20Errors, Initializable {
     mapping(address account => uint256) private _balances;
 
     mapping(address account => mapping(address spender => uint256)) private _allowances;
@@ -42,6 +44,10 @@ abstract contract ERC20 is Context, IERC20, IERC20Errors {
      * construction.
      */
     constructor(string memory name_, string memory symbol_) {
+        initialize(name_, symbol_);
+    }
+
+    function initialize(string memory name_, string memory symbol_) public initializer {
         _name = name_;
         _symbol = symbol_;
     }
