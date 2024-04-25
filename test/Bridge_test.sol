@@ -42,8 +42,8 @@ contract BridgeTest is Test {
         validators[0] = alice;
         validators[1] = bob;
         validators[2] = charlie;
-        moonBridgeIn = new BridgeIn(address(0), validators, 2);
-        l1BridgeOut = new BridgeOutNative(moon, address(this));
+        moonBridgeIn = new BridgeIn(moon, address(0), validators, 2);
+        l1BridgeOut = new BridgeOutNative(block.chainid, address(this));
         l1BridgeOut.setEnabledChain(moon, true);
         moonDiode = moonBridgeIn.diode();
     }
@@ -67,8 +67,10 @@ contract BridgeTest is Test {
         moonBridgeIn.addInWitness(hashv, v, r, s);
         assertEq(moonBridgeIn.trustScore(hashv), 1, "trustScore=1");
         assertEq(moonBridgeIn.hashTransactions(block.chainid, msgs), hashv, "hashv=hashTxs()");
+        assertNotEq(block.chainid, moon, "block.chainid!=moon");
+        assertNotEq(moonBridgeIn.hashTransactions(moon, msgs), hashv, "hashv[block.chainid]!=hashv[moon]");
 
-        // Dana is no approved validator and her should not increase score
+        // Dana is no approved validator and her signature should not increase score
         (v, r, s) = vm.sign(danaKey, hashv);
         moonBridgeIn.addInWitness(hashv, v, r, s);
         assertEq(moonBridgeIn.trustScore(hashv), 1, "trustScore=1");

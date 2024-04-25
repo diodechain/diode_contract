@@ -50,6 +50,13 @@ contract BridgeOut {
         return txs[chain].length;
     }
 
+    function txsAt(
+        uint256 chain,
+        uint256 index
+    ) public view returns (Transaction memory) {
+        return txs[chain][index];
+    }
+
     function bridgeOut(
         address destination,
         uint256 destinationChain,
@@ -86,7 +93,7 @@ contract BridgeOut {
         bytes32 prev = len == 0
             ? keccak256(
                 abi.encodePacked(
-                    block.chainid,
+                    chainid,
                     "diode_bridge_genesis",
                     destinationChain
                 )
