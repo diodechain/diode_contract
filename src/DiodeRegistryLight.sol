@@ -9,6 +9,7 @@ import "./deps/IERC20.sol";
 import "./deps/SafeERC20.sol";
 import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
+import "./deps/Initializable.sol";
 import "./IFleetContract.sol";
 
 /**
@@ -21,14 +22,13 @@ import "./IFleetContract.sol";
  *
  */
 
-contract DiodeRegistryLight {
+contract DiodeRegistryLight is Initializable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     uint64 public constant SecondsPerEpoch = 2_592_000;
-    uint64 constant Fractionals = 1000;
-    address immutable Foundation;
-    IERC20 immutable Token;
+    address public immutable Foundation;
+    IERC20 public immutable Token;
 
     /**
      * Accounting Epochs run in two phases:
@@ -62,10 +62,10 @@ contract DiodeRegistryLight {
     uint256 public currentEpochStart;
     uint256 public previousEpochStart;
 
-    uint256 public foundationTaxRate = 1;
+    uint256 public foundationTaxRate;
     uint256 public foundationWithdrawableBalance;
-    uint256 public connectionScore = 1024;
-    uint256 public byteScore = 1;
+    uint256 public connectionScore;
+    uint256 public byteScore;
 
     // These two together form an iterable map for this Epochs activity
     IFleetContract[] public fleetArray;
@@ -105,6 +105,13 @@ contract DiodeRegistryLight {
     constructor(address _foundation, IERC20 _token) {
         Foundation = _foundation;
         Token = _token;
+        initialize();
+    }
+
+    function initialize() public initializer {
+        foundationTaxRate = 1;
+        connectionScore = 1024;
+        byteScore = 1;
         currentEpoch = Epoch();
         currentEpochStart = block.number;
         previousEpochStart = block.number;

@@ -14,7 +14,7 @@ import "./deps/ERC20.sol";
 contract DiodeToken is ERC20 {
     address public foundation;
     address public bridge;
-    bool public transferable = false;
+    bool public transferable;
     mapping(address => bool) transferAllowlist;
 
     constructor(
