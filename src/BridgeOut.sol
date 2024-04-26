@@ -30,7 +30,7 @@ contract BridgeOut is Initializable {
     }
 
     mapping(uint256 => Transaction[]) public txs;
-    Burnable immutable token;
+    Burnable burnable_;
     // This should always match block.chainid
     // but for testing it makes sense to override this
     uint256 public immutable chainid;
@@ -39,11 +39,11 @@ contract BridgeOut is Initializable {
     constructor(uint256 _chainid, address _foundation, address _token) {
         chainid = _chainid;
         foundation = _foundation;
-        token = Burnable(_token);
+        burnable_ = Burnable(_token);
         initialize();
     }
 
-    function initialize() public initializer {
+    function initialize() public virtual initializer {
         enabledChains[1284] = true;
     }
 
@@ -68,17 +68,17 @@ contract BridgeOut is Initializable {
         uint256 destinationChain,
         uint256 amount
     ) public payable {
-        token.burn(msg.sender, amount);
+        burnable().burn(msg.sender, amount);
         _bridgeOut(destination, destinationChain, amount);
     }
 
     function bridgeOut(address destination, uint256 amount) public payable {
-        token.burn(msg.sender, amount);
+        burnable().burn(msg.sender, amount);
         _bridgeOut(destination, 1284, amount);
     }
 
     function bridgeOut(uint256 amount) public payable {
-        token.burn(msg.sender, amount);
+        burnable().burn(msg.sender, amount);
         _bridgeOut(msg.sender, 1284, amount);
     }
 
@@ -92,7 +92,7 @@ contract BridgeOut is Initializable {
             "BridgeOut: destination chain is not enabled"
         );
         require(
-            msg.value >= 10000000000000000,
+            amount >= 10000000000000000,
             "BridgeOut: value must be at least 0.01 $DIODE"
         );
         uint256 len = txs[destinationChain].length;
@@ -106,7 +106,7 @@ contract BridgeOut is Initializable {
             )
             : txs[destinationChain][len - 1].historyHash;
         bytes32 historyHash = keccak256(
-            abi.encodePacked(destination, msg.value, prev)
+            abi.encodePacked(destination, amount, prev)
         );
         txs[destinationChain].push(
             Transaction({
@@ -118,5 +118,9 @@ contract BridgeOut is Initializable {
                 historyHash: historyHash
             })
         );
+    }
+
+    function burnable() virtual public view returns (Burnable) {
+        return burnable_;
     }
 }

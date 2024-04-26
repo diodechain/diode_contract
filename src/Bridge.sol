@@ -19,5 +19,15 @@ contract Bridge is BridgeIn, BridgeOut {
     )
         BridgeIn(block.chainid, _foundation, _validators, _threshold)
         BridgeOut(block.chainid, _foundation, address(diode))
-    {}
+    {
+    }
+
+    function initialize(address[] memory _validators, uint256 _threshold) public override initializer {
+        BridgeIn.initialize(_validators, _threshold);
+        BridgeOut.initialize();
+    }
+
+    function burnable() override public view returns (Burnable) {
+        return Burnable(address(diode));
+    }
 }

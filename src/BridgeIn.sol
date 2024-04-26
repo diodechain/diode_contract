@@ -40,7 +40,7 @@ contract BridgeIn is Initializable {
     mapping(bytes32 => mapping(address => InSig)) public in_witnesses;
     address[] public in_validators;
     uint256 public in_threshold;
-    DiodeToken public immutable diode;
+    DiodeToken public diode;
     address public immutable in_foundation;
     // This should always match block.chainid
     // but for testing it makes sense to override this
@@ -63,7 +63,7 @@ contract BridgeIn is Initializable {
     function initialize(
         address[] memory _validators,
         uint256 _threshold
-    ) public initializer {
+    ) public virtual initializer {
         in_validators = _validators;
         in_threshold = _threshold;
     }
