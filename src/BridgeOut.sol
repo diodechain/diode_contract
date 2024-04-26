@@ -67,17 +67,17 @@ contract BridgeOut is Initializable {
         address destination,
         uint256 destinationChain,
         uint256 amount
-    ) public payable {
+    ) public {
         burnable().burn(msg.sender, amount);
         _bridgeOut(destination, destinationChain, amount);
     }
 
-    function bridgeOut(address destination, uint256 amount) public payable {
+    function bridgeOut(address destination, uint256 amount) public {
         burnable().burn(msg.sender, amount);
         _bridgeOut(destination, 1284, amount);
     }
 
-    function bridgeOut(uint256 amount) public payable {
+    function bridgeOut(uint256 amount) public {
         burnable().burn(msg.sender, amount);
         _bridgeOut(msg.sender, 1284, amount);
     }
