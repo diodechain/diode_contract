@@ -53,9 +53,6 @@ contract BridgeIn is Initializable {
         uint256 _threshold
     ) {
         in_chainid = _chainid;
-        address _diode = address(new DiodeToken(_foundation, address(this), false));
-        diode = DiodeToken(address(new Proxy(_diode, _foundation)));
-        diode.initialize(_foundation, address(this), false);
         in_foundation = _foundation;
         initialize(_validators, _threshold);
     }
@@ -64,6 +61,9 @@ contract BridgeIn is Initializable {
         address[] memory _validators,
         uint256 _threshold
     ) public virtual initializer {
+        address _diode = address(new DiodeToken(in_foundation, address(this), false));
+        diode = DiodeToken(address(new Proxy(_diode, in_foundation)));
+        diode.initialize(in_foundation, address(this), false);
         in_validators = _validators;
         in_threshold = _threshold;
     }
