@@ -107,7 +107,6 @@ FLEETCONTRACTUPGRADEABLE:
 # Known Deployments (Moonbeam)
 
 Optimizations: 200
-Compiler: 0.7.6.7338295f
 Deployment Wallet: 0x7102533B13b950c964efd346Ee15041E3e55413f
 
 Bridge Validator Members:
