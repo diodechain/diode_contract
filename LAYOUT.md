@@ -94,6 +94,7 @@ Foundation Members:
 
 Wallet UI:
     https://ipfs.io/ipfs/QmfRD4GuqZobNi2NT2C77a3UTQ452ffwstr4fjEJixUgjf/#/wallet/0x3d565Ec28595c1a0710ABCBd8C0F979d31E38704
+    https://cloudflare-ipfs.com/ipfs/QmfRD4GuqZobNi2NT2C77a3UTQ452ffwstr4fjEJixUgjf/#/wallet/0x3d565Ec28595c1a0710ABCBd8C0F979d31E38704
 
 FOUNDATION: 
     0x3d565Ec28595c1a0710ABCBd8C0F979d31E38704 MultiSigWallet.sol
@@ -129,8 +130,8 @@ DIODEREGISTRYLIGHT:
     0xD78653669fd3df4dF8F3141Ffa53462121d117a4 Proxy.sol
     0x0B7d294EF304D41e10B965447857D0654E6E52a5 DiodeRegistryLight.sol v1
 
-FLEETCONTRACTUPGRADEABLE:
-    ... v1?
+DEVFLEET:
+    0xa0A4dc6623eC96122066195DE34a813846dC0fC0 DevFleetContract.sol v0 
 
 ```
 

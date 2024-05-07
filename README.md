@@ -1,6 +1,5 @@
 # Diode Contracts
 ![CI](https://github.com/diodechain/diode_contract/workflows/CI/badge.svg)
-[![Build Status](https://travis-ci.com/diodechain/diode_contract.svg?branch=master)](https://travis-ci.com/diodechain/diode_contract)
 
 Smart contracts for diode chain. Ethereum compatible. Tested with Foundry
 

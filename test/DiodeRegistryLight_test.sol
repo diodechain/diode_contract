@@ -73,13 +73,13 @@ contract DiodeRegistryLightTest is Test {
         (address alice, uint256 alicePk) = makeAddrAndKey("alice");
         uint amount = 100000;
         reg.ContractStake(fleet1, amount);
-        uint blockHeight = block.number + 1;
+        uint epoch = block.timestamp / reg.SecondsPerEpoch();
         uint totalConnections = 3;
         uint totalBytes = 5;
         vm.roll(block.number + 2);
 
         bytes32[] memory ticket = new bytes32[](6);
-        ticket[0] = blockhash(blockHeight);
+        ticket[0] = bytes32(epoch);
         ticket[1] = Utils.addressToBytes32(address(fleet1));
         ticket[2] = Utils.addressToBytes32(address(relay1));
         ticket[3] = bytes32(totalConnections);
@@ -92,11 +92,11 @@ contract DiodeRegistryLightTest is Test {
         );
 
         bytes32[3] memory sig = [r, s, bytes32(uint256(v))];
-
         fleet1.SetDeviceAllowlist(alice, true);
 
+        vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
         reg.SubmitTicket(
-            blockHeight,
+            epoch,
             fleet1,
             address(relay1),
             totalConnections,
@@ -156,13 +156,13 @@ contract DiodeRegistryLightTest is Test {
         (address alice, uint256 alicePk) = makeAddrAndKey("alice");
         uint amount = 1000;
         reg.ContractStake(fleet1, amount);
-        uint blockHeight = block.number + 1;
+        uint epoch = block.timestamp / reg.SecondsPerEpoch();
         uint totalConnections = 3;
         uint totalBytes = 5;
         vm.roll(block.number + 2);
 
         bytes32[] memory ticket = new bytes32[](6);
-        ticket[0] = blockhash(blockHeight);
+        ticket[0] = bytes32(epoch);
         ticket[1] = Utils.addressToBytes32(address(fleet1));
         ticket[2] = Utils.addressToBytes32(address(relay1));
         ticket[3] = bytes32(totalConnections);
@@ -178,8 +178,9 @@ contract DiodeRegistryLightTest is Test {
 
         fleet1.SetDeviceAllowlist(alice, true);
 
+        vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
         reg.SubmitTicket(
-            blockHeight,
+            epoch,
             fleet1,
             address(relay1),
             totalConnections,
@@ -241,13 +242,13 @@ contract DiodeRegistryLightTest is Test {
         // Testing for rounding errors with 1001 divided by to relays
         uint amount = 1100;
         reg.ContractStake(fleet1, amount);
-        uint blockHeight = block.number + 1;
+        uint epoch = block.timestamp / reg.SecondsPerEpoch();
         uint totalConnections = 3;
         uint totalBytes = 5;
         vm.roll(block.number + 2);
 
         bytes32[] memory ticket = new bytes32[](6);
-        ticket[0] = blockhash(blockHeight);
+        ticket[0] = bytes32(epoch);
         ticket[1] = Utils.addressToBytes32(address(fleet1));
         ticket[2] = Utils.addressToBytes32(address(relay1));
         ticket[3] = bytes32(totalConnections);
@@ -261,8 +262,9 @@ contract DiodeRegistryLightTest is Test {
 
         bytes32[3] memory sig = [r, s, bytes32(uint256(v))];
         fleet1.SetDeviceAllowlist(alice, true);
+        vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
         reg.SubmitTicket(
-            blockHeight,
+            epoch,
             fleet1,
             address(relay1),
             totalConnections,
@@ -277,7 +279,7 @@ contract DiodeRegistryLightTest is Test {
 
         sig = [r, s, bytes32(uint256(v))];
         reg.SubmitTicket(
-            blockHeight,
+            epoch,
             fleet1,
             address(relay2),
             totalConnections,
