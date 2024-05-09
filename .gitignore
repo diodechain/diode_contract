@@ -12,6 +12,7 @@ yarn-error.log*
 
 # Runtime data
 pids
+*.key
 *.pid
 *.seed
 *.pid.lock
