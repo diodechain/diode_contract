@@ -160,8 +160,9 @@ contract DiodeRegistryLight is Initializable {
     }
 
     function RelayWithdraw(address nodeAddress) public {
-        Token.safeTransfer(nodeAddress, relayRewards[nodeAddress]);
-        relayRewards[nodeAddress] = 0;
+        require (relayRewards[nodeAddress] > 1, "No rewards to withdraw");
+        Token.safeTransfer(nodeAddress, relayRewards[nodeAddress] - 1);
+        relayRewards[nodeAddress] = 1;
     }
 
     function SetFoundationTax(uint256 _taxRate) external onlyFoundation {
@@ -317,13 +318,14 @@ contract DiodeRegistryLight is Initializable {
         require((totalConnections | totalBytes) != 0, "Invalid ticket value");
 
         // ======= CLIENT SIGNATURE RECOVERY =======
-        bytes32[] memory message = new bytes32[](6);
-        message[0] = bytes32(epoch);
-        message[1] = Utils.addressToBytes32(address(fleetContract));
-        message[2] = Utils.addressToBytes32(nodeAddress);
-        message[3] = bytes32(totalConnections);
-        message[4] = bytes32(totalBytes);
-        message[5] = localAddress;
+        bytes32[] memory message = new bytes32[](7);
+        message[0] = bytes32(block.chainid);
+        message[1] = bytes32(epoch);
+        message[2] = Utils.addressToBytes32(address(fleetContract));
+        message[3] = Utils.addressToBytes32(nodeAddress);
+        message[4] = bytes32(totalConnections);
+        message[5] = bytes32(totalBytes);
+        message[6] = localAddress;
 
         address client = ecrecover(
             Utils.bytes32Hash(message),
@@ -443,40 +445,7 @@ contract DiodeRegistryLight is Initializable {
         }
     }
 
-    function validateFleetAccess(
-        IFleetContract fleetContract,
-        address client
-    ) internal view {
-        IFleetContract fc = IFleetContract(fleetContract);
-        requiref(fc.deviceWhitelist(client), "Unregistered device", client);
+    function validateFleetAccess(IFleetContract fleetContract, address client) internal view {
+        require(fleetContract.DeviceAllowlist(client), string(abi.encodePacked("Unregistered device\x00", address(client))));
     }
-
-    /* TEST_IF
-  function requiref(bool _test, string memory _format, address _arg) internal pure {
-    if (!_test) {
-      string memory output = string(abi.encodePacked(_format, " (", tohex(_arg), ")"));
-      revert(output);
-    }
-  }
-  bytes constant hexchars = "0123456789abcdef";
-  function tohex(address _arg) internal pure returns (bytes memory) {
-    bytes memory ret = new bytes(42);
-    bytes20 b = bytes20(_arg);
-    ret[0] = '0';
-    ret[1] = 'x';
-    for (uint i = 0; i < 20; i++) {
-      ret[2*i+2] = hexchars[uint8(b[i]) / 16];
-      ret[2*i+3] = hexchars[uint8(b[i]) % 16];
-    }
-    return ret;
-  }
-  /*TEST_ELSE*/
-    function requiref(
-        bool _test,
-        string memory _format,
-        address
-    ) internal pure {
-        require(_test, _format);
-    }
-    /*TEST_END*/
 }
