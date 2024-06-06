@@ -23,7 +23,7 @@ contract OwnableInitializable is Context, Initializable {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    function initialize(address payable arg_owner) initializer public {
+    function initialize(address payable arg_owner) initializer virtual public {
         _owner = arg_owner;
         emit OwnershipTransferred(address(0), arg_owner);
     }

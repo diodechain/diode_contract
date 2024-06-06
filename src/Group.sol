@@ -27,7 +27,11 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
 
     constructor() {
         initialize(msg.sender);
+    }
+
+    function initialize(address payable arg_owner) initializer override public {
         update_change_tracker();
+        super.initialize(arg_owner);
     }
 
     function IsMember(address _member) external view returns (bool) {
