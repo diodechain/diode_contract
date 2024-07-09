@@ -4,7 +4,6 @@
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
 
-import "./deps/Diode.sol";
 import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
 import "./deps/Address.sol";

@@ -5,7 +5,6 @@
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "./deps/Diode.sol";
 import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
 import "./IFleetContract.sol";
