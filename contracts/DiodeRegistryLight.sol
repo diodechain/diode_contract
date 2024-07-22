@@ -367,9 +367,7 @@ contract DiodeRegistryLight is Initializable {
 
     struct Node {
         address node;
-        uint256 totalConnections;
-        uint256 totalBytes;
-        Client[] clients;
+        uint256 score;
     }
 
     struct Client {
@@ -408,6 +406,15 @@ contract DiodeRegistryLight is Initializable {
                 f.currentEpoch,
                 f.score
             );
+    }
+
+    function GetNode(
+        IFleetContract _fleet,
+        address nodeAddress
+    ) external view returns (Node memory) {
+        NodeStats storage n = fleetStats[address(_fleet)].nodeStats[nodeAddress];
+        Node memory node = Node(nodeAddress, n.score);
+        return node;
     }
 
     function RelayRewards(address nodeAddress) external view returns (uint256) {
