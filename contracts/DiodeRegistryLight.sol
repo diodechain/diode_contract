@@ -408,6 +408,10 @@ contract DiodeRegistryLight is Initializable {
             );
     }
 
+    function GetClientScore(IFleetContract _fleet, address nodeAddress, address clientAddress) external view returns (uint256) {
+        return fleetStats[address(_fleet)].nodeStats[nodeAddress].clientStats[clientAddress].score;
+    }
+
     function GetNode(
         IFleetContract _fleet,
         address nodeAddress
@@ -464,5 +468,9 @@ contract DiodeRegistryLight is Initializable {
 
     function validateFleetAccess(IFleetContract fleetContract, address client) internal view {
         require(fleetContract.DeviceAllowlist(client), string(abi.encodePacked("Unregistered device\x00", address(client))));
+    }
+
+    function Version() external pure returns (uint256) {
+        return 110;
     }
 }

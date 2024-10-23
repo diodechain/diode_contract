@@ -137,7 +137,8 @@ DIODE_TOKEN:
 DIODEREGISTRYLIGHT:
     0xD78653669fd3df4dF8F3141Ffa53462121d117a4 Proxy.sol
     0x0B7d294EF304D41e10B965447857D0654E6E52a5 DiodeRegistryLight.sol v1
-    0xAa55b0311c0Bc5d3DB4b656F2dCb6b09758B69E8 DiodeRegistryLight.sol v1 - shanghai
+    0xAa55b0311c0Bc5d3DB4b656F2dCb6b09758B69E8 DiodeRegistryLight.sol v1 (shanghai)
+    0x8bec5bdedd8731cac55fda9771503e458ad387d0 DiodeRegistryLight.sol v110 (cancun)
 
 DEVFLEET:
     0x8aFe08d333f785C818199a5bdc7A52ac6Ffc492A Proxy.sol

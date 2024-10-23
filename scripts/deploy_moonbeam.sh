@@ -11,4 +11,6 @@
 set -x
 export RPC=https://moonbeam.unitedbloc.com:3000
 # export RPC=https://moonbeam.api.onfinality.io/rpc?apikey=7bf1dbfe-3539-4c1d-a3ba-5ad33a4b089a
-forge create --evm-version shanghai --optimize --optimizer-runs 200 --rpc-url $RPC --private-key $(cat diode_glmr.key) --verify --verifier-url https://api-moonbeam.moonscan.io/api -e $(cat moonscan_api.key) $*
+
+# Cancun supported since RT3000 July 2024 https://forum.moonbeam.network/t/runtime-rt3000-schedule/1752/2
+forge create --evm-version cancun --optimize --optimizer-runs 200 --rpc-url $RPC --private-key $(cat diode_glmr.key) --verify --verifier-url https://api-moonbeam.moonscan.io/api -e $(cat moonscan_api.key) $*
