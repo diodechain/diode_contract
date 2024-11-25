@@ -146,6 +146,11 @@ DEVFLEET:
     0xa0A4dc6623eC96122066195DE34a813846dC0fC0 DevFleetContract.sol v0 
     0x75637505b914eC9C6e9B8eDe383605cD117b0C99 DevFleetContract.sol v110
 
+COLLABFLEET:
+    0x8aD50255218a4abF89caE847189a4bA6ff8Bb9E2 Proxy.sol
+
+    0x75637505b914eC9C6e9B8eDe383605cD117b0C99 DevFleetContract.sol v110
+
 ```
 
 # Contract Addresses on Moonbase Alpha (Testnet)
