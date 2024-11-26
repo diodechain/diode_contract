@@ -8,6 +8,7 @@
 # ./scripts/deploy_moonbeam.sh contracts/DevFleetContract.sol:DevFleetContract --constructor-args 0x3d565Ec28595c1a0710ABCBd8C0F979d31E38704
 # ./scripts/deploy_moonbeam.sh contracts/DriveMember.sol:DriveMember
 # ./scripts/deploy_moonbeam.sh contracts/Drive.sol:Drive --constructor-args 0x8a093e3A83F63A00FFFC4729aa55482845a49294
+# ./scripts/deploy_moonbeam.sh contracts/FleetContractUpgradeable.sol:FleetContractUpgradeable --constructor-args 0xD78653669fd3df4dF8F3141Ffa53462121d117a4
 
 set -x
 export RPC=https://moonbeam.unitedbloc.com:3000

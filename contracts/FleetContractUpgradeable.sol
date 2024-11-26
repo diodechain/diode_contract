@@ -3,14 +3,13 @@
 // Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
-import "./DiodeRegistry.sol";
 import "./IFleetContract.sol";
 
 /**
  * FleetContract
  */
 contract FleetContractUpgradeable is IFleetContract {
-    DiodeRegistry private registry;
+    address private _reserved_0;
     address public operator;
     address payable public accountant;
     uint256 private _reserved_1;
@@ -84,12 +83,9 @@ contract FleetContractUpgradeable is IFleetContract {
         initialized = true;
     }
 
-    function initialize(address payable _owner) public initializer payable {
-        registry = DiodeRegistry(REGISTRY);
+    function initialize(address payable _owner) public initializer {
         operator = _owner;
         accountant = _owner;
-        if (msg.value > 0)
-            registry.ContractStake{value: msg.value, gas: gasleft()}(this);
     }
 
     function Accountant() override external view returns (address) {

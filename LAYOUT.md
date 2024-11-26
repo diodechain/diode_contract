@@ -152,6 +152,11 @@ COLLABFLEET:
 
     0x75637505b914eC9C6e9B8eDe383605cD117b0C99 DevFleetContract.sol v110
 
+
+FLEETCONTRACTUPGRADEABLE:
+    0x8A47E149637CFA7Fea946E4489a43d7cc7cD6374 FleetContractUpgradeable.sol v1
+
+
 ```
 
 # Contract Addresses on Moonbase Alpha (Testnet)
