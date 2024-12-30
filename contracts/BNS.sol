@@ -24,7 +24,7 @@ contract BNS is IBNS, ChangeTracker {
   bytes32[] public namesIndex;
 
   function Version() external override pure returns (int) {
-    return 316;
+    return 317;
   }
 
   /**
@@ -227,11 +227,12 @@ contract BNS is IBNS, ChangeTracker {
    ***********   INTERNAL FUNCTIONS **********************
    *******************************************************/
   function requireOnlyOwner(BNSEntry storage current) internal view {
-    require(current.owner == msg.sender && (current.leaseEnd == 0 || block.number < current.leaseEnd), "This name is not registered by you, or it's lease has ended");
+    require(isOwned(current) && current.owner == msg.sender, "This name is not registered by you, or it's lease has ended");
   }
 
-  function isOwned(BNSEntry memory current) internal view returns (bool) {
-    return block.number < current.leaseEnd || (current.leaseEnd == 0 && current.owner != address(0));
+  function isOwned(BNSEntry memory current) internal pure returns (bool) {
+    return current.owner != address(0);
+    //return block.number < current.leaseEnd || (current.leaseEnd == 0 && current.owner != address(0));
   }
 
   function isLocked(BNSEntry memory current) internal pure returns (bool) {
