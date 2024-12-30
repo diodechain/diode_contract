@@ -9,3 +9,4 @@
 docs/*
 .elixir_ls/
 *.key
+node_modules
