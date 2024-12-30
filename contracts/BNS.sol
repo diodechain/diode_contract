@@ -279,6 +279,10 @@ contract BNS is IBNS, ChangeTracker {
     return keccak256(bytes(name));
   }
 
+  function Convert(string memory name) external pure returns (bytes32) {
+    return convert(name);
+  }
+
   function validate(string memory name) internal pure {
     bytes memory b = bytes(name);
 
