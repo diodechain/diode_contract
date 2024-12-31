@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Examples:
+# ./scripts/deploy_moonbeam.sh contracts/BNS.sol:BNS
 # ./scripts/deploy_moonbeam.sh contracts/DiodeToken.sol:DiodeToken --constructor-args 0x3d565Ec28595c1a0710ABCBd8C0F979d31E38704 0xA32a9eD71fBF22e6D197c13725Ad61958e9a4499 false
 # ./scripts/deploy_moonbeam.sh contracts/DiodeRegistryLight.sol:DiodeRegistryLight --constructor-args 0x3d565Ec28595c1a0710ABCBd8C0F979d31E38704 0x434116a99619f2B465A137199C38c1Aab0353913
 # ./scripts/deploy_moonbeam.sh contracts/Proxy.sol:Proxy --constructor-args 0x75637505b914eC9C6e9B8eDe383605cD117b0C99 0x3d565Ec28595c1a0710ABCBd8C0F979d31E38704
