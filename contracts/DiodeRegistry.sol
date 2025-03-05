@@ -38,7 +38,7 @@ contract DiodeRegistry is DiodeStake {
   /*TEST_ELSE*/
   uint64 constant BlocksPerEpoch = 40320;
   /*TEST_END*/
-  uint256 constant BlockReward = 0.1 ether;
+  uint256 constant BlockReward = 0.001 ether;
   uint256 constant MinBlockRewards = 1000000000000000; // 1 finney
   uint256 constant Fractionals = 10000;
   uint256 constant MaxBlockSize = 20000000;
