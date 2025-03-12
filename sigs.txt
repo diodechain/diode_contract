@@ -318,6 +318,7 @@
 0x6bcb2c1b deriveKey(string,string,uint32)
 0x6d016688 expectSafeMemory(uint64,uint64)
 0x6d5c77e5 RelayWithdraw(address)
+0x6e00b1a6 GetClientScore(address,address,address)
 0x6e553f65 deposit(uint256,address)
 0x6e70e83a txsAt(uint256,uint256)
 0x6f9874a4 Epoch()
