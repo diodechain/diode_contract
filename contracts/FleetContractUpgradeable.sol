@@ -83,7 +83,7 @@ contract FleetContractUpgradeable is IFleetContract {
         initialized = true;
     }
 
-    function initialize(address payable _owner) public initializer {
+    function initialize(address payable _owner) public virtual initializer {
         operator = _owner;
         accountant = _owner;
     }

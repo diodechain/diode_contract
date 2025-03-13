@@ -1,0 +1,3249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IoT Fleet Manager</title>
+  <!-- Vue 3 -->
+  <script src="./assets/vue.global.js"></script>
+  <!-- Web3.js -->
+  <script src="./assets/web3.min.js"></script>
+  <!-- Tailwind CSS for styling -->
+  <script src="./assets/tailwindcss.min.js"></script>
+  <style>
+    .nav-active {
+      background-color: rgb(241, 92, 46);
+      color: white;
+    }
+    .nav-link:hover {
+      background-color: rgba(241, 92, 46, 0.7);
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div id="app" class="flex h-screen overflow-hidden">
+    <!-- Left Navigation Sidebar -->
+    <div class="w-64 bg-[rgb(45,62,80)] text-white flex flex-col h-full">
+      <!-- Logo Section -->
+      <div class="p-4 flex justify-center border-b border-gray-700">
+        <img src="./assets/diode.png" alt="Diode Logo" class="h-12">
+      </div>
+      
+      <!-- Navigation Links -->
+      <div class="flex-1 overflow-y-auto py-4">
+        <h3 class="px-4 text-sm uppercase text-gray-400 font-semibold mb-2">Navigation</h3>
+        
+        <!-- Dashboard Link -->
+        <a href="#" @click.prevent="showDashboard" 
+           class="nav-link px-4 py-2 flex items-center text-white hover:bg-opacity-80 mb-1"
+           :class="{'nav-active': activePage === 'dashboard'}">
+          <span>Dashboard</span>
+        </a>
+        
+        <!-- Your Fleets Section -->
+        <div class="mt-4">
+          <h3 class="px-4 text-sm uppercase text-gray-400 font-semibold mb-2">Your Fleets</h3>
+          
+          <!-- Create Fleet Link -->
+          <a href="#" @click.prevent="showCreateFleetView" 
+             class="nav-link px-4 py-2 flex items-center text-white hover:bg-opacity-80 mb-1"
+             :class="{'nav-active': activePage === 'createFleet'}">
+            <span>+ Create New Fleet</span>
+          </a>
+          
+          <!-- Fleet List -->
+          <div v-if="isConnected" class="mt-2">
+            <div v-for="(fleet, index) in ownFleets" :key="index">
+              <a href="#" @click.prevent="showFleetManagement(fleet.fleet)" 
+                 class="nav-link px-4 py-2 flex items-center text-white hover:bg-opacity-80 truncate"
+                 :class="{'nav-active': activePage === 'fleetManagement' && managedFleet === fleet.fleet}">
+                <span>{{ fleet.label ? fleet.label : 'Fleet #' + (index + 1) }}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Shared Fleets Section -->
+        <div class="mt-4" v-if="isConnected && sharedFleets.length > 0">
+          <h3 class="px-4 text-sm uppercase text-gray-400 font-semibold mb-2">Shared Fleets</h3>
+          <div v-for="(fleetGroup, ownerIndex) in groupedSharedFleets" :key="ownerIndex" class="mb-2">
+            <div v-for="(fleet, fleetIndex) in fleetGroup.fleets" :key="fleetIndex">
+              <a href="#" @click.prevent="showFleetManagement(fleet.fleet)" 
+                 class="nav-link px-4 py-2 flex items-center text-white hover:bg-opacity-80 truncate"
+                 :class="{'nav-active': activePage === 'fleetManagement' && managedFleet === fleet.fleet}">
+                <span>{{ fleet.label ? fleet.label : 'Shared Fleet #' + (fleetIndex + 1) }}</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- User Account Section -->
+      <div class="p-4 border-t border-gray-700">
+        <div v-if="isConnected" class="text-sm text-gray-300">
+          <p>Connected as:</p>
+          <p class="font-semibold truncate">{{ shortenAddress(account) }}</p>
+        </div>
+        <button 
+          v-if="!isConnected"
+          @click="connectWallet" 
+          class="w-full mt-2 px-4 py-2 bg-[rgb(241,92,46)] text-white rounded hover:bg-opacity-80 transition"
+        >
+          Connect Wallet
+        </button>
+      </div>
+    </div>
+    
+    <!-- Main Content Area -->
+    <div class="flex-1 overflow-y-auto">
+      <!-- Toast Notification -->
+      <div v-if="showToast" class="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded shadow-md z-50 transition-opacity" role="alert">
+        <div class="flex">
+          <div class="py-1">
+            <svg class="fill-current h-6 w-6 text-green-500 mr-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M2.93 17.07A10 10 0 1 1 17.07 2.93 10 10 0 0 1 2.93 17.07zm12.73-1.41A8 8 0 1 0 4.34 4.34a8 8 0 0 0 11.32 11.32zM9 11V9h2v6H9v-4zm0-6h2v2H9V5z"/>
+            </svg>
+          </div>
+          <div>
+            <p class="font-bold">{{ toastMessage }}</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Dashboard View -->
+      <div v-if="activePage === 'dashboard'" class="container mx-auto px-6 py-8">
+        <header class="mb-8">
+          <h1 class="text-3xl font-bold text-gray-800">IoT Fleet Manager</h1>
+          <p class="text-gray-600">Manage your IoT device fleets</p>
+        </header>
+
+        <!-- Connection Status -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <div class="flex justify-between items-center">
+            <div>
+              <h2 class="text-xl font-semibold text-gray-800">Connection Status</h2>
+              <p v-if="!isConnected" class="text-red-500">Not connected to MetaMask</p>
+              <div v-else>
+                <p class="text-green-500">Connected: {{ shortenAddress(account) }}</p>
+                <div v-if="availableAccounts.length > 1" class="mt-2">
+                  <select 
+                    v-model="selectedAccountIndex" 
+                    @change="changeAccount" 
+                    class="border border-gray-300 rounded px-2 py-1 text-sm"
+                  >
+                    <option 
+                      v-for="(acc, index) in availableAccounts" 
+                      :key="acc" 
+                      :value="index"
+                    >
+                      {{ shortenAddress(acc) }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="flex space-x-2">
+              <button 
+                v-if="isConnected"
+                @click="switchAccount" 
+                class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition"
+              >
+                Switch Account
+              </button>
+              <button 
+                @click="connectWallet" 
+                class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                :disabled="isConnected"
+              >
+                {{ isConnected ? 'Connected' : 'Connect Wallet' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Registry Info -->
+        <div v-if="isConnected" class="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Registry Information</h2>
+          <p class="mb-2"><span class="font-medium">Registry Address:</span> {{ registryAddress }}</p>
+          <p class="mb-2"><span class="font-medium">Registry Version:</span> {{ registryVersion !== null ? registryVersion : 'Loading...' }}</p>
+          <p class="mb-4"><span class="font-medium">Your Fleet Count:</span> {{ ownFleetCount !== null && ownFleetCount !== undefined ? ownFleetCount : 'Loading...' }}</p>
+        </div>
+
+        <!-- Your Fleets Summary -->
+        <div v-if="isConnected && ownFleets.length > 0" class="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Your Fleets</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div v-for="(fleet, index) in ownFleets" :key="index" class="border rounded-lg p-4 hover:shadow-md transition">
+              <h3 class="text-lg font-medium text-gray-800 mb-2">
+                {{ fleet.label ? fleet.label : 'Fleet #' + (index + 1) }}
+              </h3>
+              <p class="text-sm text-gray-500 mb-2">Created: {{ formatDate(fleet.createdAt) }}</p>
+              <button 
+                @click="showFleetManagement(fleet.fleet)" 
+                class="mt-2 w-full px-3 py-2 bg-[rgb(241,92,46)] text-white text-sm rounded hover:bg-opacity-80 transition"
+              >
+                Manage Fleet
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Shared Fleets Summary -->
+        <div v-if="isConnected && sharedFleets.length > 0" class="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Fleets Shared With You</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div v-for="(fleet, index) in sharedFleets" :key="index" class="border rounded-lg p-4 hover:shadow-md transition">
+              <h3 class="text-lg font-medium text-gray-800 mb-2">
+                {{ fleet.label ? fleet.label : 'Shared Fleet #' + (index + 1) }}
+              </h3>
+              <p class="text-sm mb-1"><span class="font-medium">Owner:</span> {{ shortenAddress(fleet.owner) }}</p>
+              <button 
+                @click="showFleetManagement(fleet.fleet)" 
+                class="mt-2 w-full px-3 py-2 bg-[rgb(241,92,46)] text-white text-sm rounded hover:bg-opacity-80 transition"
+              >
+                View Fleet
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Create Fleet View -->
+      <div v-if="activePage === 'createFleet'" class="container mx-auto px-6 py-8">
+        <header class="mb-8">
+          <h1 class="text-3xl font-bold text-gray-800">Create New Fleet</h1>
+        </header>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <div class="flex items-center">
+            <input 
+              v-model="newFleetLabel" 
+              type="text" 
+              placeholder="Fleet Label (optional)" 
+              class="flex-1 border border-gray-300 rounded-l px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button 
+              @click="createFleet" 
+              class="px-4 py-2 bg-[rgb(241,92,46)] text-white rounded-r hover:bg-opacity-80 transition"
+              :disabled="isCreatingFleet"
+            >
+              {{ isCreatingFleet ? 'Creating...' : 'Create New Fleet' }}
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Fleet Management View -->
+      <div v-if="activePage === 'fleetManagement'" class="container mx-auto px-6 py-8">
+        <header class="mb-8">
+          <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-gray-800">
+              {{ fleetLabel ? fleetLabel : 'Fleet Management' }}
+            </h1>
+          </div>
+          <p class="text-gray-600">Fleet Address: {{ shortenAddress(managedFleet) }}</p>
+        </header>
+        
+        <!-- Fleet Label Update -->
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+          <h2 class="text-xl font-semibold text-gray-800 mb-4">Fleet Information</h2>
+          <div class="flex items-center mt-4">
+            <input 
+              v-model="fleetLabel" 
+              type="text" 
+              placeholder="Fleet Label" 
+              class="flex-1 border border-gray-300 rounded-l px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <button 
+              @click="updateFleetLabel" 
+              :disabled="isUpdatingLabel" 
+              class="px-4 py-2 bg-blue-600 text-white rounded-r hover:bg-blue-700 transition disabled:bg-gray-400"
+            >
+              {{ isUpdatingLabel ? 'Updating...' : 'Update Label' }}
+            </button>
+          </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="bg-white rounded-lg shadow mb-6">
+          <div class="border-b border-gray-200">
+            <ul class="flex flex-wrap -mb-px text-sm font-medium text-center">
+              <li class="mr-2">
+                <button 
+                  @click="activeTab = 'users'" 
+                  class="inline-block p-4 rounded-t-lg"
+                  :class="activeTab === 'users' ? 'border-b-2 border-[rgb(241,92,46)] text-[rgb(241,92,46)]' : 'hover:text-gray-600 hover:border-gray-300'"
+                >
+                  Users
+                </button>
+              </li>
+              <li class="mr-2">
+                <button 
+                  @click="activeTab = 'devices'" 
+                  class="inline-block p-4 rounded-t-lg"
+                  :class="activeTab === 'devices' ? 'border-b-2 border-[rgb(241,92,46)] text-[rgb(241,92,46)]' : 'hover:text-gray-600 hover:border-gray-300'"
+                >
+                  Devices
+                </button>
+              </li>
+              <li class="mr-2">
+                <button 
+                  @click="activeTab = 'settings'" 
+                  class="inline-block p-4 rounded-t-lg"
+                  :class="activeTab === 'settings' ? 'border-b-2 border-[rgb(241,92,46)] text-[rgb(241,92,46)]' : 'hover:text-gray-600 hover:border-gray-300'"
+                >
+                  Settings
+                </button>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- Tab Content -->
+          <div class="p-6">
+            <!-- Users Tab -->
+            <div v-if="activeTab === 'users'" class="space-y-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">Manage Fleet Users</h3>
+              
+              <!-- Add User Button -->
+              <button 
+                @click="openAddUserModal(managedFleet)" 
+                class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+              >
+                Add User
+              </button>
+              
+              <!-- Users Table -->
+              <div v-if="managedFleetUsers.length > 0" class="mt-4">
+                <div class="overflow-x-auto">
+                  <table class="min-w-full bg-white">
+                    <thead class="bg-gray-100">
+                      <tr>
+                        <th class="py-2 px-4 text-left">Address</th>
+                        <th class="py-2 px-4 text-left">Name</th>
+                        <th class="py-2 px-4 text-left">Email</th>
+                        <th class="py-2 px-4 text-left">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr v-for="(user, index) in managedFleetUsers" :key="index" class="border-b">
+                        <td class="py-2 px-4">{{ shortenAddress(user.userAddress) }}</td>
+                        <td class="py-2 px-4">{{ user.nickname || 'N/A' }}</td>
+                        <td class="py-2 px-4">{{ user.email || 'N/A' }}</td>
+                        <td class="py-2 px-4">
+                          <button 
+                            @click="removeFleetUser(managedFleet, user.userAddress)" 
+                            class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition"
+                          >
+                            Remove
+                          </button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div v-else class="p-4 text-center text-gray-500">
+                No users added to this fleet yet.
+              </div>
+            </div>
+            
+            <!-- Devices Tab -->
+            <div v-if="activeTab === 'devices'" class="space-y-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">Manage Fleet Devices</h3>
+              <!-- Devices content would go here -->
+              <p class="text-gray-500">Device management features coming soon.</p>
+            </div>
+            
+            <!-- Settings Tab -->
+            <div v-if="activeTab === 'settings'" class="space-y-6">
+              <h3 class="text-lg font-semibold text-gray-800 mb-4">Fleet Settings</h3>
+              <!-- Settings content would go here -->
+              <p class="text-gray-500">Additional fleet settings coming soon.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Add User Modal -->
+  <div v-if="showingAddUserModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50" @click.self="closeAddUserModal()">
+    <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold text-gray-800">Add User to Fleet</h2>
+        <button @click="closeAddUserModal()" class="text-gray-500 hover:text-gray-700">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <div class="mb-4">
+        <label class="block text-gray-700 mb-2" for="userAddress">User Address</label>
+        <input 
+          id="userAddress" 
+          v-model="newUserAddress" 
+          type="text" 
+          placeholder="0x..." 
+          class="w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+      </div>
+      
+      <div class="flex justify-end">
+        <button 
+          @click="closeAddUserModal()" 
+          class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500 transition mr-2"
+        >
+          Cancel
+        </button>
+        <button 
+          @click="addFleetUser" 
+          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          :disabled="!isValidAddress(newUserAddress) || isAddingUser"
+        >
+          {{ isAddingUser ? 'Adding...' : 'Add User' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div v-if="isLoading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white p-4 rounded-lg shadow-lg max-w-md w-full">
+      <div class="flex justify-between items-center mb-2">
+        <p class="text-lg font-medium text-gray-800">Loading...</p>
+        <button 
+          @click="isLoading = false" 
+          class="text-gray-500 hover:text-red-700"
+          title="Force close loading overlay (for debugging)"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+      
+      <div class="text-xs text-gray-500 mt-2 max-h-32 overflow-auto">
+        <p>
+          Current page: {{ activePage }}<br>
+          Modal open: {{ showingAddUserModal }}<br>
+          Time: {{ new Date().toLocaleTimeString() }}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Dynamically load the MetaMask SDK
+      const loadMetaMaskSDK = async () => {
+        return new Promise((resolve, reject) => {
+          const loadFromUrl = (url) => {
+            console.log(`Attempting to load MetaMask SDK from: ${url}`);
+            const script = document.createElement('script');
+            script.src = url;
+            script.onload = () => {
+              console.log('MetaMask SDK loaded successfully with window.MetaMaskSDK:', !!window.MetaMaskSDK);
+              if (window.MetaMaskSDK) {
+                resolve(window.MetaMaskSDK);
+              } else {
+                console.warn('SDK loaded but window.MetaMaskSDK is not defined, trying alternative URL');
+                tryAlternativeUrl();
+              }
+            };
+            script.onerror = (error) => {
+              console.error('Error loading MetaMask SDK from:', url, error);
+              tryAlternativeUrl();
+            };
+            document.head.appendChild(script);
+          };
+
+          // Using local file first, then jsDelivr, then unpkg
+          const urls = [
+            'assets/metamask-sdk.js',
+            'https://cdn.jsdelivr.net/npm/@metamask/sdk@0.10.0/dist/sdk.js',
+            'https://unpkg.com/@metamask/sdk@0.10.0/dist/metamask-sdk.min.js',
+            'https://cdn.jsdelivr.net/npm/@metamask/sdk@0.5.6/dist/browser/metamask-sdk.min.js'
+          ];
+          
+          let currentUrlIndex = 0;
+
+          const tryAlternativeUrl = () => {
+            currentUrlIndex++;
+            if (currentUrlIndex < urls.length) {
+              loadFromUrl(urls[currentUrlIndex]);
+            } else {
+              reject(new Error('Failed to load MetaMask SDK from all URLs'));
+            }
+          };
+
+          // Start with first URL
+          loadFromUrl(urls[0]);
+        });
+      };
+
+      try {
+        // Load the SDK
+        await loadMetaMaskSDK();
+        console.log('MetaMask SDK loaded successfully');
+      } catch (error) {
+        console.error('Failed to load MetaMask SDK:', error);
+        // Check if MetaMask is installed via window.ethereum
+        if (window.ethereum) {
+          console.log('MetaMask SDK loading failed, but window.ethereum is available. Will use that instead.');
+          // We'll continue with the app initialization since initializeMetaMask will use window.ethereum
+        } else {
+          alert('Failed to load MetaMask SDK and MetaMask extension is not installed. Please install MetaMask to use this application.');
+        }
+      }
+
+      const { createApp, ref, computed, watch, onMounted } = Vue;
+
+      // ABI for IoTFleetRegistry contract
+      const registryAbi = [
+        {
+          "inputs": [],
+          "name": "Version",
+          "outputs": [{"type": "uint256", "name": ""}],
+          "stateMutability": "pure",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "CreateFleet",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "string", "name": "label"}],
+          "name": "CreateFleet",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "GetOwnFleetCount",
+          "outputs": [{"type": "uint256", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "uint256", "name": "fleetIndex"}],
+          "name": "GetOwnFleet",
+          "outputs": [
+            {
+              "components": [
+                {"name": "owner", "type": "address"},
+                {"name": "fleet", "type": "address"},
+                {"name": "createdAt", "type": "uint256"},
+                {"name": "updatedAt", "type": "uint256"}
+              ],
+              "type": "tuple"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "fleet"}],
+          "name": "GetFleet",
+          "outputs": [
+            {
+              "components": [
+                {"name": "owner", "type": "address"},
+                {"name": "fleet", "type": "address"},
+                {"name": "createdAt", "type": "uint256"},
+                {"name": "updatedAt", "type": "uint256"}
+              ],
+              "type": "tuple"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "fleet"}],
+          "name": "GetFleetUserCount",
+          "outputs": [{"type": "uint256", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "address", "name": "fleet"},
+            {"type": "uint256", "name": "userIndex"}
+          ],
+          "name": "GetFleetUser",
+          "outputs": [{"type": "address", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "address", "name": "fleet"},
+            {"type": "address", "name": "user"}
+          ],
+          "name": "AddFleetUser",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "address", "name": "fleet"},
+            {"type": "address", "name": "user"}
+          ],
+          "name": "RemoveFleetUser",
+          "outputs": [],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "GetSharingUserCount",
+          "outputs": [{"type": "uint256", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "uint256", "name": "index"}],
+          "name": "GetSharingUser",
+          "outputs": [{"type": "address", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "sender"}],
+          "name": "GetSharedFleetCount",
+          "outputs": [{"type": "uint256", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "address", "name": "sender"},
+            {"type": "uint256", "name": "fleetIndex"}
+          ],
+          "name": "GetSharedFleet",
+          "outputs": [
+            {
+              "components": [
+                {"name": "owner", "type": "address"},
+                {"name": "fleet", "type": "address"},
+                {"name": "createdAt", "type": "uint256"},
+                {"name": "updatedAt", "type": "uint256"}
+              ],
+              "type": "tuple"
+            }
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        }
+      ];
+
+      // ABI for IoTFleetContract
+      const fleetContractAbi = [
+        {
+          "inputs": [],
+          "name": "label",
+          "outputs": [{"type": "string", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "string", "name": "_newLabel"}],
+          "name": "updateLabel",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        // User Management
+        {
+          "inputs": [
+            {"type": "address", "name": "_userAddress"}, 
+            {"type": "string", "name": "_nickname"}, 
+            {"type": "string", "name": "_email"}, 
+            {"type": "string", "name": "_avatarURI"}
+          ],
+          "name": "createUser",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "address", "name": "_userAddress"}, 
+            {"type": "string", "name": "_nickname"}, 
+            {"type": "string", "name": "_email"}, 
+            {"type": "string", "name": "_avatarURI"}
+          ],
+          "name": "updateUser",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "_userAddress"}, {"type": "bool", "name": "_isAdmin"}],
+          "name": "setUserAdmin",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "_userAddress"}],
+          "name": "removeUser",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "_userAddress"}],
+          "name": "getUser",
+          "outputs": [
+            {"type": "address", "name": "user"}, 
+            {"type": "string", "name": "nickname"}, 
+            {"type": "string", "name": "email"}, 
+            {"type": "string", "name": "avatarURI"}, 
+            {"type": "bool", "name": "isAdmin"}, 
+            {"type": "uint256", "name": "createdAt"}, 
+            {"type": "bool", "name": "active"}
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "_userAddress"}],
+          "name": "getUserGroups",
+          "outputs": [{"type": "bytes32[]", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "getAllUsers",
+          "outputs": [{"type": "address[]", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        // User Group Management
+        {
+          "inputs": [{"type": "string", "name": "_name"}, {"type": "string", "name": "_description"}],
+          "name": "createUserGroup",
+          "outputs": [{"type": "bytes32", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_groupId"}, {"type": "string", "name": "_name"}, {"type": "string", "name": "_description"}],
+          "name": "updateUserGroup",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_groupId"}],
+          "name": "removeUserGroup",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "_userAddress"}, {"type": "bytes32", "name": "_groupId"}],
+          "name": "addUserToGroup",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "_userAddress"}, {"type": "bytes32", "name": "_groupId"}],
+          "name": "removeUserFromGroup",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_groupId"}],
+          "name": "getUserGroup",
+          "outputs": [
+            {"type": "bytes32", "name": "id"}, 
+            {"type": "string", "name": "name"}, 
+            {"type": "string", "name": "description"}, 
+            {"type": "uint256", "name": "createdAt"}, 
+            {"type": "address", "name": "createdBy"}, 
+            {"type": "bool", "name": "active"}
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_groupId"}],
+          "name": "getGroupUsers",
+          "outputs": [{"type": "address[]", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "getAllUserGroups",
+          "outputs": [{"type": "bytes32[]", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        // Device Management
+        {
+          "inputs": [
+            {"type": "string", "name": "_name"}, 
+            {"type": "string", "name": "_description"}, 
+            {"type": "string", "name": "_deviceType"}, 
+            {"type": "string", "name": "_location"}
+          ],
+          "name": "createDevice",
+          "outputs": [{"type": "bytes32", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "bytes32", "name": "_deviceId"}, 
+            {"type": "string", "name": "_name"}, 
+            {"type": "string", "name": "_description"}, 
+            {"type": "string", "name": "_deviceType"}, 
+            {"type": "string", "name": "_location"}
+          ],
+          "name": "updateDevice",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_deviceId"}],
+          "name": "updateDeviceLastSeen",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_deviceId"}, {"type": "address", "name": "_newOwner"}],
+          "name": "transferDeviceOwnership",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_deviceId"}],
+          "name": "removeDevice",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_deviceId"}],
+          "name": "getDevice",
+          "outputs": [
+            {"type": "bytes32", "name": "id"},
+            {"type": "address", "name": "owner"},
+            {"type": "string", "name": "name"},
+            {"type": "string", "name": "description"},
+            {"type": "string", "name": "deviceType"},
+            {"type": "string", "name": "location"},
+            {"type": "uint256", "name": "createdAt"},
+            {"type": "uint256", "name": "lastSeen"},
+            {"type": "bool", "name": "active"}
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "_userAddress"}],
+            "name": "getUserDevices",
+            "outputs": [{"type": "bytes32[]", "name": ""}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "getAllDevices",
+          "outputs": [{"type": "bytes32[]", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        // Tag Management
+        {
+          "inputs": [{"type": "string", "name": "_name"}, {"type": "string", "name": "_description"}, {"type": "string", "name": "_color"}],
+          "name": "createTag",
+          "outputs": [{"type": "bytes32", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_tagId"}, {"type": "string", "name": "_name"}, {"type": "string", "name": "_description"}, {"type": "string", "name": "_color"}],
+          "name": "updateTag",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_tagId"}],
+          "name": "removeTag",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_deviceId"}, {"type": "bytes32", "name": "_tagId"}],
+          "name": "addDeviceToTag",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_deviceId"}, {"type": "bytes32", "name": "_tagId"}],
+          "name": "removeDeviceFromTag",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_tagId"}],
+          "name": "getTag",
+          "outputs": [
+            {"type": "bytes32", "name": "id"}, 
+            {"type": "string", "name": "name"}, 
+            {"type": "string", "name": "description"}, 
+            {"type": "string", "name": "color"}, 
+            {"type": "uint256", "name": "createdAt"}, 
+            {"type": "address", "name": "createdBy"}, 
+            {"type": "bool", "name": "active"}
+          ],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_deviceId"}],
+          "name": "getDeviceTags",
+          "outputs": [{"type": "bytes32[]", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_tagId"}],
+          "name": "getTagDevices",
+          "outputs": [{"type": "bytes32[]", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [],
+          "name": "getAllTags",
+          "outputs": [{"type": "bytes32[]", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        // Access Control
+        {
+          "inputs": [{"type": "address", "name": "_userAddress"}, {"type": "bytes32", "name": "_groupId"}],
+          "name": "isUserInGroup",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [{"type": "bytes32", "name": "_deviceId"}, {"type": "bytes32", "name": "_tagId"}],
+            "name": "isDeviceInTag",
+            "outputs": [{"type": "bool", "name": ""}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "_userAddress"}],
+            "name": "isUserAdmin",
+            "outputs": [{"type": "bool", "name": ""}],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+          "inputs": [{"type": "address", "name": "_userAddress"}, {"type": "bytes32", "name": "_deviceId"}],
+          "name": "isDeviceOwner",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        // Property Management
+        {
+          "inputs": [
+            {"type": "bytes32", "name": "_deviceId"}, 
+            {"type": "string", "name": "_key"}, 
+            {"type": "string", "name": "_value"}
+          ],
+          "name": "setDeviceProperty",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "bytes32", "name": "_deviceId"}, 
+            {"type": "string", "name": "_key"}
+          ],
+          "name": "getDeviceProperty",
+          "outputs": [{"type": "string", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "bytes32", "name": "_tagId"}, 
+            {"type": "string", "name": "_key"}, 
+            {"type": "string", "name": "_value"}
+          ],
+          "name": "setTagProperty",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "nonpayable",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "bytes32", "name": "_tagId"}, 
+            {"type": "string", "name": "_key"}
+          ],
+          "name": "getTagProperty",
+          "outputs": [{"type": "string", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "bytes32", "name": "_deviceId"}, 
+            {"type": "string", "name": "_key"}
+          ],
+          "name": "getPropertyValue",
+          "outputs": [{"type": "string", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        },
+        {
+          "inputs": [
+            {"type": "bytes32", "name": "_deviceId"}, 
+            {"type": "string", "name": "_key"}
+          ],
+          "name": "hasProperty",
+          "outputs": [{"type": "bool", "name": ""}],
+          "stateMutability": "view",
+          "type": "function"
+        }
+      ];
+
+      createApp({
+        setup() {
+          // State
+          const isConnected = ref(false);
+          const account = ref('');
+          const ethereum = ref(null);
+          const web3 = ref(null);
+          const registryContract = ref(null);
+          const fleetContract = ref(null);
+          const registryAddress = ref('0x5FbDB2315678afecb367f032d93F642f64180aa3');
+          const registryVersion = ref(null);
+          const ownFleetCount = ref(0);
+          const ownFleets = ref([]);
+          const sharedFleets = ref([]);
+          const selectedFleet = ref(null);
+          const fleetDetails = ref({});
+          const fleetUsers = ref([]);
+          const isLoading = ref(false);
+          const isCreatingFleet = ref(false);
+          const showingAddUserModal = ref(false);
+          const targetFleetForUser = ref(null);
+          const currentFleetForAddUser = ref('');
+          const newUserAddress = ref('');
+          const isAddingUser = ref(false);
+          const availableAccounts = ref([]);
+          const selectedAccountIndex = ref(0);
+          const showFleetManagementModal = ref(false);
+          const managedFleet = ref('');
+          const managedFleetUsers = ref([]);
+          const newFleetUserAddress = ref('');
+          const showToast = ref(false);
+          const toastMessage = ref('');
+          const newFleetLabel = ref('');
+          const fleetLabel = ref('');
+          const isUpdatingLabel = ref(false);
+          
+          // New state variables for enhanced fleet management
+          const activeTab = ref('users'); // users, devices, userGroups, tags
+          
+          // User management extended
+          const fleetAllUsers = ref([]);
+          const selectedUser = ref(null);
+          const newUserData = ref({ address: '', nickname: '', email: '', avatarURI: '' });
+          const isUserAdmin = ref(false);
+          
+          // User Group management
+          const userGroups = ref([]);
+          const selectedUserGroup = ref(null);
+          const newUserGroupData = ref({ name: '', description: '' });
+          const userGroupMembers = ref([]);
+          
+          // Device management
+          const devices = ref([]);
+          const selectedDevice = ref(null);
+          const newDeviceData = ref({ 
+            name: '', 
+            description: '', 
+            deviceType: '', 
+            location: '', 
+            properties: {} 
+          });
+          const deviceTags = ref([]);
+          const selectedTagToAdd = ref('');
+          const showDeviceTransferModal = ref(false);
+          const newDeviceOwner = ref('');
+          
+          // Tag management
+          const tags = ref([]);
+          const selectedTag = ref(null);
+          const newTagData = ref({ name: '', description: '', color: '#3B82F6', properties: {} });
+          const tagDevices = ref([]);
+
+          // Method to show a toast message
+          const showToastMessage = (message, duration = 3000) => {
+            toastMessage.value = message;
+            showToast.value = true;
+            
+            // Hide the toast after duration
+            setTimeout(() => {
+              showToast.value = false;
+            }, duration);
+          };
+
+          // Add a safety timeout for isLoading
+          const setLoadingWithSafety = (isLoadingState) => {
+            console.log(`🛡️ setLoadingWithSafety: Setting isLoading = ${isLoadingState}`);
+            isLoading.value = isLoadingState;
+            
+            // If we're turning on loading, set a safety timeout
+            if (isLoadingState) {
+              console.log('🛡️ setLoadingWithSafety: Setting safety timeout for 30 seconds');
+              setTimeout(() => {
+                if (isLoading.value) {
+                  console.warn('🛡️ setLoadingWithSafety: Safety timeout triggered! Force resetting isLoading = false');
+                  isLoading.value = false;
+                  showToastMessage('Loading timed out. Please try again.', 5000);
+                }
+              }, 30000); // 30 second timeout
+            }
+          };
+
+          // Initialize MetaMask SDK
+          const initializeMetaMask = async () => {
+            try {
+              // Fallback to window.ethereum if already available
+              if (window.ethereum) {
+                console.log('Using window.ethereum provider');
+                ethereum.value = window.ethereum;
+              } else if (window.MetaMaskSDK) {
+                console.log('Initializing MetaMask SDK');
+                let sdk;
+                try {
+                  // Try the new SDK initialization method
+                  sdk = new window.MetaMaskSDK({
+                    dappMetadata: {
+                      name: "IoT Fleet Manager",
+                      url: window.location.href,
+                    },
+                    logging: {
+                      sdk: false
+                    }
+                  });
+                  
+                  // Check if the SDK has initialization method
+                  if (typeof sdk.init === 'function') {
+                    console.log('Using new SDK init method');
+                    await sdk.init();
+                  }
+                  
+                  // Check which provider accessor method is available
+                  if (typeof sdk.getProvider === 'function') {
+                    console.log('Using getProvider method');
+                    ethereum.value = sdk.getProvider();
+                  } else if (sdk.provider) {
+                    console.log('Using provider property');
+                    ethereum.value = sdk.provider;
+                  } else {
+                    throw new Error('Unable to get provider from SDK');
+                  }
+                } catch (error) {
+                  console.error('Error initializing SDK with new method:', error);
+                  // Fall back to older SDK initialization if available
+                  try {
+                    console.log('Trying legacy SDK initialization');
+                    if (window.ethereum) {
+                      console.log('Using window.ethereum from SDK');
+                      ethereum.value = window.ethereum;
+                    } else {
+                      throw new Error('No ethereum provider available from SDK');
+                    }
+                  } catch (fallbackError) {
+                    console.error('Error with legacy initialization:', fallbackError);
+                    throw new Error('Failed to initialize MetaMask: ' + fallbackError.message);
+                  }
+                }
+              } else {
+                throw new Error('MetaMask is not installed. Please install MetaMask to use this application.');
+              }
+              
+              // Setup event listeners
+              ethereum.value.on('accountsChanged', handleAccountsChanged);
+              ethereum.value.on('chainChanged', () => window.location.reload());
+              
+              // Check if already connected
+              const accounts = await ethereum.value.request({ method: 'eth_accounts' });
+              if (accounts.length > 0) {
+                await connectWallet();
+              }
+            } catch (error) {
+              console.error('Error initializing MetaMask:', error);
+              alert('Error initializing MetaMask: ' + error.message);
+            }
+          };
+
+          const connectWallet = async () => {
+            console.log('🔄 connectWallet: Starting connection process');
+            if (!ethereum.value) {
+              console.error('🔄 connectWallet: MetaMask not initialized');
+              alert('MetaMask not initialized. Please refresh the page and try again.');
+              return;
+            }
+
+            try {
+              console.log('🔄 connectWallet: Setting isLoading = true');
+              setLoadingWithSafety(true);
+              
+              // Check network ID
+              console.log('🔄 connectWallet: Checking chain ID');
+              const chainId = await ethereum.value.request({ method: 'eth_chainId' });
+              const networkId = parseInt(chainId, 16);
+              console.log('🔄 connectWallet: Connected to chain ID:', networkId);
+              
+              // Check if we're connected to the right network
+              if (networkId !== 1337) {
+                console.log('🔄 connectWallet: Wrong network, attempting to switch');
+                alert('Please connect to the Anvil network (Chain ID: 1337) in MetaMask to use this application.');
+                
+                // Try to switch to the Anvil network
+                try {
+                  await ethereum.value.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0x539' }], // 1337 in hex
+                  });
+                  console.log('🔄 connectWallet: Switched to Anvil network');
+                } catch (switchError) {
+                  // This error code indicates that the chain has not been added to MetaMask
+                  if (switchError.code === 4902) {
+                    try {
+                      console.log('🔄 connectWallet: Adding Anvil network to MetaMask');
+                      await ethereum.value.request({
+                        method: 'wallet_addEthereumChain',
+                        params: [
+                          {
+                            chainId: '0x539', // 1337 in hex
+                            chainName: 'Anvil Local',
+                            rpcUrls: ['http://localhost:8545'],
+                            nativeCurrency: {
+                              name: 'ETH',
+                              symbol: 'ETH',
+                              decimals: 18
+                            }
+                          },
+                        ],
+                      });
+                    } catch (addError) {
+                      console.error('🔄 connectWallet: Error adding Anvil network to MetaMask:', addError);
+                    }
+                  }
+                  console.error('🔄 connectWallet: Error switching to Anvil network:', switchError);
+                  setLoadingWithSafety(false);
+                  return;
+                }
+              }
+              
+              // Request account access
+              console.log('🔄 connectWallet: Requesting account access');
+              const accounts = await ethereum.value.request({ method: 'eth_requestAccounts' });
+              console.log('🔄 connectWallet: Accounts received:', accounts);
+              account.value = accounts[0];
+              isConnected.value = true;
+              
+              // Get all available accounts
+              availableAccounts.value = accounts;
+              selectedAccountIndex.value = 0;
+
+              // Initialize Web3
+              console.log('🔄 connectWallet: Initializing Web3');
+              web3.value = new Web3(ethereum.value);
+              
+              // Initialize contracts with web3
+              try {
+                console.log('🔄 connectWallet: Initializing Registry contract');
+                registryContract.value = new web3.value.eth.Contract(
+                  registryAbi, 
+                  registryAddress.value
+                );
+                console.log('🔄 connectWallet: Registry contract initialized:', registryContract.value !== null);
+              } catch (error) {
+                console.error('🔄 connectWallet: Failed to initialize contract:', error);
+                alert('Failed to initialize contract: ' + error.message);
+                throw error;
+              }
+              
+              // Load initial data
+              console.log('🔄 connectWallet: Loading contract data');
+              await loadContractData();
+              console.log('🔄 connectWallet: Contract data loaded');
+            } catch (error) {
+              console.error('🔄 connectWallet: Error connecting to MetaMask:', error);
+              alert('Failed to connect to MetaMask: ' + error.message);
+            } finally {
+              console.log('🔄 connectWallet: Setting isLoading = false');
+              setLoadingWithSafety(false);
+            }
+          };
+
+          const handleAccountsChanged = (accounts) => {
+            if (accounts.length === 0) {
+              // User disconnected
+              isConnected.value = false;
+              account.value = '';
+              availableAccounts.value = [];
+            } else {
+              // Update available accounts
+              availableAccounts.value = accounts;
+              
+              // Find the index of the current account in the new accounts array
+              const newAccountIndex = accounts.findIndex(acc => acc === account.value);
+              
+              if (newAccountIndex === -1) {
+                // Current account is no longer available, switch to the first account
+                account.value = accounts[0];
+                selectedAccountIndex.value = 0;
+                loadContractData();
+              } else if (accounts[0] !== account.value) {
+                // User switched accounts in MetaMask
+                account.value = accounts[0];
+                selectedAccountIndex.value = 0;
+                loadContractData();
+              }
+            }
+          };
+
+          const loadContractData = async () => {
+            console.log('📂 loadContractData: Starting to load contract data');
+            try {
+              console.log('📂 loadContractData: Setting isLoading = true');
+              setLoadingWithSafety(true);
+
+              // Check if registryContract is initialized
+              if (!registryContract.value) {
+                console.error('📂 loadContractData: Registry contract is not initialized');
+                setLoadingWithSafety(false);
+                return;
+              }
+
+              // Get registry version using web3
+              try {
+                console.log('📂 loadContractData: Calling Version()');
+                const version = await registryContract.value.methods.Version().call();
+                console.log('📂 loadContractData: Version response:', version);
+                registryVersion.value = parseInt(version);
+              } catch (error) {
+                console.error('📂 loadContractData: Error calling Version():', error);
+                alert('Error calling Version(): ' + (error.message || JSON.stringify(error)));
+                throw error;
+              }
+
+              // Get own fleet count using web3
+              try {
+                console.log('📂 loadContractData: Calling GetOwnFleetCount()');
+                const count = await registryContract.value.methods.GetOwnFleetCount().call({ from: account.value });
+                console.log('📂 loadContractData: GetOwnFleetCount response:', count);
+                ownFleetCount.value = parseInt(count);
+                console.log('📂 loadContractData: Parsed fleet count:', ownFleetCount.value);
+              } catch (error) {
+                console.error('📂 loadContractData: Error calling GetOwnFleetCount():', error);
+                ownFleetCount.value = 0; // Set a default value in case of error
+              }
+
+              // Get own fleets with labels
+              console.log('📂 loadContractData: Loading own fleets');
+              await loadOwnFleets();
+              console.log('📂 loadContractData: Own fleets loaded');
+
+              // Load shared fleets
+              console.log('📂 loadContractData: Loading shared fleets');
+              await loadSharedFleets();
+              console.log('📂 loadContractData: Shared fleets loaded');
+            } catch (error) {
+              console.error('📂 loadContractData: Error loading contract data:', error);
+            } finally {
+              console.log('📂 loadContractData: Setting isLoading = false');
+              setLoadingWithSafety(false);
+            }
+          };
+
+          const loadSharedFleets = async () => {
+            try {
+              sharedFleets.value = [];
+              
+              // Get sharing users count using web3
+              const userCount = await registryContract.value.methods.GetSharingUserCount().call();
+              
+              // For each sharing user, get their shared fleets
+              for (let i = 0; i < userCount; i++) {
+                const sharingUser = await registryContract.value.methods.GetSharingUser(i).call();
+                
+                // Get shared fleet count from this user
+                const fleetCount = await registryContract.value.methods.GetSharedFleetCount(sharingUser).call();
+                
+                // Get each shared fleet
+                for (let j = 0; j < fleetCount; j++) {
+                  const fleet = await registryContract.value.methods.GetSharedFleet(sharingUser, j).call();
+                  // Web3.js automatically decodes the tuple response into an object
+                  // Transform the fleet data to match our expected format
+                  const decodedFleet = {
+                    owner: fleet.owner,
+                    fleet: fleet.fleet,
+                    createdAt: parseInt(fleet.createdAt) * 1000, // Convert to milliseconds
+                    updatedAt: parseInt(fleet.updatedAt) * 1000  // Convert to milliseconds
+                  };
+                  sharedFleets.value.push(decodedFleet);
+                }
+              }
+            } catch (error) {
+              console.error('Error loading shared fleets:', error);
+            }
+          };
+
+          // Function to get all accounts
+          const getAllAccounts = async () => {
+            if (ethereum.value) {
+              try {
+                const accounts = await ethereum.value.request({ method: 'eth_accounts' });
+                if (accounts.length > 0) {
+                  availableAccounts.value = accounts;
+                  
+                  // If we're already connected, make sure the selected account is in the list
+                  if (isConnected.value) {
+                    const currentIndex = accounts.findIndex(acc => acc === account.value);
+                    selectedAccountIndex.value = currentIndex >= 0 ? currentIndex : 0;
+                  }
+                }
+              } catch (error) {
+                console.error('Error getting accounts:', error);
+              }
+            }
+          };
+
+          // Initialize app - add this after the onMounted call
+          onMounted(async () => {
+            // Add global error handler
+            window.addEventListener('error', (event) => {
+              console.error('Global error caught:', event.error);
+              // Reset critical state
+              isLoading.value = false;
+              isAddingUser.value = false;
+              showingAddUserModal.value = false;
+            });
+            
+            // Add a watcher for isLoading changes
+            watch(isLoading, (newValue, oldValue) => {
+              console.log(`🔍 isLoading changed: ${oldValue} -> ${newValue}`, new Error().stack);
+            });
+            
+            // Add a watcher for showingAddUserModal changes
+            watch(showingAddUserModal, (newValue, oldValue) => {
+              console.log(`🔍 showingAddUserModal changed: ${oldValue} -> ${newValue}`, new Error().stack);
+            });
+            
+            console.log('App mounted, initializing...');
+            await initializeMetaMask();
+            await getAllAccounts();
+            console.log('App initialization complete');
+          });
+
+          // Computed properties
+          const groupedSharedFleets = computed(() => {
+            const grouped = {};
+            sharedFleets.value.forEach(fleet => {
+              if (!grouped[fleet.owner]) {
+                grouped[fleet.owner] = {
+                  owner: fleet.owner,
+                  fleets: []
+                };
+              }
+              grouped[fleet.owner].fleets.push(fleet);
+            });
+            return Object.values(grouped);
+          });
+
+          // Methods
+          const createFleet = async () => {
+            try {
+              isCreatingFleet.value = true;
+              
+              // Create fleet using web3
+              let tx;
+              if (newFleetLabel.value) {
+                // Call with label
+                tx = await registryContract.value.methods.CreateFleet(newFleetLabel.value)
+                  .send({ from: account.value });
+              } else {
+                // Call without label
+                tx = await registryContract.value.methods.CreateFleet()
+                  .send({ from: account.value });
+              }
+              
+              // Clear the label input
+              newFleetLabel.value = '';
+              
+              // Reload the fleet data
+              await loadContractData();
+              
+              showToastMessage('Fleet created successfully!');
+            } catch (error) {
+              console.error('Error creating fleet:', error);
+              showToastMessage('Failed to create fleet: ' + error.message, 5000);
+            } finally {
+              isCreatingFleet.value = false;
+            }
+          };
+
+          const viewFleetDetails = async (fleetAddress) => {
+            try {
+              isLoading.value = true;
+              fleetDetails.value = { fleet: fleetAddress };
+              
+              // Get fleet name using web3
+              try {
+                const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, fleetAddress);
+                const label = await fleetContractInstance.methods.label().call();
+                fleetDetails.value.label = label;
+              } catch (err) {
+                console.error('Error fetching label:', err);
+                fleetDetails.value.label = ''; // Default to empty string if there's an error
+              }
+              
+              // Get fleet users using web3
+              fleetUsers.value = [];
+              try {
+                const userCount = await registryContract.value.methods.GetFleetUserCount(fleetAddress).call({ from: account.value });
+                
+                for (let i = 0; i < userCount; i++) {
+                  const user = await registryContract.value.methods.GetFleetUser(fleetAddress, i).call({ from: account.value });
+                  fleetUsers.value.push(user);
+                }
+              } catch (error) {
+                console.error('Error loading fleet users:', error);
+                // This might fail if the user doesn't have permission to view users
+              }
+              
+              selectedFleet.value = fleetAddress;
+            } catch (error) {
+              console.error('Error loading fleet details:', error);
+              showToastMessage('Failed to load fleet details: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+
+          // Updated to use our new modal
+          const openAddUserModal = (fleetAddress) => {
+            // Reset all relevant state
+            targetFleetForUser.value = fleetAddress;
+            newUserAddress.value = '';
+            isAddingUser.value = false;
+            isLoading.value = false;
+            showingAddUserModal.value = true;
+          };
+
+          const addFleetUser = async () => {
+            if (!isValidAddress(newUserAddress.value)) {
+              showToastMessage('Please enter a valid Ethereum address');
+              return;
+            }
+            
+            console.log('Starting addFleetUser operation');
+            try {
+              isAddingUser.value = true;
+              setLoadingWithSafety(true);
+              console.log('Set loading states to true');
+              
+              console.log('Calling AddFleetUser contract method');
+              await registryContract.value.methods.AddFleetUser(
+                targetFleetForUser.value,
+                newUserAddress.value
+              ).send({ from: account.value });
+              
+              console.log('AddFleetUser contract call completed successfully');
+              showToastMessage('User added successfully');
+              
+              // If we're on the fleet management page and the current fleet is the one we just added a user to,
+              // refresh the user list
+              if (managedFleet.value === targetFleetForUser.value) {
+                try {
+                  console.log('Refreshing fleet management view');
+                  await showFleetManagement(managedFleet.value);
+                  console.log('Fleet management view refreshed');
+                } catch (refreshError) {
+                  console.error('Error refreshing fleet management:', refreshError);
+                  // Don't rethrow, we don't want this error to prevent modal closing
+                }
+              }
+            } catch (error) {
+              console.error('Error adding user to fleet:', error);
+              showToastMessage('Error adding user to fleet');
+            } finally {
+              // Always close the modal and reset loading states
+              console.log('Resetting modal state in finally block');
+              showingAddUserModal.value = false;
+              isAddingUser.value = false;
+              setLoadingWithSafety(false);
+              console.log('Modal state reset complete');
+            }
+          };
+
+          const removeFleetUser = async (fleetAddress, userAddress) => {
+            if (!confirm(`Are you sure you want to remove ${shortenAddress(userAddress)} from this fleet?`)) {
+              return;
+            }
+            
+            try {
+              isLoading.value = true;
+              
+              // Remove fleet user using web3
+              await registryContract.value.methods.RemoveFleetUser(fleetAddress, userAddress)
+                .send({ from: account.value });
+              
+              // Refresh fleet details
+              await viewFleetDetails(fleetAddress);
+              
+              showToastMessage('User removed successfully!');
+            } catch (error) {
+              console.error('Error removing user from fleet:', error);
+              showToastMessage('Failed to remove user: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+
+          // Utility functions
+          const shortenAddress = (address) => {
+            if (!address) return '';
+            return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+          };
+
+          const formatDate = (timestamp) => {
+            if (!timestamp) return 'N/A';
+            return new Date(timestamp).toLocaleString();
+          };
+
+          const isValidAddress = (address) => {
+            return /^0x[a-fA-F0-9]{40}$/.test(address);
+          };
+
+          const switchAccount = async () => {
+            if (!ethereum.value) {
+              alert('MetaMask not initialized. Please refresh the page and try again.');
+              return;
+            }
+            
+            try {
+              isLoading.value = true;
+              
+              // Request permission to access accounts, which will prompt the user to select an account
+              await ethereum.value.request({
+                method: 'wallet_requestPermissions',
+                params: [{ eth_accounts: {} }]
+              });
+              
+              // After permission is granted, get the selected account
+              const accounts = await ethereum.value.request({ method: 'eth_accounts' });
+              
+              // Update available accounts
+              availableAccounts.value = accounts;
+              
+              // If the account changed, update the UI
+              if (accounts.length > 0) {
+                account.value = accounts[0];
+                selectedAccountIndex.value = 0;
+                // Reload data for the new account
+                await loadContractData();
+              }
+              
+              console.log('Account switched to:', account.value);
+            } catch (error) {
+              console.error('Error switching account:', error);
+              alert('Failed to switch account: ' + error.message);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+
+          const changeAccount = async () => {
+            if (selectedAccountIndex.value >= 0 && selectedAccountIndex.value < availableAccounts.value.length) {
+              account.value = availableAccounts.value[selectedAccountIndex.value];
+              await loadContractData();
+            }
+          };
+
+          const manageFleet = async (fleetAddress) => {
+            try {
+              isLoading.value = true;
+              managedFleet.value = fleetAddress;
+              
+              // Set active tab to users (default)
+              activeTab.value = 'users';
+              
+              // Fetch the fleet label using web3
+              try {
+                const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, fleetAddress);
+                const label = await fleetContractInstance.methods.label().call();
+                fleetLabel.value = label;
+              } catch (err) {
+                console.error('Error fetching label:', err);
+                fleetLabel.value = ''; // Default to empty string if there's an error
+              }
+              
+              // Load fleet users
+              managedFleetUsers.value = [];
+              const userCount = await registryContract.value.methods.GetFleetUserCount(fleetAddress).call({ from: account.value });
+              console.log('Fleet users count:', userCount);
+              
+              for (let i = 0; i < userCount; i++) {
+                const user = await registryContract.value.methods.GetFleetUser(fleetAddress, i).call({ from: account.value });
+                managedFleetUsers.value.push(user);
+              }
+              
+              // Show the fleet management modal
+              showFleetManagementModal.value = true;
+              newFleetUserAddress.value = '';
+              
+              // Reset selections
+              selectedUser.value = null;
+              selectedUserGroup.value = null;
+              selectedDevice.value = null;
+              selectedTag.value = null;
+              
+              // Clear forms
+              newUserData.value = { address: '', nickname: '', email: '', avatarURI: '' };
+              isUserAdmin.value = false;
+              newUserGroupData.value = { name: '', description: '' };
+              newDeviceData.value = { 
+                name: '', 
+                description: '', 
+                deviceType: '', 
+                location: '', 
+                properties: {} 
+              };
+              newTagData.value = { name: '', description: '', color: '#3B82F6', properties: {} };
+              
+            } catch (error) {
+              console.error('Error loading fleet details for management:', error);
+              showToastMessage('Failed to load fleet details: ' + error.message);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+
+          const closeFleetManagementModal = () => {
+            showFleetManagementModal.value = false;
+          };
+
+          const addFleetUserFromManager = async () => {
+            if (!isValidAddress(newFleetUserAddress.value)) {
+              showToastMessage('Please enter a valid Ethereum address');
+              return;
+            }
+            
+            try {
+              isAddingUser.value = true;
+              
+              // Add fleet user using web3
+              await registryContract.value.methods.AddFleetUser(managedFleet.value, newFleetUserAddress.value)
+                .send({ from: account.value });
+              
+              // Reload the fleet users
+              await manageFleet(managedFleet.value);
+              
+              showToastMessage('User added successfully!');
+              newFleetUserAddress.value = '';
+            } catch (error) {
+              console.error('Error adding user to fleet:', error);
+              showToastMessage('Failed to add user: ' + error.message, 5000);
+            } finally {
+              isAddingUser.value = false;
+            }
+          };
+
+          const updateFleetLabel = async () => {
+            try {
+              isUpdatingLabel.value = true;
+              
+              // Update label using web3
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              await fleetContractInstance.methods.updateLabel(fleetLabel.value)
+                .send({ from: account.value });
+              
+              showToastMessage('Fleet label updated successfully!');
+              
+              // Refresh the fleet data
+              await loadContractData();
+            } catch (error) {
+              console.error('Error updating fleet label:', error);
+              showToastMessage('Failed to update label: ' + error.message, 5000);
+            } finally {
+              isUpdatingLabel.value = false;
+            }
+          };
+
+          // Add/modify helper functions to include label in fleet data
+          const loadOwnFleets = async () => {
+            console.log('🔍 loadOwnFleets: Starting to load own fleets, count:', ownFleetCount.value);
+            ownFleets.value = [];
+            for (let i = 0; i < ownFleetCount.value; i++) {
+              console.log(`🔍 loadOwnFleets: Loading fleet ${i+1} of ${ownFleetCount.value}`);
+              try {
+                // Get fleet data using web3
+                console.log(`🔍 loadOwnFleets: Calling GetOwnFleet(${i})`);
+                const fleet = await registryContract.value.methods.GetOwnFleet(i).call({ from: account.value });
+                console.log(`🔍 loadOwnFleets: GetOwnFleet(${i}) response:`, fleet);
+                
+                // Transform the fleet data to match our expected format
+                const decodedFleet = {
+                  owner: fleet.owner,
+                  fleet: fleet.fleet,
+                  createdAt: parseInt(fleet.createdAt) * 1000, // Convert to milliseconds
+                  updatedAt: parseInt(fleet.updatedAt) * 1000, // Convert to milliseconds
+                  label: '' // Default empty label, will be populated below
+                };
+                
+                console.log(`🔍 loadOwnFleets: Decoded fleet ${i}:`, decodedFleet);
+                
+                // Fetch label using web3
+                try {
+                  console.log(`🔍 loadOwnFleets: Creating contract instance for fleet ${decodedFleet.fleet}`);
+                  // Create a contract instance for the fleet
+                  const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, decodedFleet.fleet);
+                  console.log(`🔍 loadOwnFleets: Calling label() for fleet ${decodedFleet.fleet}`);
+                  const label = await fleetContractInstance.methods.label().call();
+                  console.log(`🔍 loadOwnFleets: Label for fleet ${decodedFleet.fleet}:`, label);
+                  decodedFleet.label = label;
+                } catch (err) {
+                  console.error(`🔍 loadOwnFleets: Error fetching label for fleet ${decodedFleet.fleet}:`, err);
+                  decodedFleet.label = ''; // Default to empty if there's an error
+                }
+                
+                console.log(`🔍 loadOwnFleets: Adding fleet ${i} to ownFleets array`);
+                ownFleets.value.push(decodedFleet);
+              } catch (error) {
+                console.error(`🔍 loadOwnFleets: Error loading fleet ${i}:`, error);
+              }
+            }
+            console.log('🔍 loadOwnFleets: Finished loading own fleets, count:', ownFleets.value.length);
+          };
+
+          const loadAllUsers = async () => {
+            try {
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get all users
+              const users = await fleetContractInstance.methods.getAllUsers().call();
+              fleetAllUsers.value = users;
+              
+              console.log('Loaded users:', users);
+            } catch (error) {
+              console.error('Error loading users:', error);
+              showToastMessage('Failed to load users: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const selectUser = async (userAddress) => {
+            try {
+              selectedUser.value = userAddress;
+              isLoading.value = true;
+              
+              // Clear form data
+              newUserData.value = { address: '', nickname: '', email: '', avatarURI: '' };
+              isUserAdmin.value = false;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get user details
+              const userData = await fleetContractInstance.methods.getUser(userAddress).call();
+              
+              // Update form data
+              newUserData.value = {
+                address: userData.user,
+                nickname: userData.nickname,
+                email: userData.email,
+                avatarURI: userData.avatarURI
+              };
+              
+              isUserAdmin.value = userData.isAdmin;
+              
+              console.log('Selected user:', userData);
+            } catch (error) {
+              console.error('Error loading user details:', error);
+              showToastMessage('Failed to load user details: ' + error.message, 5000);
+              selectedUser.value = null;
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const createNewUser = async () => {
+            try {
+              if (!isValidAddress(newUserData.value.address)) {
+                showToastMessage('Please enter a valid Ethereum address');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Create user
+              await fleetContractInstance.methods.createUser(
+                newUserData.value.address,
+                newUserData.value.nickname,
+                newUserData.value.email,
+                newUserData.value.avatarURI
+              ).send({ from: account.value });
+              
+              // If user should be admin, set admin status
+              if (isUserAdmin.value) {
+                await fleetContractInstance.methods.setUserAdmin(
+                  newUserData.value.address,
+                  true
+                ).send({ from: account.value });
+              }
+              
+              // Refresh user list
+              await loadAllUsers();
+              
+              // Clear form
+              newUserData.value = { address: '', nickname: '', email: '', avatarURI: '' };
+              isUserAdmin.value = false;
+              
+              showToastMessage('User created successfully!');
+            } catch (error) {
+              console.error('Error creating user:', error);
+              showToastMessage('Failed to create user: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const updateUserDetails = async () => {
+            try {
+              if (!selectedUser.value) {
+                showToastMessage('No user selected');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Update user details
+              await fleetContractInstance.methods.updateUser(
+                selectedUser.value,
+                newUserData.value.nickname,
+                newUserData.value.email,
+                newUserData.value.avatarURI
+              ).send({ from: account.value });
+              
+              // Update admin status if changed
+              const userData = await fleetContractInstance.methods.getUser(selectedUser.value).call();
+              if (userData.isAdmin !== isUserAdmin.value) {
+                await fleetContractInstance.methods.setUserAdmin(
+                  selectedUser.value,
+                  isUserAdmin.value
+                ).send({ from: account.value });
+              }
+              
+              showToastMessage('User updated successfully!');
+            } catch (error) {
+              console.error('Error updating user:', error);
+              showToastMessage('Failed to update user: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const removeUserFromSystem = async () => {
+            try {
+              if (!selectedUser.value) {
+                showToastMessage('No user selected');
+                return;
+              }
+              
+              if (!confirm(`Are you sure you want to remove user ${shortenAddress(selectedUser.value)}?`)) {
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Remove user
+              await fleetContractInstance.methods.removeUser(selectedUser.value).send({ from: account.value });
+              
+              // Refresh user list
+              await loadAllUsers();
+              
+              // Clear selection
+              selectedUser.value = null;
+              newUserData.value = { address: '', nickname: '', email: '', avatarURI: '' };
+              isUserAdmin.value = false;
+              
+              showToastMessage('User removed successfully!');
+            } catch (error) {
+              console.error('Error removing user:', error);
+              showToastMessage('Failed to remove user: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+
+          const loadUserGroups = async () => {
+            try {
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get all user groups
+              const groupIds = await fleetContractInstance.methods.getAllUserGroups().call();
+              
+              // Reset user groups
+              userGroups.value = [];
+              
+              // Load details for each group
+              for (const groupId of groupIds) {
+                try {
+                  const groupData = await fleetContractInstance.methods.getUserGroup(groupId).call();
+                  
+                  // Only include active groups
+                  if (groupData.active) {
+                    userGroups.value.push({
+                      id: groupData.id,
+                      name: groupData.name,
+                      description: groupData.description,
+                      createdAt: parseInt(groupData.createdAt) * 1000,
+                      createdBy: groupData.createdBy
+                    });
+                  }
+                } catch (err) {
+                  console.error(`Error loading group details for ${groupId}:`, err);
+                }
+              }
+              
+              console.log('Loaded user groups:', userGroups.value);
+            } catch (error) {
+              console.error('Error loading user groups:', error);
+              showToastMessage('Failed to load user groups: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const selectUserGroup = async (groupId) => {
+            try {
+              selectedUserGroup.value = groupId;
+              isLoading.value = true;
+              
+              // Clear form data
+              newUserGroupData.value = { name: '', description: '' };
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get group details
+              const groupData = await fleetContractInstance.methods.getUserGroup(groupId).call();
+              
+              // Update form data
+              newUserGroupData.value = {
+                name: groupData.name,
+                description: groupData.description
+              };
+              
+              // Load group members
+              await loadGroupMembers();
+              
+              console.log('Selected user group:', groupData);
+            } catch (error) {
+              console.error('Error loading user group details:', error);
+              showToastMessage('Failed to load user group details: ' + error.message, 5000);
+              selectedUserGroup.value = null;
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const loadGroupMembers = async () => {
+            try {
+              if (!selectedUserGroup.value) {
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get group members
+              const members = await fleetContractInstance.methods.getGroupUsers(selectedUserGroup.value).call();
+              userGroupMembers.value = members;
+              
+              console.log('Loaded group members:', members);
+            } catch (error) {
+              console.error('Error loading group members:', error);
+              showToastMessage('Failed to load group members: ' + error.message, 5000);
+              userGroupMembers.value = [];
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const createUserGroup = async () => {
+            try {
+              if (!newUserGroupData.value.name) {
+                showToastMessage('Please enter a group name');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Create user group
+              const tx = await fleetContractInstance.methods.createUserGroup(
+                newUserGroupData.value.name,
+                newUserGroupData.value.description
+              ).send({ from: account.value });
+              
+              // Extract the group ID from transaction events
+              // Note: This is a simplified approach and may need to be adjusted based on how your contract emits events
+              console.log('Transaction:', tx);
+              
+              // Refresh user groups
+              await loadUserGroups();
+              
+              // Clear form
+              newUserGroupData.value = { name: '', description: '' };
+              
+              showToastMessage('User group created successfully!');
+            } catch (error) {
+              console.error('Error creating user group:', error);
+              showToastMessage('Failed to create user group: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const updateUserGroup = async () => {
+            try {
+              if (!selectedUserGroup.value) {
+                showToastMessage('No user group selected');
+                return;
+              }
+              
+              if (!newUserGroupData.value.name) {
+                showToastMessage('Please enter a group name');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Update user group
+              await fleetContractInstance.methods.updateUserGroup(
+                selectedUserGroup.value,
+                newUserGroupData.value.name,
+                newUserGroupData.value.description
+              ).send({ from: account.value });
+              
+              // Refresh user groups
+              await loadUserGroups();
+              
+              showToastMessage('User group updated successfully!');
+            } catch (error) {
+              console.error('Error updating user group:', error);
+              showToastMessage('Failed to update user group: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const removeUserGroup = async () => {
+            try {
+              if (!selectedUserGroup.value) {
+                showToastMessage('No user group selected');
+                return;
+              }
+              
+              if (!confirm(`Are you sure you want to remove the group "${userGroups.value.find(g => g.id === selectedUserGroup.value)?.name}"?`)) {
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Remove user group
+              await fleetContractInstance.methods.removeUserGroup(selectedUserGroup.value)
+                .send({ from: account.value });
+              
+              // Refresh user groups
+              await loadUserGroups();
+              
+              // Clear selection
+              selectedUserGroup.value = null;
+              newUserGroupData.value = { name: '', description: '' };
+              userGroupMembers.value = [];
+              
+              showToastMessage('User group removed successfully!');
+            } catch (error) {
+              console.error('Error removing user group:', error);
+              showToastMessage('Failed to remove user group: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const addUserToGroup = async () => {
+            try {
+              if (!selectedUserGroup.value) {
+                showToastMessage('No user group selected');
+                return;
+              }
+              
+              if (!isValidAddress(newFleetUserAddress.value)) {
+                showToastMessage('Please enter a valid Ethereum address');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Add user to group
+              await fleetContractInstance.methods.addUserToGroup(
+                newFleetUserAddress.value,
+                selectedUserGroup.value
+              ).send({ from: account.value });
+              
+              // Refresh group members
+              await loadGroupMembers();
+              
+              // Clear input
+              newFleetUserAddress.value = '';
+              
+              showToastMessage('User added to group successfully!');
+            } catch (error) {
+              console.error('Error adding user to group:', error);
+              showToastMessage('Failed to add user to group: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const removeUserFromGroup = async (userAddress) => {
+            try {
+              if (!selectedUserGroup.value) {
+                showToastMessage('No user group selected');
+                return;
+              }
+              
+              if (!confirm(`Are you sure you want to remove ${shortenAddress(userAddress)} from this group?`)) {
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Remove user from group
+              await fleetContractInstance.methods.removeUserFromGroup(
+                userAddress,
+                selectedUserGroup.value
+              ).send({ from: account.value });
+              
+              // Refresh group members
+              await loadGroupMembers();
+              
+              showToastMessage('User removed from group successfully!');
+            } catch (error) {
+              console.error('Error removing user from group:', error);
+              showToastMessage('Failed to remove user from group: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const loadDevices = async () => {
+            try {
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get all devices
+              const deviceIds = await fleetContractInstance.methods.getAllDevices().call();
+              
+              // Reset devices
+              devices.value = [];
+              
+              // Load details for each device
+              for (const deviceId of deviceIds) {
+                try {
+                  const deviceData = await fleetContractInstance.methods.getDevice(deviceId).call();
+                  
+                  // Only include active devices
+                  if (deviceData.active) {
+                    // Get additional properties
+                    let ipAddress = '';
+                    let macAddress = '';
+                    const properties = {};
+                    
+                    try {
+                      // Load IP and MAC addresses
+                      ipAddress = await fleetContractInstance.methods.getPropertyValue(deviceId, "ip_address").call();
+                      macAddress = await fleetContractInstance.methods.getPropertyValue(deviceId, "mac_address").call();
+                      
+                      // Check for other common properties
+                      const propertiesToCheck = ["firmware", "firmware_version", "model", "serial_number", "manufacturer"];
+                      
+                      for (const propKey of propertiesToCheck) {
+                        const propValue = await fleetContractInstance.methods.getPropertyValue(deviceId, propKey).call();
+                        if (propValue && propValue.trim() !== '') {
+                          properties[propKey] = propValue;
+                        }
+                      }
+                    } catch (propError) {
+                      console.warn(`Error loading properties for device ${deviceId}:`, propError);
+                    }
+                    
+                    devices.value.push({
+                      id: deviceData.id,
+                      owner: deviceData.owner,
+                      name: deviceData.name,
+                      description: deviceData.description,
+                      deviceType: deviceData.deviceType,
+                      location: deviceData.location,
+                      ipAddress: ipAddress,
+                      macAddress: macAddress,
+                      createdAt: parseInt(deviceData.createdAt) * 1000,
+                      lastSeen: parseInt(deviceData.lastSeen) * 1000,
+                      properties: properties
+                    });
+                  }
+                } catch (err) {
+                  console.error(`Error loading device details for ${deviceId}:`, err);
+                }
+              }
+              
+              console.log('Loaded devices:', devices.value);
+            } catch (error) {
+              console.error('Error loading devices:', error);
+              showToastMessage('Failed to load devices: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const selectDevice = async (deviceId) => {
+            try {
+              selectedDevice.value = deviceId;
+              isLoading.value = true;
+              selectedTagToAdd.value = '';
+              
+              // Clear form data
+              newDeviceData.value = { 
+                name: '', 
+                description: '', 
+                deviceType: '', 
+                location: '', 
+                properties: {} 
+              };
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get device details
+              const deviceData = await fleetContractInstance.methods.getDevice(deviceId).call();
+              
+              // Update form data
+              newDeviceData.value = {
+                name: deviceData.name,
+                description: deviceData.description,
+                deviceType: deviceData.deviceType,
+                location: deviceData.location,
+                properties: {}
+              };
+              
+              // Load device tags
+              await loadDeviceTags(deviceId);
+              
+              console.log('Selected device:', deviceData);
+            } catch (error) {
+              console.error('Error loading device details:', error);
+              showToastMessage('Failed to load device details: ' + error.message, 5000);
+              selectedDevice.value = null;
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const loadDeviceTags = async (deviceId) => {
+            try {
+              // Reset device tags
+              deviceTags.value = [];
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get device tags
+              const tagIds = await fleetContractInstance.methods.getDeviceTags(deviceId).call();
+              
+              // Load details for each tag
+              for (const tagId of tagIds) {
+                try {
+                  const tagData = await fleetContractInstance.methods.getTag(tagId).call();
+                  
+                  // Only include active tags
+                  if (tagData.active) {
+                    deviceTags.value.push({
+                      id: tagData.id,
+                      name: tagData.name,
+                      color: tagData.color
+                    });
+                  }
+                } catch (err) {
+                  console.error(`Error loading tag details for ${tagId}:`, err);
+                }
+              }
+              
+              console.log('Loaded device tags:', deviceTags.value);
+            } catch (error) {
+              console.error('Error loading device tags:', error);
+              deviceTags.value = [];
+            }
+          };
+          
+          const createNewDevice = async () => {
+            try {
+              if (!newDeviceData.value.name) {
+                showToastMessage('Please enter a device name');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Create device
+              const tx = await fleetContractInstance.methods.createDevice(
+                newDeviceData.value.name,
+                newDeviceData.value.description,
+                newDeviceData.value.deviceType,
+                newDeviceData.value.location
+              ).send({ from: account.value });
+              
+              // Extract the device ID from transaction events
+              console.log('Transaction:', tx);
+              const deviceId = tx.events.DeviceCreated.returnValues.deviceId;
+              
+              // Set properties
+              for (const [propKey, propValue] of Object.entries(newDeviceData.value.properties)) {
+                await fleetContractInstance.methods.setDeviceProperty(
+                  deviceId, 
+                  propKey,
+                  propValue
+                ).send({ from: account.value });
+              }
+              
+              // Refresh devices
+              await loadDevices();
+              
+              showToastMessage('Device created successfully!');
+            } catch (error) {
+              console.error('Error creating device:', error);
+              showToastMessage('Failed to create device: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const updateDeviceDetails = async () => {
+            try {
+              if (!selectedDevice.value) {
+                showToastMessage('No device selected');
+                return;
+              }
+              
+              if (!newDeviceData.value.name) {
+                showToastMessage('Please enter a device name');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Update device
+              await fleetContractInstance.methods.updateDevice(
+                selectedDevice.value,
+                newDeviceData.value.name,
+                newDeviceData.value.description,
+                newDeviceData.value.deviceType,
+                newDeviceData.value.location
+              ).send({ from: account.value });
+              
+              // Update properties
+              for (const [propKey, propValue] of Object.entries(newDeviceData.value.properties)) {
+                await fleetContractInstance.methods.setDeviceProperty(
+                  selectedDevice.value, 
+                  propKey,
+                  propValue
+                ).send({ from: account.value });
+              }
+              
+              // Refresh devices
+              await loadDevices();
+              
+              showToastMessage('Device updated successfully!');
+            } catch (error) {
+              console.error('Error updating device:', error);
+              showToastMessage('Failed to update device: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const updateDeviceLastSeen = async () => {
+            try {
+              if (!selectedDevice.value) {
+                showToastMessage('No device selected');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Update device last seen
+              await fleetContractInstance.methods.updateDeviceLastSeen(selectedDevice.value)
+                .send({ from: account.value });
+              
+              // Refresh devices
+              await loadDevices();
+              
+              // Refresh device details
+              await selectDevice(selectedDevice.value);
+              
+              showToastMessage('Device last seen updated successfully!');
+            } catch (error) {
+              console.error('Error updating device last seen:', error);
+              showToastMessage('Failed to update device last seen: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const transferDeviceDialog = () => {
+            if (!selectedDevice.value) {
+              showToastMessage('No device selected');
+              return;
+            }
+            
+            newDeviceOwner.value = '';
+            showDeviceTransferModal.value = true;
+          };
+          
+          const transferDevice = async () => {
+            try {
+              if (!selectedDevice.value) {
+                showToastMessage('No device selected');
+                return;
+              }
+              
+              if (!isValidAddress(newDeviceOwner.value)) {
+                showToastMessage('Please enter a valid Ethereum address');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Transfer device ownership
+              await fleetContractInstance.methods.transferDeviceOwnership(
+                selectedDevice.value,
+                newDeviceOwner.value
+              ).send({ from: account.value });
+              
+              // Close modal
+              showDeviceTransferModal.value = false;
+              
+              // Refresh devices
+              await loadDevices();
+              
+              // Clear selection
+              selectedDevice.value = null;
+              newDeviceData.value = { 
+                name: '', 
+                description: '', 
+                deviceType: '', 
+                location: '', 
+                properties: {} 
+              };
+              deviceTags.value = [];
+              
+              showToastMessage('Device ownership transferred successfully!');
+            } catch (error) {
+              console.error('Error transferring device ownership:', error);
+              showToastMessage('Failed to transfer device ownership: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const removeDevice = async () => {
+            try {
+              if (!selectedDevice.value) {
+                showToastMessage('No device selected');
+                return;
+              }
+              
+              if (!confirm(`Are you sure you want to remove the device "${devices.value.find(d => d.id === selectedDevice.value)?.name}"?`)) {
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Remove device
+              await fleetContractInstance.methods.removeDevice(selectedDevice.value)
+                .send({ from: account.value });
+              
+              // Refresh devices
+              await loadDevices();
+              
+              // Clear selection
+              selectedDevice.value = null;
+              newDeviceData.value = { 
+                name: '', 
+                description: '', 
+                deviceType: '', 
+                location: '', 
+                properties: {} 
+              };
+              deviceTags.value = [];
+              
+              showToastMessage('Device removed successfully!');
+            } catch (error) {
+              console.error('Error removing device:', error);
+              showToastMessage('Failed to remove device: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const addTagToDevice = async () => {
+            try {
+              if (!selectedDevice.value) {
+                showToastMessage('No device selected');
+                return;
+              }
+              
+              if (!selectedTagToAdd.value) {
+                showToastMessage('Please select a tag to add');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Add tag to device
+              await fleetContractInstance.methods.addDeviceToTag(
+                selectedDevice.value,
+                selectedTagToAdd.value
+              ).send({ from: account.value });
+              
+              // Refresh device tags
+              await loadDeviceTags(selectedDevice.value);
+              
+              // Clear selection
+              selectedTagToAdd.value = '';
+              
+              showToastMessage('Tag added to device successfully!');
+            } catch (error) {
+              console.error('Error adding tag to device:', error);
+              showToastMessage('Failed to add tag to device: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const removeTagFromDevice = async (tagId) => {
+            try {
+              if (!selectedDevice.value) {
+                showToastMessage('No device selected');
+                return;
+              }
+              
+              if (!confirm('Are you sure you want to remove this tag from the device?')) {
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Remove tag from device
+              await fleetContractInstance.methods.removeDeviceFromTag(
+                selectedDevice.value,
+                tagId
+              ).send({ from: account.value });
+              
+              // Refresh device tags
+              await loadDeviceTags(selectedDevice.value);
+              
+              showToastMessage('Tag removed from device successfully!');
+            } catch (error) {
+              console.error('Error removing tag from device:', error);
+              showToastMessage('Failed to remove tag from device: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+
+          const loadTags = async () => {
+            try {
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get all tags
+              const tagIds = await fleetContractInstance.methods.getAllTags().call();
+              
+              // Reset tags
+              tags.value = [];
+              
+              // Load details for each tag
+              for (const tagId of tagIds) {
+                try {
+                  const tagData = await fleetContractInstance.methods.getTag(tagId).call();
+                  
+                  // Only include active tags
+                  if (tagData.active) {
+                    // Get tag properties
+                    const properties = {};
+                    
+                    try {
+                      // Common properties to check for - you can add more as needed
+                      const propertiesToCheck = ["default_firmware", "update_frequency", "category", "priority"];
+                      
+                      for (const propKey of propertiesToCheck) {
+                        const propValue = await fleetContractInstance.methods.getTagProperty(tagId, propKey).call();
+                        if (propValue && propValue.trim() !== '') {
+                          properties[propKey] = propValue;
+                        }
+                      }
+                    } catch (propError) {
+                      console.warn(`Error loading properties for tag ${tagId}:`, propError);
+                    }
+                    
+                    tags.value.push({
+                      id: tagData.id,
+                      name: tagData.name,
+                      description: tagData.description,
+                      color: tagData.color,
+                      createdAt: parseInt(tagData.createdAt) * 1000,
+                      createdBy: tagData.createdBy,
+                      properties: properties
+                    });
+                  }
+                } catch (err) {
+                  console.error(`Error loading tag details for ${tagId}:`, err);
+                }
+              }
+              
+              console.log('Loaded tags:', tags.value);
+            } catch (error) {
+              console.error('Error loading tags:', error);
+              showToastMessage('Failed to load tags: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const selectTag = async (tagId) => {
+            try {
+              selectedTag.value = tagId;
+              isLoading.value = true;
+              
+              // Clear form data
+              newTagData.value = { name: '', description: '', color: '#3B82F6', properties: {} };
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get tag details
+              const tagData = await fleetContractInstance.methods.getTag(tagId).call();
+              
+              // Update form data
+              newTagData.value = {
+                name: tagData.name,
+                description: tagData.description,
+                color: tagData.color,
+                properties: tagData.properties
+              };
+              
+              // Load tag devices
+              await loadTagDevices();
+              
+              console.log('Selected tag:', tagData);
+            } catch (error) {
+              console.error('Error loading tag details:', error);
+              showToastMessage('Failed to load tag details: ' + error.message, 5000);
+              selectedTag.value = null;
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const loadTagDevices = async () => {
+            try {
+              if (!selectedTag.value) {
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Reset tag devices
+              tagDevices.value = [];
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Get tag devices
+              const deviceIds = await fleetContractInstance.methods.getTagDevices(selectedTag.value).call();
+              
+              // Load details for each device
+              for (const deviceId of deviceIds) {
+                try {
+                  const deviceData = await fleetContractInstance.methods.getDevice(deviceId).call();
+                  
+                  // Only include active devices
+                  if (deviceData.active) {
+                    tagDevices.value.push({
+                      id: deviceData.id,
+                      name: deviceData.name,
+                      deviceType: deviceData.deviceType,
+                      owner: deviceData.owner
+                    });
+                  }
+                } catch (err) {
+                  console.error(`Error loading device details for ${deviceId}:`, err);
+                }
+              }
+              
+              console.log('Loaded tag devices:', tagDevices.value);
+            } catch (error) {
+              console.error('Error loading tag devices:', error);
+              tagDevices.value = [];
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const createTag = async () => {
+            try {
+              if (!newTagData.value.name) {
+                showToastMessage('Please enter a tag name');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Create tag
+              const tx = await fleetContractInstance.methods.createTag(
+                newTagData.value.name,
+                newTagData.value.description,
+                newTagData.value.color
+              ).send({ from: account.value });
+              
+              // Extract the tag ID from transaction events
+              console.log('Transaction:', tx);
+              
+              // Refresh tags
+              await loadTags();
+              
+              // Clear form
+              newTagData.value = { name: '', description: '', color: '#3B82F6', properties: {} };
+              
+              showToastMessage('Tag created successfully!');
+            } catch (error) {
+              console.error('Error creating tag:', error);
+              showToastMessage('Failed to create tag: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const updateTag = async () => {
+            try {
+              if (!selectedTag.value) {
+                showToastMessage('No tag selected');
+                return;
+              }
+              
+              if (!newTagData.value.name) {
+                showToastMessage('Please enter a tag name');
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Update tag
+              await fleetContractInstance.methods.updateTag(
+                selectedTag.value,
+                newTagData.value.name,
+                newTagData.value.description,
+                newTagData.value.color
+              ).send({ from: account.value });
+              
+              // Refresh tags
+              await loadTags();
+              
+              showToastMessage('Tag updated successfully!');
+            } catch (error) {
+              console.error('Error updating tag:', error);
+              showToastMessage('Failed to update tag: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const removeTag = async () => {
+            try {
+              if (!selectedTag.value) {
+                showToastMessage('No tag selected');
+                return;
+              }
+              
+              if (!confirm(`Are you sure you want to remove the tag "${tags.value.find(t => t.id === selectedTag.value)?.name}"?`)) {
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Remove tag
+              await fleetContractInstance.methods.removeTag(selectedTag.value)
+                .send({ from: account.value });
+              
+              // Refresh tags
+              await loadTags();
+              
+              // Clear selection
+              selectedTag.value = null;
+              newTagData.value = { name: '', description: '', color: '#3B82F6', properties: {} };
+              tagDevices.value = [];
+              
+              showToastMessage('Tag removed successfully!');
+            } catch (error) {
+              console.error('Error removing tag:', error);
+              showToastMessage('Failed to remove tag: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          const removeDeviceFromTag = async (deviceId) => {
+            try {
+              if (!selectedTag.value) {
+                showToastMessage('No tag selected');
+                return;
+              }
+              
+              if (!confirm('Are you sure you want to remove this device from the tag?')) {
+                return;
+              }
+              
+              isLoading.value = true;
+              
+              // Get fleet contract instance
+              const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, managedFleet.value);
+              
+              // Remove device from tag
+              await fleetContractInstance.methods.removeDeviceFromTag(
+                deviceId,
+                selectedTag.value
+              ).send({ from: account.value });
+              
+              // Refresh tag devices
+              await loadTagDevices();
+              
+              showToastMessage('Device removed from tag successfully!');
+            } catch (error) {
+              console.error('Error removing device from tag:', error);
+              showToastMessage('Failed to remove device from tag: ' + error.message, 5000);
+            } finally {
+              isLoading.value = false;
+            }
+          };
+          
+          // Add our new state variables for navigation
+          const activePage = ref('dashboard'); // dashboard, createFleet, fleetManagement
+          const showAddUserModal = ref(false);
+          
+          // Update navigation functions
+          const showDashboard = () => {
+            activePage.value = 'dashboard';
+          };
+          
+          const showCreateFleetView = () => {
+            activePage.value = 'createFleet';
+          };
+          
+          const showFleetManagement = async (fleetAddress) => {
+            console.log('showFleetManagement called for fleet:', fleetAddress);
+            try {
+              setLoadingWithSafety(true);
+              console.log('Set isLoading to true in showFleetManagement');
+              managedFleet.value = fleetAddress;
+              
+              // Set active tab to users (default)
+              activeTab.value = 'users';
+              
+              // Fetch the fleet label using web3
+              try {
+                console.log('Fetching fleet label');
+                const fleetContractInstance = new web3.value.eth.Contract(fleetContractAbi, fleetAddress);
+                const label = await fleetContractInstance.methods.label().call();
+                fleetLabel.value = label;
+                console.log('Fleet label fetched:', label);
+              } catch (err) {
+                console.error('Error fetching label:', err);
+                fleetLabel.value = ''; // Default to empty string if there's an error
+              }
+              
+              // Load fleet users
+              console.log('Loading fleet users');
+              managedFleetUsers.value = [];
+              const userCount = await registryContract.value.methods.GetFleetUserCount(fleetAddress).call({ from: account.value });
+              console.log('Fleet users count:', userCount);
+              
+              for (let i = 0; i < userCount; i++) {
+                const userAddress = await registryContract.value.methods.GetFleetUser(fleetAddress, i).call({ from: account.value });
+                console.log(`Loaded user ${i+1}/${userCount}:`, userAddress);
+                
+                // Add the user address - we don't have detailed user data available in registry
+                managedFleetUsers.value.push({
+                  userAddress: userAddress,
+                  nickname: '',
+                  email: '',
+                  avatarURI: ''
+                });
+              }
+              
+              // Switch to fleet management view
+              console.log('Switching to fleet management view');
+              activePage.value = 'fleetManagement';
+              
+            } catch (error) {
+              console.error('Error managing fleet:', error);
+              showToastMessage('Error loading fleet data');
+            } finally {
+              console.log('Resetting isLoading in showFleetManagement finally block');
+              setLoadingWithSafety(false);
+            }
+          };
+          
+          // Function to show add user modal
+          
+          const closeAddUserModal = () => {
+            showingAddUserModal.value = false;
+            targetFleetForUser.value = null;
+            newUserAddress.value = '';
+            isAddingUser.value = false;
+            isLoading.value = false;
+          };
+          
+          // Return our new functions and variables
+          return {
+            isConnected,
+            account,
+            registryAddress,
+            registryVersion,
+            ownFleetCount,
+            ownFleets,
+            sharedFleets,
+            selectedFleet,
+            fleetDetails,
+            fleetUsers,
+            isLoading,
+            isCreatingFleet,
+            showingAddUserModal,
+            newUserAddress,
+            isAddingUser,
+            groupedSharedFleets,
+            availableAccounts,
+            selectedAccountIndex,
+            showFleetManagementModal,
+            managedFleet,
+            managedFleetUsers,
+            newFleetUserAddress,
+            showToast,
+            toastMessage,
+            newFleetLabel,
+            fleetLabel,
+            isUpdatingLabel,
+            
+            // New state variables for enhanced fleet management
+            activeTab,
+            
+            // User management extended
+            fleetAllUsers,
+            selectedUser,
+            newUserData,
+            isUserAdmin,
+            
+            // User Group management
+            userGroups,
+            selectedUserGroup,
+            newUserGroupData,
+            userGroupMembers,
+            
+            // Device management
+            devices,
+            selectedDevice,
+            newDeviceData,
+            deviceTags,
+            selectedTagToAdd,
+            showDeviceTransferModal,
+            newDeviceOwner,
+            
+            // Tag management
+            tags,
+            selectedTag,
+            newTagData,
+            tagDevices,
+            
+            // Methods
+            connectWallet,
+            createFleet,
+            viewFleetDetails,
+            showAddUserModal,
+            addFleetUser,
+            removeFleetUser,
+            closeFleetManagementModal,
+            addFleetUserFromManager,
+            updateFleetLabel,
+            
+            // Utility functions
+            shortenAddress,
+            formatDate,
+            isValidAddress,
+            switchAccount,
+            changeAccount,
+            manageFleet,
+            loadAllUsers,
+            selectUser,
+            createNewUser,
+            updateUserDetails,
+            removeUserFromSystem,
+            loadUserGroups,
+            selectUserGroup,
+            loadGroupMembers,
+            createUserGroup,
+            updateUserGroup,
+            removeUserGroup,
+            addUserToGroup,
+            removeUserFromGroup,
+            loadDevices,
+            selectDevice,
+            loadDeviceTags,
+            createNewDevice,
+            updateDeviceDetails,
+            updateDeviceLastSeen,
+            transferDeviceDialog,
+            transferDevice,
+            removeDevice,
+            addTagToDevice,
+            removeTagFromDevice,
+            loadTags,
+            selectTag,
+            loadTagDevices,
+            createTag,
+            updateTag,
+            removeTag,
+            removeDeviceFromTag,
+            
+            // Navigation state
+            activePage,
+            showDashboard,
+            showCreateFleetView,
+            showFleetManagement,
+            
+            // Modal state
+            showingAddUserModal,
+            targetFleetForUser,
+            closeAddUserModal,
+            openAddUserModal
+          };
+        }
+      }).mount('#app');
+    });
+  </script>
+</body>
+</html> 
