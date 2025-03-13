@@ -6,13 +6,14 @@ pragma solidity ^0.8.20;
 
 import "./Proxy8.sol";
 import "./deps/Set.sol";
+import "./IoTFleetContract.sol";
 
 interface InitializableFleet {
-    function initialize(address payable _owner) external;
+    function initialize(address payable _owner, string memory _label) external;
 }
 
 // Per user Fleet Registry used for Tracking user fleets in the Fleet ManagementUser Interface
-contract FleetRegistry {
+contract IoTFleetRegistry {
     bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
     using Set for Set.Data;
 
@@ -48,15 +49,15 @@ contract FleetRegistry {
     address public defaultFleetImplementation;
 
     constructor() {
-        defaultFleetImplementation = address(0x1);
+        defaultFleetImplementation = address(new IoTFleetContract());
     }
 
-    function Initialize(address _defaultFleetImplementation) external {
-        require(defaultFleetImplementation == address(0), "Default Fleet Implementation must not be set");
+    function SetDefaultFleetImplementation(address _defaultFleetImplementation) external {
+        require(msg.sender == Owner(), "You do not have permission to set the default fleet implementation");
         defaultFleetImplementation = _defaultFleetImplementation;
     }
 
-    function Owner() external view returns (address) {
+    function Owner() public view returns (address) {
         address owner;
         assembly {owner := sload(OWNER_SLOT)}
         return owner;
@@ -67,9 +68,24 @@ contract FleetRegistry {
     }
     
     // Add a fleet to the registry
+    function CreateFleet(string memory label) external {
+        address fleet = address(new Proxy8(defaultFleetImplementation, msg.sender));
+        InitializableFleet(fleet).initialize(payable(msg.sender), label);
+        
+        // Initialize struct fields individually instead of using struct constructor
+        fleets[fleet].owner = msg.sender;
+        fleets[fleet].fleet = fleet;
+        fleets[fleet].createdAt = block.timestamp;
+        fleets[fleet].updatedAt = block.timestamp;
+        // Note: users Set.Data will be initialized to its default empty state
+        
+        userFleets[msg.sender].push(fleet);
+    }
+
+    // For backward compatibility - creates a fleet with an empty label
     function CreateFleet() external {
         address fleet = address(new Proxy8(defaultFleetImplementation, msg.sender));
-        InitializableFleet(fleet).initialize(payable(msg.sender));
+        InitializableFleet(fleet).initialize(payable(msg.sender), "");
         
         // Initialize struct fields individually instead of using struct constructor
         fleets[fleet].owner = msg.sender;
