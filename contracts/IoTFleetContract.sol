@@ -13,6 +13,9 @@ import "./deps/Set.sol";
 contract IoTFleetContract is FleetContractUpgradeable {
     using Set for Set.Data;
 
+    // Fleet label
+    string public label;
+
     // ======== Events ========
     event UserCreated(address indexed userAddress, string nickname);
     event UserUpdated(address indexed userAddress, string nickname);
@@ -30,6 +33,9 @@ contract IoTFleetContract is FleetContractUpgradeable {
     event TagRemoved(bytes32 indexed tagId);
     event DeviceAddedToTag(bytes32 indexed deviceId, bytes32 indexed tagId);
     event DeviceRemovedFromTag(bytes32 indexed deviceId, bytes32 indexed tagId);
+    event FleetLabelUpdated(string newLabel);
+    event DevicePropertySet(bytes32 indexed deviceId, string key, string value);
+    event TagPropertySet(bytes32 indexed tagId, string key, string value);
 
     // ======== Structs ========
     struct User {
@@ -39,7 +45,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
         string avatarURI;
         bool isAdmin;
         uint256 createdAt;
-        uint256 lastLogin;
         Set.Data groups;
         bool active;
     }
@@ -60,8 +65,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
         string description;
         string deviceType; // e.g., "sensor", "gateway", "controller"
         string location;
-        string ipAddress;
-        string macAddress;
         uint256 createdAt;
         uint256 lastSeen;
         Set.Data tags;
@@ -89,6 +92,10 @@ contract IoTFleetContract is FleetContractUpgradeable {
     mapping(bytes32 => Set.Data) private tagDevices; // tagId => Set of device IDs
     mapping(address => Set.Data) private userDevices; // user address => Set of device IDs
     
+    // Property mappings
+    mapping(bytes32 => mapping(string => string)) private deviceProperties; // deviceId => key => value
+    mapping(bytes32 => mapping(string => string)) private tagProperties; // tagId => key => value
+    
     // Counters for IDs
     uint256 private userGroupCounter;
     uint256 private deviceCounter;
@@ -99,6 +106,28 @@ contract IoTFleetContract is FleetContractUpgradeable {
     bytes32[] private allUserGroups;
     bytes32[] private allDevices;
     bytes32[] private allTags;
+
+    // Override initialize to include label
+    function initialize(address payable _owner, string memory _label) public initializer {
+        super.initialize(_owner);
+        label = _label;
+    }
+
+    // For backward compatibility
+    function initialize(address payable _owner) public override initializer {
+        initialize(_owner, "");
+    }
+
+    // Allow updating the fleet label
+    function updateLabel(string memory _newLabel) 
+        external 
+        onlyOperator 
+        returns (bool) 
+    {
+        label = _newLabel;
+        emit FleetLabelUpdated(_newLabel);
+        return true;
+    }
 
     constructor() FleetContractUpgradeable(address(0)) {
         operator = msg.sender;
@@ -166,7 +195,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
         users[_userAddress].avatarURI = _avatarURI;
         users[_userAddress].isAdmin = _isAdmin; // Set admin status based on parameter
         users[_userAddress].createdAt = block.timestamp;
-        users[_userAddress].lastLogin = block.timestamp;
         users[_userAddress].active = true;
         // Note: groups is already initialized as an empty Set.Data
         
@@ -219,16 +247,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function recordUserLogin(address _userAddress) 
-        external 
-        onlyOperator 
-        userExists(_userAddress) 
-        returns (bool) 
-    {
-        users[_userAddress].lastLogin = block.timestamp;
-        return true;
-    }
-    
     function getUser(address _userAddress) 
         external 
         view 
@@ -239,7 +257,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
             string memory avatarURI,
             bool isAdmin,
             uint256 createdAt,
-            uint256 lastLogin,
             bool active
         ) 
     {
@@ -251,7 +268,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
             userData.avatarURI,
             userData.isAdmin,
             userData.createdAt,
-            userData.lastLogin,
             userData.active
         );
     }
@@ -434,9 +450,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         string memory _name, 
         string memory _description, 
         string memory _deviceType,
-        string memory _location,
-        string memory _ipAddress,
-        string memory _macAddress
+        string memory _location
     ) 
         external 
         userExists(msg.sender) 
@@ -451,8 +465,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
         devices[deviceId].description = _description;
         devices[deviceId].deviceType = _deviceType;
         devices[deviceId].location = _location;
-        devices[deviceId].ipAddress = _ipAddress;
-        devices[deviceId].macAddress = _macAddress;
         devices[deviceId].createdAt = block.timestamp;
         devices[deviceId].lastSeen = block.timestamp;
         devices[deviceId].active = true;
@@ -470,9 +482,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         string memory _name, 
         string memory _description, 
         string memory _deviceType,
-        string memory _location,
-        string memory _ipAddress,
-        string memory _macAddress
+        string memory _location
     ) 
         external 
         deviceExists(_deviceId)
@@ -485,8 +495,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
         device.description = _description;
         device.deviceType = _deviceType;
         device.location = _location;
-        device.ipAddress = _ipAddress;
-        device.macAddress = _macAddress;
         
         emit DeviceUpdated(_deviceId, _name);
         return true;
@@ -563,8 +571,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
             string memory description,
             string memory deviceType,
             string memory location,
-            string memory ipAddress,
-            string memory macAddress,
             uint256 createdAt,
             uint256 lastSeen,
             bool active
@@ -578,8 +584,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
             device.description,
             device.deviceType,
             device.location,
-            device.ipAddress,
-            device.macAddress,
             device.createdAt,
             device.lastSeen,
             device.active
@@ -829,5 +833,118 @@ contract IoTFleetContract is FleetContractUpgradeable {
         returns (bool) 
     {
         return devices[_deviceId].active && devices[_deviceId].owner == _userAddress;
+    }
+
+    // ======== Property Management ========
+    function setDeviceProperty(bytes32 _deviceId, string memory _key, string memory _value) 
+        external 
+        onlyDeviceOwner(_deviceId)
+        returns (bool) 
+    {
+        deviceProperties[_deviceId][_key] = _value;
+        emit DevicePropertySet(_deviceId, _key, _value);
+        return true;
+    }
+    
+    function getDeviceProperty(bytes32 _deviceId, string memory _key) 
+        external 
+        view 
+        returns (string memory) 
+    {
+        return deviceProperties[_deviceId][_key];
+    }
+    
+    function setTagProperty(bytes32 _tagId, string memory _key, string memory _value) 
+        external 
+        onlyAdmin
+        returns (bool) 
+    {
+        tagProperties[_tagId][_key] = _value;
+        emit TagPropertySet(_tagId, _key, _value);
+        return true;
+    }
+    
+    function getTagProperty(bytes32 _tagId, string memory _key) 
+        external 
+        view 
+        returns (string memory) 
+    {
+        return tagProperties[_tagId][_key];
+    }
+    
+    function getPropertyValue(bytes32 _deviceId, string memory _key) 
+        external 
+        view 
+        deviceExists(_deviceId)
+        returns (string memory) 
+    {
+        // Use the same approach as getPropertyValueDirect
+        return this.getPropertyValueDirect(_deviceId, _key);
+    }
+    
+    // A simpler function for testing purposes
+    function getPropertyValueDirect(bytes32 _deviceId, string memory _key) 
+        external 
+        view 
+        deviceExists(_deviceId)
+        returns (string memory) 
+    {
+        // First check if the device has any tags using isDeviceInTag
+        bytes32[] memory allTags = this.getAllTags();
+        
+        // Check each tag to see if the device is in it
+        for (uint i = 0; i < allTags.length; i++) {
+            bytes32 tagId = allTags[i];
+            
+            // Skip inactive tags
+            if (!tags[tagId].active) {
+                continue;
+            }
+            
+            // Check if device is in this tag
+            if (this.isDeviceInTag(_deviceId, tagId)) {
+                // Get the tag property
+                string memory tagValue = tagProperties[tagId][_key];
+                
+                // If the tag has the property (non-empty), return it
+                if (bytes(tagValue).length > 0) {
+                    return tagValue;
+                }
+            }
+        }
+        
+        // If no tag has the property, return the device property
+        return deviceProperties[_deviceId][_key];
+    }
+    
+    // Check if a device or any of its tags has a property
+    function hasProperty(bytes32 _deviceId, string memory _key)
+        external
+        view
+        deviceExists(_deviceId)
+        returns (bool)
+    {
+        // First check device properties
+        if (bytes(deviceProperties[_deviceId][_key]).length > 0) {
+            return true;
+        }
+        
+        // Then check tag properties
+        address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
+        for (uint i = 0; i < deviceTagsList.length; i++) {
+            bytes32 tagId = bytes32(uint256(uint160(deviceTagsList[i])));
+            
+            // Skip inactive tags
+            if (!tags[tagId].active) {
+                continue;
+            }
+            
+            // Check if tag has the property
+            if (bytes(tagProperties[tagId][_key]).length > 0) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 }

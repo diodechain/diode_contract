@@ -2,20 +2,32 @@
 pragma solidity ^0.8.20;
 
 import "./Assert.sol";
-import "../contracts/FleetRegistry.sol";
+import "../contracts/IoTFleetRegistry.sol";
 import "../contracts/Proxy8.sol";
 
 // Mock implementation for testing
 contract MockFleet {
     address payable public owner;
+    string public label;
+    
+    function initialize(address payable _owner, string memory _label) external {
+        owner = _owner;
+        label = _label;
+    }
     
     function initialize(address payable _owner) external {
         owner = _owner;
+        label = "";
+    }
+    
+    function updateLabel(string memory _newLabel) external returns (bool) {
+        label = _newLabel;
+        return true;
     }
 }
 
-contract FleetRegistryTest {
-    FleetRegistry fleetRegistry;
+contract IoTFleetRegistryTest {
+    IoTFleetRegistry fleetRegistry;
     MockFleet mockFleetImpl;
     address testUser1;
     address testUser2;
@@ -25,7 +37,7 @@ contract FleetRegistryTest {
         mockFleetImpl = new MockFleet();
         
         // Create the FleetRegistry - it already has a default implementation set in constructor
-        fleetRegistry = new FleetRegistry();
+        fleetRegistry = new IoTFleetRegistry();
         
         // Set up test addresses
         testUser1 = address(0x1234);
@@ -44,12 +56,44 @@ contract FleetRegistryTest {
         Assert.equal(fleetCountAfter, fleetCountBefore + 1, "Fleet count should increase by 1");
     }
     
+    function testCreateFleetWithLabel() public {
+        uint256 fleetCountBefore = fleetRegistry.GetOwnFleetCount();
+        fleetRegistry.CreateFleet("Test Fleet Label");
+        uint256 fleetCountAfter = fleetRegistry.GetOwnFleetCount();
+        
+        Assert.equal(fleetCountAfter, fleetCountBefore + 1, "Fleet count should increase by 1");
+        
+        // We can't directly check the label here since the interface doesn't expose it
+        // We would need to interact with the fleet contract directly
+    }
+    
+    function testLabelUpdate() public {
+        // Create a fleet with an initial label
+        fleetRegistry.CreateFleet("Initial Label");
+        uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
+        
+        // Get the last created fleet
+        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        
+        // Create an instance of the fleet contract to interact with it directly
+        MockFleet fleetContract = MockFleet(fleet.fleet);
+        
+        // Check initial label
+        Assert.equal(fleetContract.label(), "Initial Label", "Initial label should match");
+        
+        // Update the label
+        fleetContract.updateLabel("Updated Label");
+        
+        // Check updated label
+        Assert.equal(fleetContract.label(), "Updated Label", "Label should be updated");
+    }
+    
     function testGetOwnFleet() public {
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
         
         // Get the last created fleet
-        FleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         Assert.equal(fleet.owner, address(this), "Fleet owner should be this contract");
         Assert.notEqual(fleet.fleet, address(0), "Fleet address should not be zero");
@@ -59,7 +103,7 @@ contract FleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        FleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Add a user to the fleet
         fleetRegistry.AddFleetUser(fleet.fleet, testUser1);
@@ -84,10 +128,10 @@ contract FleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        FleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Get the fleet directly
-        FleetRegistry.FleetMetadataView memory retrievedFleet = fleetRegistry.GetFleet(fleet.fleet);
+        IoTFleetRegistry.FleetMetadataView memory retrievedFleet = fleetRegistry.GetFleet(fleet.fleet);
         
         Assert.equal(retrievedFleet.owner, address(this), "Retrieved fleet owner should be this contract");
         Assert.equal(retrievedFleet.fleet, fleet.fleet, "Retrieved fleet address should match");
@@ -97,7 +141,7 @@ contract FleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        FleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Add a user to the fleet
         fleetRegistry.AddFleetUser(fleet.fleet, testUser1);
@@ -137,7 +181,7 @@ contract FleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        FleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Add a user to the fleet
         fleetRegistry.AddFleetUser(fleet.fleet, testUser1);
@@ -153,7 +197,7 @@ contract FleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        FleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Add a user to the fleet
         fleetRegistry.AddFleetUser(fleet.fleet, testUser1);
@@ -170,7 +214,7 @@ contract FleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        FleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Add a user to the fleet
         fleetRegistry.AddFleetUser(fleet.fleet, testUser1);
@@ -181,18 +225,7 @@ contract FleetRegistryTest {
         // Just verify the function doesn't revert when there are no shared fleets
         Assert.ok(true, "GetSharedFleet function should not revert when there are no shared fleets");
     }
-    
-    function testInitialize() public {
-        // Create a new FleetRegistry for this test
-        FleetRegistry newRegistry = new FleetRegistry();
-        
-        // The default implementation should be set to address(0x1) in the constructor
-        Assert.equal(newRegistry.defaultFleetImplementation(), address(0x1), "Default implementation should be set to 0x1");
-        
-        // Try to initialize with a new implementation - this should fail because defaultFleetImplementation is already set
-        // We can't easily test for reverts in this test framework, so we'll just verify the current implementation
-        Assert.equal(newRegistry.defaultFleetImplementation(), address(0x1), "Default implementation should still be 0x1");
-    }
+
     
     // Note: Some functions like GetSharingUserCount, GetSharingUser, GetSharedFleetCount, and GetSharedFleet
     // are difficult to test directly because they depend on msg.sender, which is this contract in tests.
