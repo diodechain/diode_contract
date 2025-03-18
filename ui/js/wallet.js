@@ -106,17 +106,23 @@ function createMockProvider() {
 // Wallet interaction functions
 import { showToast } from './utils.js';
 
+let web3;
+let account;
+let accounts;
+let ethereum;
 
 /**
  * Initialize Web3 and connect to the wallet
  * @returns {Object} Web3 instance and account
  */
 async function initWeb3() {
-  if (window.ethereum) {
+  if (web3 && accounts) {
+    return { web3, account: accounts[0] };
+  } else if (window.ethereum) {
     try {
       // Request account access
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      const web3 = new Web3(window.ethereum);
+      accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      web3 = new Web3(window.ethereum);
       
       // Check if this is a mock provider (for development/testing)
       if (window.ethereum.isMock) {
@@ -130,8 +136,8 @@ async function initWeb3() {
     }
   } else if (window.web3) {
     // Legacy dapp browsers
-    const web3 = new Web3(window.web3.currentProvider);
-    const accounts = await web3.eth.getAccounts();
+    web3 = new Web3(window.web3.currentProvider);
+    accounts = await web3.eth.getAccounts();
     return { web3, account: accounts[0] };
   } else {
     throw new Error("No Ethereum browser extension detected. Please install MetaMask.");
@@ -144,9 +150,15 @@ async function initWeb3() {
  * @returns {Promise<Object>} Object containing web3 instance and account
  */
 export async function connectWallet() {
+  if (web3 && account && ethereum) {
+    return { web3, account, ethereum };
+  }
+
   try {
-    const ethereum = await initializeMetaMask();
-    const { web3, account } = await initWeb3();
+    ethereum = await initializeMetaMask();
+    let ret = await initWeb3();
+    web3 = ret.web3;
+    account = ret.account;
     
     // Setup event listeners for account changes
     ethereum.on('accountsChanged', (accounts) => {
