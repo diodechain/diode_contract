@@ -1,5 +1,5 @@
-import fleetContractAbi from './fleet-contract-abi.js';
 import { showToastMessage } from './utils.js';
+import * as fleetOperations from './fleet-operations.js';
 // Navigation functions for the Fleet Manager application
 
 // Show the dashboard view
@@ -23,11 +23,10 @@ export const showFleetManagement = async (fleetAddress) => {
     // Set active tab to users (default)
     window.app.activeTab = 'users';
     
-    // Fetch the fleet label using web3
+    // Fetch the fleet label
     try {
       console.log('Fetching fleet label');
-      const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, fleetAddress);
-      const label = await fleetContractInstance.methods.label().call({ from: window.app.account });
+      const label = await fleetOperations.getFleetLabel(fleetAddress);
       window.app.fleetLabel = label;
       console.log('Fleet label fetched:', label);
     } catch (err) {
@@ -38,11 +37,11 @@ export const showFleetManagement = async (fleetAddress) => {
     // Load fleet users
     console.log('Loading fleet users');
     window.app.managedFleetUsers = [];
-    const userCount = await window.registryContract.methods.GetFleetUserCount(fleetAddress).call({ from: window.app.account });
+    const userCount = await fleetOperations.getFleetUserCount(fleetAddress);
     console.log('Fleet users count:', userCount);
     
     for (let i = 0; i < userCount; i++) {
-      const userAddress = await window.registryContract.methods.GetFleetUser(fleetAddress, i).call({ from: window.app.account });
+      const userAddress = await fleetOperations.getFleetUserAtIndex(fleetAddress, i);
       console.log(`Loaded user ${i+1}/${userCount}:`, userAddress);
       
       // Add the user address - we don't have detailed user data available in registry
