@@ -1,23 +1,21 @@
 // User management operations for the Fleet Manager application
 import { showToastMessage, setLoadingWithSafety } from './utils.js';
+import * as fleetOperations from './fleet-operations.js';
 
 // Load all users in the fleet
 export const loadAllUsers = async () => {
   try {
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
-    
     // Get all users
-    const userAddresses = await fleetContractInstance.methods.getAllUsers().call({ from: window.account });
+    const userAddresses = await fleetOperations.getFleetUsers(window.managedFleet);
     
     // Load user details
     window.fleetAllUsers = [];
     
     for (const userAddress of userAddresses) {
       try {
-        const userData = await fleetContractInstance.methods.getUser(userAddress).call({ from: window.account });
+        const userData = await fleetOperations.getUser(window.managedFleet, userAddress);
         
         window.fleetAllUsers.push({
           address: userData.user,
@@ -68,24 +66,19 @@ export const createNewUser = async () => {
     
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
-    
-    // Create user
-    await fleetContractInstance.methods.createUser(
+    await fleetOperations.createUser(
+      window.managedFleet,
       window.newUserData.address,
       window.newUserData.nickname || '',
       window.newUserData.email || '',
       window.newUserData.avatarURI || ''
-    ).send({ from: window.account });
+    );
     
     // Refresh user list
     await loadAllUsers();
     
     // Reset form
     window.newUserData = { address: '', nickname: '', email: '', avatarURI: '' };
-    
-    showToastMessage('User created successfully!');
   } catch (error) {
     console.error('Error creating user:', error);
     showToastMessage('Failed to create user: ' + error.message);
@@ -104,23 +97,21 @@ export const updateUserDetails = async () => {
     
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
-    
-    // Update user details
-    await fleetContractInstance.methods.updateUser(
+    await fleetOperations.updateUser(
+      window.managedFleet,
       window.selectedUser.address,
       window.newUserData.nickname || '',
       window.newUserData.email || '',
       window.newUserData.avatarURI || ''
-    ).send({ from: window.account });
+    );
     
     // Update user admin status if changed
     if (window.selectedUser.isAdmin !== window.isUserAdmin) {
-      await fleetContractInstance.methods.setUserAdmin(
+      await fleetOperations.setUserAdmin(
+        window.managedFleet,
         window.selectedUser.address,
         window.isUserAdmin
-      ).send({ from: window.account });
+      );
     }
     
     // Refresh user list
@@ -129,8 +120,6 @@ export const updateUserDetails = async () => {
     // Reset selection
     window.selectedUser = null;
     window.newUserData = { address: '', nickname: '', email: '', avatarURI: '' };
-    
-    showToastMessage('User updated successfully!');
   } catch (error) {
     console.error('Error updating user:', error);
     showToastMessage('Failed to update user: ' + error.message);
@@ -153,11 +142,7 @@ export const removeUserFromSystem = async () => {
     
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
-    
-    // Remove user
-    await fleetContractInstance.methods.removeUser(window.selectedUser.address).send({ from: window.account });
+    await fleetOperations.removeFleetUser(window.managedFleet, window.selectedUser.address);
     
     // Refresh user list
     await loadAllUsers();
@@ -165,8 +150,6 @@ export const removeUserFromSystem = async () => {
     // Reset selection
     window.selectedUser = null;
     window.newUserData = { address: '', nickname: '', email: '', avatarURI: '' };
-    
-    showToastMessage('User removed successfully!');
   } catch (error) {
     console.error('Error removing user:', error);
     showToastMessage('Failed to remove user: ' + error.message);
@@ -176,13 +159,9 @@ export const removeUserFromSystem = async () => {
 };
 
 // Check if a user is an admin
-export const isUserAdmin = async (userAddress) => {
+export const checkIsUserAdmin = async (userAddress) => {
   try {
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
-    
-    // Check if user is admin
-    return await fleetContractInstance.methods.isUserAdmin(userAddress).call({ from: window.account });
+    return await fleetOperations.isUserAdmin(window.managedFleet, userAddress);
   } catch (error) {
     console.error('Error checking if user is admin:', error);
     return false;
