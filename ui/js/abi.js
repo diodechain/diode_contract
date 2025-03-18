@@ -42,52 +42,6 @@ export const fleetManagerABI = [
     "inputs": [
       {
         "internalType": "address",
-        "name": "user",
-        "type": "address"
-      }
-    ],
-    "name": "getFleets",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "fleet",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "owner",
-            "type": "address"
-          },
-          {
-            "internalType": "string",
-            "name": "label",
-            "type": "string"
-          },
-          {
-            "internalType": "uint256",
-            "name": "createdAt",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "updatedAt",
-            "type": "uint256"
-          }
-        ],
-        "internalType": "struct FleetManager.FleetInfo[]",
-        "name": "",
-        "type": "tuple[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "fleet",
         "type": "address"
       }

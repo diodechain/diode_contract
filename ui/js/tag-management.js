@@ -1,23 +1,23 @@
 // Tag management operations for the Fleet Manager application
 import { showToastMessage, setLoadingWithSafety } from './utils.js';
-
+import fleetContractAbi from './fleet-contract-abi.js';
 // Load all tags in the fleet
 export const loadTags = async () => {
   try {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Get all tags
-    const tagIds = await fleetContractInstance.methods.getAllTags().call({ from: window.account });
+    const tagIds = await fleetContractInstance.methods.getAllTags().call({ from: window.app.account });
     
     // Load tag details
     window.tags = [];
     
     for (const tagId of tagIds) {
       try {
-        const tagData = await fleetContractInstance.methods.getTag(tagId).call({ from: window.account });
+        const tagData = await fleetContractInstance.methods.getTag(tagId).call({ from: window.app.account });
         
         window.tags.push({
           id: tagData.id,
@@ -65,17 +65,17 @@ export const loadTagDevices = async (tagId) => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Get tag devices
-    const deviceIds = await fleetContractInstance.methods.getTagDevices(tagId).call({ from: window.account });
+    const deviceIds = await fleetContractInstance.methods.getTagDevices(tagId).call({ from: window.app.account });
     
     // Load device details
     window.tagDevices = [];
     
     for (const deviceId of deviceIds) {
       try {
-        const deviceData = await fleetContractInstance.methods.getDevice(deviceId).call({ from: window.account });
+        const deviceData = await fleetContractInstance.methods.getDevice(deviceId).call({ from: window.app.account });
         
         window.tagDevices.push({
           id: deviceData.id,
@@ -111,14 +111,14 @@ export const createTag = async () => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Create tag
     const tagId = await fleetContractInstance.methods.createTag(
       window.newTagData.name,
       window.newTagData.description || '',
       window.newTagData.color || '#3B82F6'
-    ).send({ from: window.account });
+    ).send({ from: window.app.account });
     
     // Add properties if any
     if (window.newTagData.properties) {
@@ -128,7 +128,7 @@ export const createTag = async () => {
             tagId,
             key,
             value
-          ).send({ from: window.account });
+          ).send({ from: window.app.account });
         }
       }
     }
@@ -164,7 +164,7 @@ export const updateTag = async () => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Update tag
     await fleetContractInstance.methods.updateTag(
@@ -172,7 +172,7 @@ export const updateTag = async () => {
       window.newTagData.name,
       window.newTagData.description || '',
       window.newTagData.color || '#3B82F6'
-    ).send({ from: window.account });
+    ).send({ from: window.app.account });
     
     // Update properties if any
     if (window.newTagData.properties) {
@@ -182,7 +182,7 @@ export const updateTag = async () => {
             window.selectedTag.id,
             key,
             value
-          ).send({ from: window.account });
+          ).send({ from: window.app.account });
         }
       }
     }
@@ -219,10 +219,10 @@ export const removeTag = async () => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Remove tag
-    await fleetContractInstance.methods.removeTag(window.selectedTag.id).send({ from: window.account });
+    await fleetContractInstance.methods.removeTag(window.selectedTag.id).send({ from: window.app.account });
     
     // Refresh tag list
     await loadTags();
@@ -256,13 +256,13 @@ export const removeDeviceFromTag = async (deviceId) => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Remove device from tag
     await fleetContractInstance.methods.removeDeviceFromTag(
       deviceId,
       window.selectedTag.id
-    ).send({ from: window.account });
+    ).send({ from: window.app.account });
     
     // Refresh tag devices
     await loadTagDevices(window.selectedTag.id);
