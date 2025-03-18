@@ -104,8 +104,40 @@ function createMockProvider() {
 }
 
 // Wallet interaction functions
-import { initWeb3, getAccounts } from './blockchain.js';
 import { showToast } from './utils.js';
+
+
+/**
+ * Initialize Web3 and connect to the wallet
+ * @returns {Object} Web3 instance and account
+ */
+async function initWeb3() {
+  if (window.ethereum) {
+    try {
+      // Request account access
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const web3 = new Web3(window.ethereum);
+      
+      // Check if this is a mock provider (for development/testing)
+      if (window.ethereum.isMock) {
+        console.warn('Using mock provider for Web3. Limited functionality available.');
+      }
+      
+      return { web3, account: accounts[0] };
+    } catch (error) {
+      console.error("User denied account access");
+      throw error;
+    }
+  } else if (window.web3) {
+    // Legacy dapp browsers
+    const web3 = new Web3(window.web3.currentProvider);
+    const accounts = await web3.eth.getAccounts();
+    return { web3, account: accounts[0] };
+  } else {
+    throw new Error("No Ethereum browser extension detected. Please install MetaMask.");
+  }
+}
+
 
 /**
  * Connect to wallet and return web3 instance and account
@@ -156,7 +188,7 @@ export async function connectWallet() {
  */
 export async function getAllAccounts(web3) {
   try {
-    return await getAccounts(web3);
+    return await web3.eth.getAccounts();
   } catch (error) {
     console.error('Error getting accounts:', error);
     showToast(window.app, 'Failed to get accounts: ' + error.message);

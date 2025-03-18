@@ -1,8 +1,6 @@
 import registryAbi from './registry-abi.js';
-import fleetContractAbi from './fleet-contract-abi.js';
 import { initializeMetaMask } from './wallet.js';
 import { 
-  createFleet, 
   viewFleetDetails, 
   addFleetUser, 
   removeFleetUser, 
@@ -58,22 +56,16 @@ import {
   setLoadingWithSafety, 
   shortenAddress, 
   formatDate, 
-  isValidAddress,
-  showToast,
-  handleError
+  isValidAddress
 } from './utils.js';
-import { 
-  initWeb3, 
-  getAccounts,
-  getFleetManagerContract, 
-  getOwnFleets, 
-  getSharedFleets,
-  getFleetUsers
-} from './blockchain.js';
+// Expose utility functions to window for external access
+window.showToastMessage = showToastMessage;
+window.setLoadingWithSafety = setLoadingWithSafety;
 
 const { createApp, ref, computed, watch, onMounted } = Vue;
 
-createApp({
+// Create the app instance
+const app = createApp({
   setup() {
     // State
     const isConnected = ref(false);
@@ -81,7 +73,6 @@ createApp({
     const ethereum = ref(null);
     const web3 = ref(null);
     const registryContract = ref(null);
-    const fleetContract = ref(null);
     const registryAddress = ref('0x5FbDB2315678afecb367f032d93F642f64180aa3');
     const registryVersion = ref(null);
     const ownFleetCount = ref(0);
@@ -94,7 +85,6 @@ createApp({
     const isCreatingFleet = ref(false);
     const showingAddUserModal = ref(false);
     const targetFleetForUser = ref(null);
-    const currentFleetForAddUser = ref('');
     const newUserAddress = ref('');
     const isAddingUser = ref(false);
     const availableAccounts = ref([]);
@@ -188,12 +178,22 @@ createApp({
           // Initialize registry contract
           registryContract.value = new web3.value.eth.Contract(registryAbi, registryAddress.value);
           
+          // Expose contract to window for debugging and external access
+          window.registryContract = registryContract.value;
+          window.web3 = web3.value;
+          
           // Get registry version
           try {
-            registryVersion.value = await registryContract.value.methods.version().call();
-            console.log('Registry version:', registryVersion.value);
+            if (registryContract.value.methods.version) {
+              registryVersion.value = await registryContract.value.methods.version().call();
+              console.log('Registry version:', registryVersion.value);
+            } else {
+              console.log('Registry contract does not have a version method');
+              registryVersion.value = 'Unknown';
+            }
           } catch (versionError) {
             console.warn('Could not get registry version:', versionError);
+            registryVersion.value = 'Unknown';
           }
           
           // Load user's fleets
@@ -368,6 +368,38 @@ createApp({
       }
     };
 
+    // Update fleet label
+    const updateFleetLabelImpl = async () => {
+      try {
+        if (!managedFleet.value) {
+          showToastMessage('No fleet selected');
+          return;
+        }
+
+        if (!fleetLabel.value) {
+          showToastMessage('Please enter a fleet label');
+          return;
+        }
+
+        isUpdatingLabel.value = true;
+        
+        // Call the updateFleetLabel function from fleet-operations.js
+        await updateFleetLabel(
+          registryContract.value, 
+          account.value, 
+          managedFleet.value, 
+          fleetLabel.value
+        );
+        
+        showToastMessage('Fleet label updated successfully!');
+      } catch (error) {
+        console.error('Error updating fleet label:', error);
+        showToastMessage('Failed to update fleet label: ' + error.message);
+      } finally {
+        isUpdatingLabel.value = false;
+      }
+    };
+
     // Initialize
     onMounted(async () => {
       try {
@@ -381,6 +413,52 @@ createApp({
         console.error('Error initializing app:', error);
       }
     });
+
+    // Create a new fleet
+    const createFleet = async () => {
+      try {
+        if (!isConnected.value || !registryContract.value) {
+          showToastMessage('Please connect your wallet first');
+          return;
+        }
+        
+        isCreatingFleet.value = true;
+        
+        // Call the CreateFleet method on the registry contract
+        const result = await registryContract.value.methods.CreateFleet(newFleetLabel.value).send({ from: account.value });
+        console.log('Fleet created:', result);
+        
+        // Refresh the fleet list
+        await loadUserData();
+        
+        // Show success message
+        showToastMessage('Fleet created successfully!');
+        
+        // Reset the form
+        newFleetLabel.value = '';
+        
+        // Navigate back to dashboard
+        showDashboard();
+      } catch (error) {
+        console.error('Error creating fleet:', error);
+        showToastMessage('Failed to create fleet: ' + error.message);
+      } finally {
+        isCreatingFleet.value = false;
+      }
+    };
+
+    // Create an object with all the methods and state that we want to expose
+    const appMethods = {
+      connectWallet,
+      loadUserData,
+      manageFleet,
+      addFleetUserFromManager,
+      showToastMessage: (message) => showToastMessage(message),
+      setLoadingWithSafety: (state) => setLoadingWithSafety(state)
+    };
+
+    // Expose methods to window object
+    window.appMethods = appMethods;
 
     // Return all functions and state variables
     return {
@@ -449,7 +527,7 @@ createApp({
       removeFleetUser,
       closeFleetManagementModal,
       addFleetUserFromManager,
-      updateFleetLabel,
+      updateFleetLabel: updateFleetLabelImpl,
       
       // Utility functions
       shortenAddress,
@@ -518,4 +596,11 @@ createApp({
       openAddUserModal
     };
   }
-}).mount('#app'); 
+});
+
+// Mount the app
+const mountedApp = app.mount('#app');
+
+// Store the app reference in the window object for external access
+window.app = mountedApp;
+window.loadUserData = () => window.appMethods.loadUserData(); 
