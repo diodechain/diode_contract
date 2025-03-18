@@ -1,23 +1,23 @@
 // User group management operations for the Fleet Manager application
 import { showToastMessage, setLoadingWithSafety } from './utils.js';
-
+import fleetContractAbi from './fleet-contract-abi.js';
 // Load all user groups in the fleet
 export const loadUserGroups = async () => {
   try {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Get all user groups
-    const groupIds = await fleetContractInstance.methods.getAllUserGroups().call({ from: window.account });
+    const groupIds = await fleetContractInstance.methods.getAllUserGroups().call({ from: window.app.account });
     
     // Load group details
     window.userGroups = [];
     
     for (const groupId of groupIds) {
       try {
-        const groupData = await fleetContractInstance.methods.getUserGroup(groupId).call({ from: window.account });
+        const groupData = await fleetContractInstance.methods.getUserGroup(groupId).call({ from: window.app.account });
         
         window.userGroups.push({
           id: groupData.id,
@@ -62,17 +62,17 @@ export const loadGroupMembers = async (groupId) => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Get group members
-    const memberAddresses = await fleetContractInstance.methods.getGroupUsers(groupId).call({ from: window.account });
+    const memberAddresses = await fleetContractInstance.methods.getGroupUsers(groupId).call({ from: window.app.account });
     
     // Load member details
     window.userGroupMembers = [];
     
     for (const memberAddress of memberAddresses) {
       try {
-        const userData = await fleetContractInstance.methods.getUser(memberAddress).call({ from: window.account });
+        const userData = await fleetContractInstance.methods.getUser(memberAddress).call({ from: window.app.account });
         
         window.userGroupMembers.push({
           address: userData.user,
@@ -117,13 +117,13 @@ export const createUserGroup = async () => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Create user group
     await fleetContractInstance.methods.createUserGroup(
       window.newUserGroupData.name,
       window.newUserGroupData.description || ''
-    ).send({ from: window.account });
+    ).send({ from: window.app.account });
     
     // Refresh user group list
     await loadUserGroups();
@@ -156,14 +156,14 @@ export const updateUserGroup = async () => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Update user group
     await fleetContractInstance.methods.updateUserGroup(
       window.selectedUserGroup.id,
       window.newUserGroupData.name,
       window.newUserGroupData.description || ''
-    ).send({ from: window.account });
+    ).send({ from: window.app.account });
     
     // Refresh user group list
     await loadUserGroups();
@@ -197,10 +197,10 @@ export const removeUserGroup = async () => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Remove user group
-    await fleetContractInstance.methods.removeUserGroup(window.selectedUserGroup.id).send({ from: window.account });
+    await fleetContractInstance.methods.removeUserGroup(window.selectedUserGroup.id).send({ from: window.app.account });
     
     // Refresh user group list
     await loadUserGroups();
@@ -235,13 +235,13 @@ export const addUserToGroup = async (userAddress) => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Add user to group
     await fleetContractInstance.methods.addUserToGroup(
       userAddress,
       window.selectedUserGroup.id
-    ).send({ from: window.account });
+    ).send({ from: window.app.account });
     
     // Refresh group members
     await loadGroupMembers(window.selectedUserGroup.id);
@@ -270,13 +270,13 @@ export const removeUserFromGroup = async (userAddress) => {
     setLoadingWithSafety(true);
     
     // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(window.fleetContractAbi, window.managedFleet);
+    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
     
     // Remove user from group
     await fleetContractInstance.methods.removeUserFromGroup(
       userAddress,
       window.selectedUserGroup.id
-    ).send({ from: window.account });
+    ).send({ from: window.app.account });
     
     // Refresh group members
     await loadGroupMembers(window.selectedUserGroup.id);
