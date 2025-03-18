@@ -36,11 +36,6 @@ async function doCall(fleetAddress, method, args) {
   }
 }
 
-// Create a new fleet
-export async function createFleet(fleetAddress, label) {
-  return doSend(fleetAddress, 'CreateFleet', [label], 'Fleet created successfully!');
-}
-
 // Update fleet label
 export async function updateFleetLabel(fleetAddress, label) {
   return doSend(fleetAddress, 'updateLabel', [label], 'Fleet label updated successfully!');
@@ -48,17 +43,22 @@ export async function updateFleetLabel(fleetAddress, label) {
 
 // Get users of a fleet
 export async function getFleetUsers(fleetAddress) {
-  return doCall(fleetAddress, 'getFleetUsers', []);
+  return doCall(fleetAddress, 'getAllUsers', []);
 }
 
 // Add a user to a fleet
-export async function addFleetUser(fleetAddress, user) {
-  return doSend(fleetAddress, 'addFleetUser', [user], 'User added to fleet successfully!');
+export async function addFleetUser(fleetAddress, userAddress, nickname = '', email = '', avatarURI = '') {
+  return doSend(
+    fleetAddress, 
+    'createUser', 
+    [userAddress, nickname, email, avatarURI], 
+    'User added to fleet successfully!'
+  );
 }
 
 // Remove a user from a fleet
-export async function removeFleetUser(fleetAddress, user) {
-  return doSend(fleetAddress, 'removeFleetUser', [user], 'User removed from fleet successfully!');
+export async function removeFleetUser(fleetAddress, userAddress) {
+  return doSend(fleetAddress, 'removeUser', [userAddress], 'User removed from fleet successfully!');
 }
 
 // Get details for a specific user
@@ -220,13 +220,3 @@ export async function addDeviceToTag(fleetAddress, deviceId, tagId) {
 export async function getFleetLabel(fleetAddress) {
   return doCall(fleetAddress, 'label', []);
 }
-
-// Get fleet user count
-export async function getFleetUserCount(fleetAddress) {
-  return doCall(fleetAddress, 'GetFleetUserCount', []);
-}
-
-// Get fleet user at index
-export async function getFleetUserAtIndex(fleetAddress, index) {
-  return doCall(fleetAddress, 'GetFleetUser', [fleetAddress, index]);
-} 

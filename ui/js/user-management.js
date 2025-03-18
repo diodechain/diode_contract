@@ -8,14 +8,14 @@ export const loadAllUsers = async () => {
     setLoadingWithSafety(true);
     
     // Get all users
-    const userAddresses = await fleetOperations.getFleetUsers(window.managedFleet);
+    const userAddresses = await fleetOperations.getFleetUsers(window.app.managedFleet);
     
     // Load user details
     window.fleetAllUsers = [];
     
     for (const userAddress of userAddresses) {
       try {
-        const userData = await fleetOperations.getUser(window.managedFleet, userAddress);
+        const userData = await fleetOperations.getUser(window.app.managedFleet, userAddress);
         
         window.fleetAllUsers.push({
           address: userData.user,
@@ -67,7 +67,7 @@ export const createNewUser = async () => {
     setLoadingWithSafety(true);
     
     await fleetOperations.createUser(
-      window.managedFleet,
+      window.app.managedFleet,
       window.newUserData.address,
       window.newUserData.nickname || '',
       window.newUserData.email || '',
@@ -98,7 +98,7 @@ export const updateUserDetails = async () => {
     setLoadingWithSafety(true);
     
     await fleetOperations.updateUser(
-      window.managedFleet,
+      window.app.managedFleet,
       window.selectedUser.address,
       window.newUserData.nickname || '',
       window.newUserData.email || '',
@@ -108,7 +108,7 @@ export const updateUserDetails = async () => {
     // Update user admin status if changed
     if (window.selectedUser.isAdmin !== window.isUserAdmin) {
       await fleetOperations.setUserAdmin(
-        window.managedFleet,
+        window.app.managedFleet,
         window.selectedUser.address,
         window.isUserAdmin
       );
@@ -142,7 +142,7 @@ export const removeUserFromSystem = async () => {
     
     setLoadingWithSafety(true);
     
-    await fleetOperations.removeFleetUser(window.managedFleet, window.selectedUser.address);
+    await fleetOperations.removeFleetUser(window.app.managedFleet, window.selectedUser.address);
     
     // Refresh user list
     await loadAllUsers();
@@ -161,7 +161,7 @@ export const removeUserFromSystem = async () => {
 // Check if a user is an admin
 export const checkIsUserAdmin = async (userAddress) => {
   try {
-    return await fleetOperations.isUserAdmin(window.managedFleet, userAddress);
+    return await fleetOperations.isUserAdmin(window.app.managedFleet, userAddress);
   } catch (error) {
     console.error('Error checking if user is admin:', error);
     return false;

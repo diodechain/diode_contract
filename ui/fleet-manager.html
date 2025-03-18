@@ -430,8 +430,11 @@
             
             <!-- Devices Tab -->
             <div v-if="activeTab === 'devices'" class="p-6">
-              <!-- Devices content will be implemented here -->
-              <p>Device management will be implemented in a future update.</p>
+              <device-management-component 
+                :managed-fleet="managedFleet"
+                :is-loading="isLoading"
+                @show-toast="showToastMessage">
+              </device-management-component>
             </div>
             
             <!-- Tags Tab -->
