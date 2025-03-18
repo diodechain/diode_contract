@@ -1,66 +1,15 @@
 import registryAbi from './registry-abi.js';
 import { initializeMetaMask } from './wallet.js';
-import { 
-  viewFleetDetails, 
-  addFleetUser, 
-  removeFleetUser, 
-  updateFleetLabel 
-} from './fleet-operations.js';
-import {
-  loadAllUsers,
-  selectUser,
-  createNewUser,
-  updateUserDetails,
-  removeUserFromSystem,
-  isUserAdmin
-} from './user-management.js';
-import {
-  loadUserGroups,
-  selectUserGroup,
-  loadGroupMembers,
-  createUserGroup,
-  updateUserGroup,
-  removeUserGroup,
-  addUserToGroup,
-  removeUserFromGroup
-} from './user-group-management.js';
-import {
-  loadDevices,
-  selectDevice,
-  loadDeviceTags,
-  createNewDevice,
-  updateDeviceDetails,
-  updateDeviceLastSeen,
-  transferDeviceDialog,
-  transferDevice,
-  removeDevice,
-  addTagToDevice,
-  removeTagFromDevice
-} from './device-management.js';
-import {
-  loadTags,
-  selectTag,
-  loadTagDevices,
-  createTag,
-  updateTag,
-  removeTag,
-  removeDeviceFromTag
-} from './tag-management.js';
-import { 
-  showDashboard, 
-  showCreateFleetView, 
-  showFleetManagement 
-} from './navigation.js';
-import { 
-  showToastMessage, 
-  setLoadingWithSafety, 
-  shortenAddress, 
-  formatDate, 
-  isValidAddress
-} from './utils.js';
+import * as fleetOperations from './fleet-operations.js';
+import * as userManagement from './user-management.js';
+import * as userGroupManagement from './user-group-management.js';
+import * as deviceManagement from './device-management.js';
+import * as tagManagement from './tag-management.js';
+import * as navigation from './navigation.js';
+import * as utils from './utils.js';
 // Expose utility functions to window for external access
-window.showToastMessage = showToastMessage;
-window.setLoadingWithSafety = setLoadingWithSafety;
+window.showToastMessage = utils.showToastMessage;
+window.setLoadingWithSafety = utils.setLoadingWithSafety;
 
 const { createApp, ref, computed, watch, onMounted } = Vue;
 
@@ -179,7 +128,6 @@ const app = createApp({
           registryContract.value = new web3.value.eth.Contract(registryAbi, registryAddress.value);
           
           // Expose contract to window for debugging and external access
-          window.registryContract = registryContract.value;
           window.web3 = web3.value;
           
           // Get registry version
@@ -343,28 +291,28 @@ const app = createApp({
     // Add fleet user from manager
     const addFleetUserFromManager = async () => {
       try {
-        if (!isValidAddress(newFleetUserAddress.value)) {
-          showToastMessage('Please enter a valid Ethereum address');
+        if (!utils.isValidAddress(newFleetUserAddress.value)) {
+          utils.showToastMessage('Please enter a valid Ethereum address');
           return;
         }
         
-        setLoadingWithSafety(true);
+        utils.setLoadingWithSafety(true);
         
-        await registryContract.value.methods.AddFleetUser(
+        await fleetOperations.addFleetUser(
           managedFleet.value,
           newFleetUserAddress.value
-        ).send({ from: account.value });
+        );
         
         // Refresh fleet users
         managedFleetUsers.value.push(newFleetUserAddress.value);
         
         newFleetUserAddress.value = '';
-        showToastMessage('User added successfully!');
+        utils.showToastMessage('User added successfully!');
       } catch (error) {
         console.error('Error adding fleet user:', error);
-        showToastMessage('Failed to add user: ' + error.message);
+        utils.showToastMessage('Failed to add user: ' + error.message);
       } finally {
-        setLoadingWithSafety(false);
+        utils.setLoadingWithSafety(false);
       }
     };
 
@@ -384,13 +332,7 @@ const app = createApp({
         isUpdatingLabel.value = true;
         
         // Call the updateFleetLabel function from fleet-operations.js
-        await updateFleetLabel(
-          registryContract.value, 
-          account.value, 
-          managedFleet.value, 
-          fleetLabel.value
-        );
-        
+        await fleetOperations.updateFleetLabel(managedFleet.value, fleetLabel.value);
         showToastMessage('Fleet label updated successfully!');
       } catch (error) {
         console.error('Error updating fleet label:', error);
@@ -522,66 +464,65 @@ const app = createApp({
       // Methods
       connectWallet,
       createFleet,
-      viewFleetDetails,
-      addFleetUser,
-      removeFleetUser,
+      addFleetUser: fleetOperations.addFleetUser,
+      removeFleetUser: fleetOperations.removeFleetUser,
       closeFleetManagementModal,
       addFleetUserFromManager,
       updateFleetLabel: updateFleetLabelImpl,
       
       // Utility functions
-      shortenAddress,
-      formatDate,
-      isValidAddress,
+      shortenAddress: utils.shortenAddress,
+      formatDate: utils.formatDate,
+      isValidAddress: utils.isValidAddress,
       switchAccount,
       changeAccount,
       manageFleet,
       
       // User management
-      loadAllUsers,
-      selectUser,
-      createNewUser,
-      updateUserDetails,
-      removeUserFromSystem,
-      isUserAdmin,
+      loadAllUsers: userManagement.loadAllUsers,
+      selectUser: userManagement.selectUser,
+      createNewUser: userManagement.createNewUser,
+      updateUserDetails: userManagement.updateUserDetails,
+      removeUserFromSystem: userManagement.removeUserFromSystem,
+      isUserAdmin: userManagement.isUserAdmin,
       
       // User Group management
-      loadUserGroups,
-      selectUserGroup,
-      loadGroupMembers,
-      createUserGroup,
-      updateUserGroup,
-      removeUserGroup,
-      addUserToGroup,
-      removeUserFromGroup,
+      loadUserGroups: userGroupManagement.loadUserGroups,
+      selectUserGroup: userGroupManagement.selectUserGroup,
+      loadGroupMembers: userGroupManagement.loadGroupMembers,
+      createUserGroup: userGroupManagement.createUserGroup,
+      updateUserGroup: userGroupManagement.updateUserGroup,
+      removeUserGroup: userGroupManagement.removeUserGroup,
+      addUserToGroup: userGroupManagement.addUserToGroup,
+      removeUserFromGroup: userGroupManagement.removeUserFromGroup,
       
       // Device management
-      loadDevices,
-      selectDevice,
-      loadDeviceTags,
-      createNewDevice,
-      updateDeviceDetails,
-      updateDeviceLastSeen,
-      transferDeviceDialog,
-      transferDevice,
-      removeDevice,
-      addTagToDevice,
-      removeTagFromDevice,
+      loadDevices: deviceManagement.loadDevices,
+      selectDevice: deviceManagement.selectDevice,
+      loadDeviceTags: deviceManagement.loadDeviceTags,
+      createNewDevice: deviceManagement.createNewDevice,
+      updateDeviceDetails: deviceManagement.updateDeviceDetails,
+      updateDeviceLastSeen: deviceManagement.updateDeviceLastSeen,
+      transferDeviceDialog: deviceManagement.transferDeviceDialog,
+      transferDevice: deviceManagement.transferDevice,
+      removeDevice: deviceManagement.removeDevice,
+      addTagToDevice: deviceManagement.addTagToDevice,
+      removeTagFromDevice: deviceManagement.removeTagFromDevice,
       
       // Tag management
-      loadTags,
-      selectTag,
-      loadTagDevices,
-      createTag,
-      updateTag,
-      removeTag,
-      removeDeviceFromTag,
+      loadTags: tagManagement.loadTags,
+      selectTag: tagManagement.selectTag,
+      loadTagDevices: tagManagement.loadTagDevices,
+      createTag: tagManagement.createTag,
+      updateTag: tagManagement.updateTag,
+      removeTag: tagManagement.removeTag,
+      removeDeviceFromTag: tagManagement.removeDeviceFromTag,
       
       // Navigation
       activePage: ref('dashboard'),
-      showDashboard,
-      showCreateFleetView,
-      showFleetManagement,
+      showDashboard: navigation.showDashboard,
+      showCreateFleetView: navigation.showCreateFleetView,
+      showFleetManagement: navigation.showFleetManagement,
       
       // Modal state
       showingAddUserModal,

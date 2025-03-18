@@ -1,23 +1,21 @@
 // Device management operations for the Fleet Manager application
 import { showToastMessage, setLoadingWithSafety } from './utils.js';
-import fleetContractAbi from './fleet-contract-abi.js';
+import * as fleetOperations from './fleet-operations.js';
+
 // Load all devices in the fleet
 export const loadDevices = async () => {
   try {
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
-    
     // Get all devices
-    const deviceIds = await fleetContractInstance.methods.getAllDevices().call({ from: window.app.account });
+    const deviceIds = await fleetOperations.getAllDevices(window.app.managedFleet);
     
     // Load device details
     window.devices = [];
     
     for (const deviceId of deviceIds) {
       try {
-        const deviceData = await fleetContractInstance.methods.getDevice(deviceId).call({ from: window.app.account });
+        const deviceData = await fleetOperations.getDevice(window.app.managedFleet, deviceId);
         
         window.devices.push({
           id: deviceData.id,
@@ -67,18 +65,15 @@ export const loadDeviceTags = async (deviceId) => {
   try {
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
-    
     // Get device tags
-    const tagIds = await fleetContractInstance.methods.getDeviceTags(deviceId).call({ from: window.app.account });
+    const tagIds = await fleetOperations.getDeviceTags(window.app.managedFleet, deviceId);
     
     // Load tag details
     window.deviceTags = [];
     
     for (const tagId of tagIds) {
       try {
-        const tagData = await fleetContractInstance.methods.getTag(tagId).call({ from: window.app.account });
+        const tagData = await fleetOperations.getTag(window.app.managedFleet, tagId);
         
         window.deviceTags.push({
           id: tagData.id,
@@ -111,26 +106,20 @@ export const createNewDevice = async () => {
     
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
-    
     // Create device
-    const deviceId = await fleetContractInstance.methods.createDevice(
+    const deviceId = await fleetOperations.createDevice(
+      window.app.managedFleet,
       window.newDeviceData.name,
       window.newDeviceData.description || '',
       window.newDeviceData.deviceType || '',
       window.newDeviceData.location || ''
-    ).send({ from: window.app.account });
+    );
     
     // Add properties if any
     if (window.newDeviceData.properties) {
       for (const [key, value] of Object.entries(window.newDeviceData.properties)) {
         if (key && value) {
-          await fleetContractInstance.methods.setDeviceProperty(
-            deviceId,
-            key,
-            value
-          ).send({ from: window.app.account });
+          await fleetOperations.setDeviceProperty(window.app.managedFleet, deviceId, key, value);
         }
       }
     }
@@ -171,27 +160,21 @@ export const updateDeviceDetails = async () => {
     
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
-    
     // Update device
-    await fleetContractInstance.methods.updateDevice(
+    await fleetOperations.updateDevice(
+      window.app.managedFleet,
       window.selectedDevice.id,
       window.newDeviceData.name,
       window.newDeviceData.description || '',
       window.newDeviceData.deviceType || '',
       window.newDeviceData.location || ''
-    ).send({ from: window.app.account });
+    );
     
     // Update properties if any
     if (window.newDeviceData.properties) {
       for (const [key, value] of Object.entries(window.newDeviceData.properties)) {
         if (key && value) {
-          await fleetContractInstance.methods.setDeviceProperty(
-            window.selectedDevice.id,
-            key,
-            value
-          ).send({ from: window.app.account });
+          await fleetOperations.setDeviceProperty(window.app.managedFleet, window.selectedDevice.id, key, value);
         }
       }
     }
@@ -223,16 +206,8 @@ export const updateDeviceDetails = async () => {
 export const updateDeviceLastSeen = async (deviceId) => {
   try {
     setLoadingWithSafety(true);
-    
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
-    
-    // Update device last seen
-    await fleetContractInstance.methods.updateDeviceLastSeen(deviceId).send({ from: window.app.account });
-    
-    // Refresh device list
+    await fleetOperations.updateDeviceLastSeen(window.app.managedFleet, deviceId);
     await loadDevices();
-    
     showToastMessage('Device last seen updated successfully!');
   } catch (error) {
     console.error('Error updating device last seen:', error);
@@ -267,14 +242,11 @@ export const transferDevice = async () => {
     
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
-    
-    // Transfer device ownership
-    await fleetContractInstance.methods.transferDeviceOwnership(
+    await fleetOperations.transferDeviceOwnership(
+      window.app.managedFleet,
       window.selectedDevice.id,
       window.newDeviceOwner
-    ).send({ from: window.app.account });
+    );
     
     // Refresh device list
     await loadDevices();
@@ -302,11 +274,7 @@ export const removeDevice = async (deviceId) => {
     
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
-    
-    // Remove device
-    await fleetContractInstance.methods.removeDevice(deviceId).send({ from: window.app.account });
+    await fleetOperations.removeDevice(window.app.managedFleet, deviceId);
     
     // Refresh device list
     await loadDevices();
@@ -348,14 +316,11 @@ export const addTagToDevice = async () => {
     
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
-    
-    // Add tag to device
-    await fleetContractInstance.methods.addDeviceToTag(
+    await fleetOperations.addDeviceToTag(
+      window.app.managedFleet,
       window.selectedDevice.id,
       window.selectedTagToAdd
-    ).send({ from: window.app.account });
+    );
     
     // Refresh device tags
     await loadDeviceTags(window.selectedDevice.id);
@@ -386,14 +351,11 @@ export const removeTagFromDevice = async (tagId) => {
     
     setLoadingWithSafety(true);
     
-    // Get fleet contract instance
-    const fleetContractInstance = new window.web3.eth.Contract(fleetContractAbi, window.app.managedFleet);
-    
-    // Remove tag from device
-    await fleetContractInstance.methods.removeDeviceFromTag(
+    await fleetOperations.removeDeviceFromTag(
+      window.app.managedFleet,
       window.selectedDevice.id,
       tagId
-    ).send({ from: window.app.account });
+    );
     
     // Refresh device tags
     await loadDeviceTags(window.selectedDevice.id);
