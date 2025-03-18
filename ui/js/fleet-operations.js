@@ -1,17 +1,9 @@
 // Fleet operations for the Fleet Manager application
-import { showToastMessage, setLoadingWithSafety } from './utils.js';
-import { 
-  createFleet as blockchainCreateFleet,
-  updateFleetLabel as blockchainUpdateFleetLabel,
-  getFleetUsers as blockchainGetFleetUsers,
-  addFleetUser as blockchainAddFleetUser,
-  removeFleetUser as blockchainRemoveFleetUser
-} from './blockchain.js';
-
+import { showToastMessage } from './utils.js';
 // Create a new fleet
 export async function createFleet(contract, account, label) {
   try {
-    const result = await blockchainCreateFleet(contract, account, label);
+    const result = contract.methods.CreateFleet(label).send({ from: account });
     showToastMessage('Fleet created successfully!');
     return result;
   } catch (error) {
@@ -35,7 +27,7 @@ export function viewFleetDetails(fleet) {
 // Update fleet label
 export async function updateFleetLabel(contract, account, fleet, label) {
   try {
-    await blockchainUpdateFleetLabel(contract, account, fleet, label);
+    await contract.methods.updateFleetLabel(fleet, label).send({ from: account });
     showToastMessage('Fleet label updated successfully!');
   } catch (error) {
     console.error('Error updating fleet label:', error);
@@ -47,7 +39,7 @@ export async function updateFleetLabel(contract, account, fleet, label) {
 // Get users of a fleet
 export async function getFleetUsers(contract, account, fleet) {
   try {
-    return await blockchainGetFleetUsers(contract, account, fleet);
+    return await contract.methods.getFleetUsers(fleet).call({ from: account });
   } catch (error) {
     console.error('Error getting fleet users:', error);
     showToastMessage('Failed to get fleet users: ' + error.message);
@@ -58,7 +50,7 @@ export async function getFleetUsers(contract, account, fleet) {
 // Add a user to a fleet
 export async function addFleetUser(contract, account, fleet, user) {
   try {
-    await blockchainAddFleetUser(contract, account, fleet, user);
+    await contract.methods.addFleetUser(fleet, user).send({ from: account });
     showToastMessage('User added to fleet successfully!');
   } catch (error) {
     console.error('Error adding user to fleet:', error);
@@ -70,7 +62,7 @@ export async function addFleetUser(contract, account, fleet, user) {
 // Remove a user from a fleet
 export async function removeFleetUser(contract, account, fleet, user) {
   try {
-    await blockchainRemoveFleetUser(contract, account, fleet, user);
+    await contract.methods.removeFleetUser(fleet, user).send({ from: account });
     showToastMessage('User removed from fleet successfully!');
   } catch (error) {
     console.error('Error removing user from fleet:', error);

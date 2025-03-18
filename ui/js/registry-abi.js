@@ -161,12 +161,12 @@ export default [
         "components": [
           {
             "internalType": "address",
-            "name": "fleet",
+            "name": "owner",
             "type": "address"
           },
           {
             "internalType": "address",
-            "name": "owner",
+            "name": "fleet",
             "type": "address"
           },
           {
