@@ -25,16 +25,16 @@ contract IoTFleetContract is FleetContractUpgradeable {
     event UserGroupRemoved(bytes32 indexed groupId);
     event UserAddedToGroup(address indexed userAddress, bytes32 indexed groupId);
     event UserRemovedFromGroup(address indexed userAddress, bytes32 indexed groupId);
-    event DeviceCreated(bytes32 indexed deviceId, address owner, string name);
-    event DeviceUpdated(bytes32 indexed deviceId, string name);
-    event DeviceRemoved(bytes32 indexed deviceId);
+    event DeviceCreated(address indexed deviceId, address owner, string name);
+    event DeviceUpdated(address indexed deviceId, string name);
+    event DeviceRemoved(address indexed deviceId);
     event TagCreated(bytes32 indexed tagId, string name);
     event TagUpdated(bytes32 indexed tagId, string name);
     event TagRemoved(bytes32 indexed tagId);
-    event DeviceAddedToTag(bytes32 indexed deviceId, bytes32 indexed tagId);
-    event DeviceRemovedFromTag(bytes32 indexed deviceId, bytes32 indexed tagId);
+    event DeviceAddedToTag(address indexed deviceId, bytes32 indexed tagId);
+    event DeviceRemovedFromTag(address indexed deviceId, bytes32 indexed tagId);
     event FleetLabelUpdated(string newLabel);
-    event DevicePropertySet(bytes32 indexed deviceId, string key, string value);
+    event DevicePropertySet(address indexed deviceId, string key, string value);
     event TagPropertySet(bytes32 indexed tagId, string key, string value);
 
     // ======== Structs ========
@@ -59,7 +59,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
     }
 
     struct Device {
-        bytes32 id;
+        address id;
         address owner;
         string name;
         string description;
@@ -84,7 +84,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
     // ======== Storage ========
     mapping(address => User) private users;
     mapping(bytes32 => UserGroup) private userGroups;
-    mapping(bytes32 => Device) private devices;
+    mapping(address => Device) private devices;
     mapping(bytes32 => Tag) private tags;
     
     // Lookup mappings
@@ -93,18 +93,17 @@ contract IoTFleetContract is FleetContractUpgradeable {
     mapping(address => Set.Data) private userDevices; // user address => Set of device IDs
     
     // Property mappings
-    mapping(bytes32 => mapping(string => string)) private deviceProperties; // deviceId => key => value
+    mapping(address => mapping(string => string)) private deviceProperties; // deviceId => key => value
     mapping(bytes32 => mapping(string => string)) private tagProperties; // tagId => key => value
     
     // Counters for IDs
     uint256 private userGroupCounter;
-    uint256 private deviceCounter;
     uint256 private tagCounter;
     
     // List of all entities for enumeration
     address[] private allUsers;
     bytes32[] private allUserGroups;
-    bytes32[] private allDevices;
+    address[] private allDevices;
     bytes32[] private allTags;
 
     // Override initialize to include label
@@ -151,7 +150,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         _;
     }
     
-    modifier deviceExists(bytes32 _deviceId) {
+    modifier deviceExists(address _deviceId) {
         require(devices[_deviceId].active, "Device does not exist");
         _;
     }
@@ -166,7 +165,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         _;
     }
     
-    modifier onlyDeviceOwner(bytes32 _deviceId) {
+    modifier onlyDeviceOwner(address _deviceId) {
         require(devices[_deviceId].owner == msg.sender || users[msg.sender].isAdmin, 
                 "Only device owner or admin can perform this action");
         _;
@@ -447,6 +446,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
 
     // ======== Device Management ========
     function createDevice(
+        address _deviceId,
         string memory _name, 
         string memory _description, 
         string memory _deviceType,
@@ -454,31 +454,32 @@ contract IoTFleetContract is FleetContractUpgradeable {
     ) 
         external 
         userExists(msg.sender) 
-        returns (bytes32) 
+        returns (address) 
     {
-        bytes32 deviceId = keccak256(abi.encodePacked("DEVICE", deviceCounter++, block.timestamp, msg.sender));
+        require(_deviceId != address(0), "Invalid device address");
+        require(!devices[_deviceId].active, "Device already exists");
         
         // Initialize the device struct fields individually
-        devices[deviceId].id = deviceId;
-        devices[deviceId].owner = msg.sender;
-        devices[deviceId].name = _name;
-        devices[deviceId].description = _description;
-        devices[deviceId].deviceType = _deviceType;
-        devices[deviceId].location = _location;
-        devices[deviceId].createdAt = block.timestamp;
-        devices[deviceId].lastSeen = block.timestamp;
-        devices[deviceId].active = true;
+        devices[_deviceId].id = _deviceId;
+        devices[_deviceId].owner = msg.sender;
+        devices[_deviceId].name = _name;
+        devices[_deviceId].description = _description;
+        devices[_deviceId].deviceType = _deviceType;
+        devices[_deviceId].location = _location;
+        devices[_deviceId].createdAt = block.timestamp;
+        devices[_deviceId].lastSeen = block.timestamp;
+        devices[_deviceId].active = true;
         // Note: tags is already initialized as an empty Set.Data
         
-        allDevices.push(deviceId);
-        Set.Add(userDevices[msg.sender], address(uint160(uint256(deviceId))));
+        allDevices.push(_deviceId);
+        Set.Add(userDevices[msg.sender], _deviceId);
         
-        emit DeviceCreated(deviceId, msg.sender, _name);
-        return deviceId;
+        emit DeviceCreated(_deviceId, msg.sender, _name);
+        return _deviceId;
     }
     
     function updateDevice(
-        bytes32 _deviceId,
+        address _deviceId,
         string memory _name, 
         string memory _description, 
         string memory _deviceType,
@@ -500,7 +501,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function updateDeviceLastSeen(bytes32 _deviceId) 
+    function updateDeviceLastSeen(address _deviceId) 
         external 
         deviceExists(_deviceId)
         returns (bool) 
@@ -516,7 +517,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function transferDeviceOwnership(bytes32 _deviceId, address _newOwner) 
+    function transferDeviceOwnership(address _deviceId, address _newOwner) 
         external 
         deviceExists(_deviceId)
         onlyDeviceOwner(_deviceId)
@@ -526,10 +527,10 @@ contract IoTFleetContract is FleetContractUpgradeable {
         address currentOwner = devices[_deviceId].owner;
         
         // Remove device from current owner's devices
-        Set.Remove(userDevices[currentOwner], address(uint160(uint256(_deviceId))));
+        Set.Remove(userDevices[currentOwner], _deviceId);
         
         // Add device to new owner's devices
-        Set.Add(userDevices[_newOwner], address(uint160(uint256(_deviceId))));
+        Set.Add(userDevices[_newOwner], _deviceId);
         
         // Update device owner
         devices[_deviceId].owner = _newOwner;
@@ -537,7 +538,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function removeDevice(bytes32 _deviceId) 
+    function removeDevice(address _deviceId) 
         external 
         deviceExists(_deviceId)
         onlyDeviceOwner(_deviceId)
@@ -551,7 +552,16 @@ contract IoTFleetContract is FleetContractUpgradeable {
         }
         
         // Remove device from owner's devices
-        Set.Remove(userDevices[devices[_deviceId].owner], address(uint160(uint256(_deviceId))));
+        Set.Remove(userDevices[devices[_deviceId].owner], _deviceId);
+        
+        // Remove device from allDevices
+        for (uint i = 0; i < allDevices.length; i++) {
+            if (allDevices[i] == _deviceId) {
+                allDevices[i] = allDevices[allDevices.length - 1];
+                allDevices.pop();
+                break;
+            }
+        }
         
         // Mark device as inactive
         devices[_deviceId].active = false;
@@ -560,12 +570,12 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function getDevice(bytes32 _deviceId) 
+    function getDevice(address _deviceId) 
         external 
         view 
         deviceExists(_deviceId)
         returns (
-            bytes32 id,
+            address id,
             address owner,
             string memory name,
             string memory description,
@@ -594,22 +604,15 @@ contract IoTFleetContract is FleetContractUpgradeable {
         external 
         view 
         userExists(_userAddress)
-        returns (bytes32[] memory) 
+        returns (address[] memory) 
     {
-        address[] memory deviceAddresses = Set.Members(userDevices[_userAddress]);
-        bytes32[] memory result = new bytes32[](deviceAddresses.length);
-        
-        for (uint i = 0; i < deviceAddresses.length; i++) {
-            result[i] = bytes32(uint256(uint160(deviceAddresses[i])));
-        }
-        
-        return result;
+        return Set.Members(userDevices[_userAddress]);
     }
     
     function getAllDevices() 
         external 
         view 
-        returns (bytes32[] memory) 
+        returns (address[] memory) 
     {
         return allDevices;
     }
@@ -660,7 +663,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         address[] memory tagDevicesList = Set.Members(tagDevices[_tagId]);
         for (uint i = 0; i < tagDevicesList.length; i++) {
             bytes32 deviceId = bytes32(uint256(uint160(tagDevicesList[i])));
-            _removeDeviceFromTag(deviceId, _tagId);
+            _removeDeviceFromTag(address(uint160(uint256(deviceId))), _tagId);
         }
         
         // Mark tag as inactive
@@ -670,7 +673,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function addDeviceToTag(bytes32 _deviceId, bytes32 _tagId) 
+    function addDeviceToTag(address _deviceId, bytes32 _tagId) 
         external 
         deviceExists(_deviceId)
         tagExists(_tagId)
@@ -685,21 +688,21 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return _addDeviceToTag(_deviceId, _tagId);
     }
     
-    function _addDeviceToTag(bytes32 _deviceId, bytes32 _tagId) 
+    function _addDeviceToTag(address _deviceId, bytes32 _tagId) 
         private 
         returns (bool) 
     {
         // Add tag to device's tags
-        Set.Add(devices[_deviceId].tags, address(uint160(uint256(_tagId))));
+        Set.Add(devices[_deviceId].tags, address(uint160(uint256(_tagId) & ((1 << 160) - 1))));
         
         // Add device to tag's devices
-        Set.Add(tagDevices[_tagId], address(uint160(uint256(_deviceId))));
+        Set.Add(tagDevices[_tagId], _deviceId);
         
         emit DeviceAddedToTag(_deviceId, _tagId);
         return true;
     }
     
-    function removeDeviceFromTag(bytes32 _deviceId, bytes32 _tagId) 
+    function removeDeviceFromTag(address _deviceId, bytes32 _tagId) 
         external 
         deviceExists(_deviceId)
         tagExists(_tagId)
@@ -714,7 +717,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return _removeDeviceFromTag(_deviceId, _tagId);
     }
     
-    function _removeDeviceFromTag(bytes32 _deviceId, bytes32 _tagId) 
+    function _removeDeviceFromTag(address _deviceId, bytes32 _tagId) 
         private 
         returns (bool) 
     {
@@ -722,39 +725,13 @@ contract IoTFleetContract is FleetContractUpgradeable {
         Set.Remove(devices[_deviceId].tags, address(uint160(uint256(_tagId))));
         
         // Remove device from tag's devices
-        Set.Remove(tagDevices[_tagId], address(uint160(uint256(_deviceId))));
+        Set.Remove(tagDevices[_tagId], _deviceId);
         
         emit DeviceRemovedFromTag(_deviceId, _tagId);
         return true;
     }
     
-    function getTag(bytes32 _tagId) 
-        external 
-        view 
-        tagExists(_tagId)
-        returns (
-            bytes32 id,
-            string memory name,
-            string memory description,
-            string memory color,
-            uint256 createdAt,
-            address createdBy,
-            bool active
-        ) 
-    {
-        Tag storage tag = tags[_tagId];
-        return (
-            tag.id,
-            tag.name,
-            tag.description,
-            tag.color,
-            tag.createdAt,
-            tag.createdBy,
-            tag.active
-        );
-    }
-    
-    function getDeviceTags(bytes32 _deviceId) 
+    function getDeviceTags(address _deviceId) 
         external 
         view 
         deviceExists(_deviceId)
@@ -764,7 +741,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         bytes32[] memory result = new bytes32[](tagAddresses.length);
         
         for (uint i = 0; i < tagAddresses.length; i++) {
-            result[i] = bytes32(uint256(uint160(tagAddresses[i])));
+            result[i] = bytes32(uint256(uint160(tagAddresses[i])) & ((1 << 160) - 1));
         }
         
         return result;
@@ -774,24 +751,36 @@ contract IoTFleetContract is FleetContractUpgradeable {
         external 
         view 
         tagExists(_tagId)
-        returns (bytes32[] memory) 
+        returns (address[] memory) 
     {
-        address[] memory deviceAddresses = Set.Members(tagDevices[_tagId]);
-        bytes32[] memory result = new bytes32[](deviceAddresses.length);
-        
-        for (uint i = 0; i < deviceAddresses.length; i++) {
-            result[i] = bytes32(uint256(uint160(deviceAddresses[i])));
-        }
-        
-        return result;
+        return Set.Members(tagDevices[_tagId]);
     }
     
-    function getAllTags() 
+    function isDeviceInTag(address _deviceId, bytes32 _tagId) 
         external 
         view 
-        returns (bytes32[] memory) 
+        returns (bool) 
     {
-        return allTags;
+        if (!devices[_deviceId].active || !tags[_tagId].active) {
+            return false;
+        }
+        
+        // Check if tag is in device's tags
+        bool deviceHasTag = Set.IsMember(devices[_deviceId].tags, address(uint160(uint256(_tagId))));
+        
+        // Check if device is in tag's devices
+        bool tagHasDevice = Set.IsMember(tagDevices[_tagId], _deviceId);
+        
+        // Both relationships must exist
+        return deviceHasTag && tagHasDevice;
+    }
+    
+    function isDeviceOwner(address _userAddress, address _deviceId) 
+        external 
+        view 
+        returns (bool) 
+    {
+        return devices[_deviceId].active && devices[_deviceId].owner == _userAddress;
     }
 
     // ======== Access Control ========
@@ -807,18 +796,6 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return Set.IsMember(users[_userAddress].groups, address(uint160(uint256(_groupId))));
     }
     
-    function isDeviceInTag(bytes32 _deviceId, bytes32 _tagId) 
-        external 
-        view 
-        returns (bool) 
-    {
-        if (!devices[_deviceId].active || !tags[_tagId].active) {
-            return false;
-        }
-        
-        return Set.IsMember(devices[_deviceId].tags, address(uint160(uint256(_tagId))));
-    }
-    
     function isUserAdmin(address _userAddress) 
         external 
         view 
@@ -826,17 +803,9 @@ contract IoTFleetContract is FleetContractUpgradeable {
     {
         return users[_userAddress].active && users[_userAddress].isAdmin;
     }
-    
-    function isDeviceOwner(address _userAddress, bytes32 _deviceId) 
-        external 
-        view 
-        returns (bool) 
-    {
-        return devices[_deviceId].active && devices[_deviceId].owner == _userAddress;
-    }
 
     // ======== Property Management ========
-    function setDeviceProperty(bytes32 _deviceId, string memory _key, string memory _value) 
+    function setDeviceProperty(address _deviceId, string memory _key, string memory _value) 
         external 
         onlyDeviceOwner(_deviceId)
         returns (bool) 
@@ -846,7 +815,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function getDeviceProperty(bytes32 _deviceId, string memory _key) 
+    function getDeviceProperty(address _deviceId, string memory _key) 
         external 
         view 
         returns (string memory) 
@@ -872,64 +841,54 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return tagProperties[_tagId][_key];
     }
     
-    function getPropertyValue(bytes32 _deviceId, string memory _key) 
+    function getPropertyValue(address _deviceId, string memory _key) 
         external 
         view 
         deviceExists(_deviceId)
         returns (string memory) 
     {
-        // Use the same approach as getPropertyValueDirect
-        return this.getPropertyValueDirect(_deviceId, _key);
-    }
-    
-    // A simpler function for testing purposes
-    function getPropertyValueDirect(bytes32 _deviceId, string memory _key) 
-        external 
-        view 
-        deviceExists(_deviceId)
-        returns (string memory) 
-    {
-        // First check if the device has any tags using isDeviceInTag
-        bytes32[] memory allTags = this.getAllTags();
+        // First check device properties
+        string memory deviceValue = deviceProperties[_deviceId][_key];
+        if (bytes(deviceValue).length > 0) {
+            return deviceValue;
+        }
         
-        // Check each tag to see if the device is in it
-        for (uint i = 0; i < allTags.length; i++) {
-            bytes32 tagId = allTags[i];
-            
-            // Skip inactive tags
-            if (!tags[tagId].active) {
-                continue;
-            }
-            
-            // Check if device is in this tag
-            if (this.isDeviceInTag(_deviceId, tagId)) {
+        // Then check tag properties
+        address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
+        if (deviceTagsList.length > 0) {
+            for (uint i = 0; i < deviceTagsList.length; i++) {
+                bytes32 tagId = bytes32(uint256(uint160(deviceTagsList[i])) & ((1 << 160) - 1));
+                
                 // Get the tag property
                 string memory tagValue = tagProperties[tagId][_key];
-                
-                // If the tag has the property (non-empty), return it
                 if (bytes(tagValue).length > 0) {
                     return tagValue;
                 }
             }
         }
         
-        // If no tag has the property, return the device property
+        // If no property found, return an empty string
+        return "";
+    }
+    
+    function getPropertyValueDirect(address _deviceId, string memory _key) 
+        external 
+        view 
+        deviceExists(_deviceId)
+        returns (string memory) 
+    {
+        // Only return device properties, ignoring tag properties
         return deviceProperties[_deviceId][_key];
     }
     
     // Check if a device or any of its tags has a property
-    function hasProperty(bytes32 _deviceId, string memory _key)
+    function hasProperty(address _deviceId, string memory _key)
         external
         view
         deviceExists(_deviceId)
         returns (bool)
     {
-        // First check device properties
-        if (bytes(deviceProperties[_deviceId][_key]).length > 0) {
-            return true;
-        }
-        
-        // Then check tag properties
+        // First check tag properties
         address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
         for (uint i = 0; i < deviceTagsList.length; i++) {
             bytes32 tagId = bytes32(uint256(uint160(deviceTagsList[i])));
@@ -939,12 +898,54 @@ contract IoTFleetContract is FleetContractUpgradeable {
                 continue;
             }
             
-            // Check if tag has the property
-            if (bytes(tagProperties[tagId][_key]).length > 0) {
-                return true;
+            // Check if device is in this tag
+            if (Set.IsMember(devices[_deviceId].tags, address(uint160(uint256(tagId))))) {
+                // Get the tag property
+                if (bytes(tagProperties[tagId][_key]).length > 0) {
+                    return true;
+                }
             }
         }
         
+        // Then check device properties
+        if (bytes(deviceProperties[_deviceId][_key]).length > 0) {
+            return true;
+        }
+        
         return false;
+    }
+
+    function getAllTags() 
+        external 
+        view 
+        returns (bytes32[] memory) 
+    {
+        return allTags;
+    }
+
+    function getTag(bytes32 _tagId) 
+        external 
+        view 
+        tagExists(_tagId)
+        returns (
+            bytes32 id,
+            string memory name,
+            string memory description,
+            string memory color,
+            uint256 createdAt,
+            address createdBy,
+            bool active
+        ) 
+    {
+        Tag storage tag = tags[_tagId];
+        return (
+            tag.id,
+            tag.name,
+            tag.description,
+            tag.color,
+            tag.createdAt,
+            tag.createdBy,
+            tag.active
+        );
     }
 }

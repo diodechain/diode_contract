@@ -34,25 +34,6 @@ export const showFleetManagement = async (fleetAddress) => {
       window.app.fleetLabel = ''; // Default to empty string if there's an error
     }
     
-    // Load fleet users
-    console.log('Loading fleet users');
-    window.app.managedFleetUsers = [];
-    const userCount = await fleetOperations.getFleetUserCount(fleetAddress);
-    console.log('Fleet users count:', userCount);
-    
-    for (let i = 0; i < userCount; i++) {
-      const userAddress = await fleetOperations.getFleetUserAtIndex(fleetAddress, i);
-      console.log(`Loaded user ${i+1}/${userCount}:`, userAddress);
-      
-      // Add the user address - we don't have detailed user data available in registry
-      window.app.managedFleetUsers.push({
-        userAddress: userAddress,
-        nickname: '',
-        email: '',
-        avatarURI: ''
-      });
-    }
-    
     // Switch to fleet management view
     console.log('Switching to fleet management view');
     window.app.activePage = 'fleetManagement';
