@@ -1,709 +1,1659 @@
-// ABI for IoTFleetContract
 const fleetContractAbi = [
   {
-    "inputs": [],
-    "name": "label",
-    "outputs": [{"type": "string", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "constructor",
+      "inputs": [],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [{"type": "string", "name": "_newLabel"}],
-    "name": "updateLabel",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  // User Management
-  {
-    "inputs": [
-      {"type": "address", "name": "_userAddress"}, 
-      {"type": "string", "name": "_nickname"}, 
-      {"type": "string", "name": "_email"}, 
-      {"type": "string", "name": "_avatarURI"}
-    ],
-    "name": "createUser",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "Accountant",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [
-      {"type": "address", "name": "_userAddress"}, 
-      {"type": "string", "name": "_nickname"}, 
-      {"type": "string", "name": "_email"}, 
-      {"type": "string", "name": "_avatarURI"}
-    ],
-    "name": "updateUser",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "DeviceAllowlist",
+      "inputs": [
+          {
+              "name": "_client",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [{"type": "address", "name": "_userAddress"}, {"type": "bool", "name": "_isAdmin"}],
-    "name": "setUserAdmin",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "Operator",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [{"type": "address", "name": "_userAddress"}],
-    "name": "removeUser",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "SetDeviceAllowlist",
+      "inputs": [
+          {
+              "name": "_client",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "_value",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [{"type": "address", "name": "_userAddress"}],
-    "name": "getUser",
-    "outputs": [
-      {"type": "address", "name": "user"}, 
-      {"type": "string", "name": "nickname"}, 
-      {"type": "string", "name": "email"}, 
-      {"type": "string", "name": "avatarURI"}, 
-      {"type": "bool", "name": "isAdmin"}, 
-      {"type": "uint256", "name": "createdAt"}, 
-      {"type": "bool", "name": "active"}
-    ],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "function",
+      "name": "SetDeviceWhitelist",
+      "inputs": [
+          {
+              "name": "_client",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "_value",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [{"type": "address", "name": "_userAddress"}],
-    "name": "getUserGroups",
-    "outputs": [{"type": "bytes32[]", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "function",
+      "name": "accountant",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "address",
+              "internalType": "address payable"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [],
-    "name": "getAllUsers",
-    "outputs": [{"type": "address[]", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  // User Group Management
-  {
-    "inputs": [{"type": "string", "name": "_name"}, {"type": "string", "name": "_description"}],
-    "name": "createUserGroup",
-    "outputs": [{"type": "bytes32", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "bytes32", "name": "_groupId"}, {"type": "string", "name": "_name"}, {"type": "string", "name": "_description"}],
-    "name": "updateUserGroup",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "bytes32", "name": "_groupId"}],
-    "name": "removeUserGroup",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "addDeviceToTag",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_tagId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [{"type": "address", "name": "_userAddress"}, {"type": "bytes32", "name": "_groupId"}],
-    "name": "addUserToGroup",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "addUserToGroup",
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "_groupId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [{"type": "address", "name": "_userAddress"}, {"type": "bytes32", "name": "_groupId"}],
-    "name": "removeUserFromGroup",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "createDevice",
+      "inputs": [
+          {
+              "name": "_name",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_description",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_deviceType",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_location",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [{"type": "bytes32", "name": "_groupId"}],
-    "name": "getUserGroup",
-    "outputs": [
-      {"type": "bytes32", "name": "id"}, 
-      {"type": "string", "name": "name"}, 
-      {"type": "string", "name": "description"}, 
-      {"type": "uint256", "name": "createdAt"}, 
-      {"type": "address", "name": "createdBy"}, 
-      {"type": "bool", "name": "active"}
-    ],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "function",
+      "name": "createTag",
+      "inputs": [
+          {
+              "name": "_name",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_description",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_color",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [{"type": "bytes32", "name": "_groupId"}],
-    "name": "getGroupUsers",
-    "outputs": [{"type": "address[]", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "function",
+      "name": "createUser",
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "_nickname",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_email",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_avatarURI",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [],
-    "name": "getAllUserGroups",
-    "outputs": [{"type": "bytes32[]", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  // Device Management
-  {
-    "inputs": [
-      {"type": "string", "name": "_name"}, 
-      {"type": "string", "name": "_description"}, 
-      {"type": "string", "name": "_deviceType"}, 
-      {"type": "string", "name": "_location"}
-    ],
-    "name": "createDevice",
-    "outputs": [{"type": "bytes32", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"type": "bytes32", "name": "_deviceId"}, 
-      {"type": "string", "name": "_name"}, 
-      {"type": "string", "name": "_description"}, 
-      {"type": "string", "name": "_deviceType"}, 
-      {"type": "string", "name": "_location"}
-    ],
-    "name": "updateDevice",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "createUserGroup",
+      "inputs": [
+          {
+              "name": "_name",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_description",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [{"type": "bytes32", "name": "_deviceId"}],
-    "name": "updateDeviceLastSeen",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "deviceWhitelist",
+      "inputs": [
+          {
+              "name": "_client",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [{"type": "bytes32", "name": "_deviceId"}, {"type": "address", "name": "_newOwner"}],
-    "name": "transferDeviceOwnership",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "getAllDevices",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "address[]",
+              "internalType": "address[]"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [{"type": "bytes32", "name": "_deviceId"}],
-    "name": "removeDevice",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "getAllTags",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bytes32[]",
+              "internalType": "bytes32[]"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [{"type": "bytes32", "name": "_deviceId"}],
-    "name": "getDevice",
-    "outputs": [
-      {"type": "bytes32", "name": "id"},
-      {"type": "address", "name": "owner"},
-      {"type": "string", "name": "name"},
-      {"type": "string", "name": "description"},
-      {"type": "string", "name": "deviceType"},
-      {"type": "string", "name": "location"},
-      {"type": "uint256", "name": "createdAt"},
-      {"type": "uint256", "name": "lastSeen"},
-      {"type": "bool", "name": "active"}
-    ],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "function",
+      "name": "getAllUserGroups",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bytes32[]",
+              "internalType": "bytes32[]"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [{"type": "address", "name": "_userAddress"}],
+      "type": "function",
+      "name": "getAllUsers",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "address[]",
+              "internalType": "address[]"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "getDevice",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "id",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "owner",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "name",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "description",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "deviceType",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "location",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "createdAt",
+              "type": "uint256",
+              "internalType": "uint256"
+          },
+          {
+              "name": "lastSeen",
+              "type": "uint256",
+              "internalType": "uint256"
+          },
+          {
+              "name": "active",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "getDeviceProperty",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_key",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "getDeviceTags",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bytes32[]",
+              "internalType": "bytes32[]"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "getGroupUsers",
+      "inputs": [
+          {
+              "name": "_groupId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "address[]",
+              "internalType": "address[]"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "getPropertyValue",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_key",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "getPropertyValueDirect",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_key",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "getTag",
+      "inputs": [
+          {
+              "name": "_tagId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "id",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "name",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "description",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "color",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "createdAt",
+              "type": "uint256",
+              "internalType": "uint256"
+          },
+          {
+              "name": "createdBy",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "active",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "getTagDevices",
+      "inputs": [
+          {
+              "name": "_tagId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bytes32[]",
+              "internalType": "bytes32[]"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "getTagProperty",
+      "inputs": [
+          {
+              "name": "_tagId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_key",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "getUser",
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "user",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "nickname",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "email",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "avatarURI",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "isAdmin",
+              "type": "bool",
+              "internalType": "bool"
+          },
+          {
+              "name": "createdAt",
+              "type": "uint256",
+              "internalType": "uint256"
+          },
+          {
+              "name": "active",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
       "name": "getUserDevices",
-      "outputs": [{"type": "bytes32[]", "name": ""}],
-      "stateMutability": "view",
-      "type": "function"
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bytes32[]",
+              "internalType": "bytes32[]"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [],
-    "name": "getAllDevices",
-    "outputs": [{"type": "bytes32[]", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  // Tag Management
-  {
-    "inputs": [{"type": "string", "name": "_name"}, {"type": "string", "name": "_description"}, {"type": "string", "name": "_color"}],
-    "name": "createTag",
-    "outputs": [{"type": "bytes32", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "bytes32", "name": "_tagId"}, {"type": "string", "name": "_name"}, {"type": "string", "name": "_description"}, {"type": "string", "name": "_color"}],
-    "name": "updateTag",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "bytes32", "name": "_tagId"}],
-    "name": "removeTag",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "bytes32", "name": "_deviceId"}, {"type": "bytes32", "name": "_tagId"}],
-    "name": "addDeviceToTag",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "bytes32", "name": "_deviceId"}, {"type": "bytes32", "name": "_tagId"}],
-    "name": "removeDeviceFromTag",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [{"type": "bytes32", "name": "_tagId"}],
-    "name": "getTag",
-    "outputs": [
-      {"type": "bytes32", "name": "id"}, 
-      {"type": "string", "name": "name"}, 
-      {"type": "string", "name": "description"}, 
-      {"type": "string", "name": "color"}, 
-      {"type": "uint256", "name": "createdAt"}, 
-      {"type": "address", "name": "createdBy"}, 
-      {"type": "bool", "name": "active"}
-    ],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "function",
+      "name": "getUserGroup",
+      "inputs": [
+          {
+              "name": "_groupId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "id",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "name",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "description",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "createdAt",
+              "type": "uint256",
+              "internalType": "uint256"
+          },
+          {
+              "name": "createdBy",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "active",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [{"type": "bytes32", "name": "_deviceId"}],
-    "name": "getDeviceTags",
-    "outputs": [{"type": "bytes32[]", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "function",
+      "name": "getUserGroups",
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bytes32[]",
+              "internalType": "bytes32[]"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [{"type": "bytes32", "name": "_tagId"}],
-    "name": "getTagDevices",
-    "outputs": [{"type": "bytes32[]", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "function",
+      "name": "hasProperty",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_key",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [],
-    "name": "getAllTags",
-    "outputs": [{"type": "bytes32[]", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  // Access Control
-  {
-    "inputs": [{"type": "address", "name": "_userAddress"}, {"type": "bytes32", "name": "_groupId"}],
-    "name": "isUserInGroup",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "function",
+      "name": "initialize",
+      "inputs": [
+          {
+              "name": "_owner",
+              "type": "address",
+              "internalType": "address payable"
+          }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [{"type": "bytes32", "name": "_deviceId"}, {"type": "bytes32", "name": "_tagId"}],
+      "type": "function",
+      "name": "initialize",
+      "inputs": [
+          {
+              "name": "_owner",
+              "type": "address",
+              "internalType": "address payable"
+          },
+          {
+              "name": "_label",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
       "name": "isDeviceInTag",
-      "outputs": [{"type": "bool", "name": ""}],
-      "stateMutability": "view",
-      "type": "function"
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_tagId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
   },
   {
-    "inputs": [{"type": "address", "name": "_userAddress"}],
+      "type": "function",
+      "name": "isDeviceOwner",
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
       "name": "isUserAdmin",
-      "outputs": [{"type": "bool", "name": ""}],
-      "stateMutability": "view",
-      "type": "function"
-  },
-  {
-    "inputs": [{"type": "address", "name": "_userAddress"}, {"type": "bytes32", "name": "_deviceId"}],
-    "name": "isDeviceOwner",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  // Property Management
-  {
-    "inputs": [
-      {"type": "bytes32", "name": "_deviceId"}, 
-      {"type": "string", "name": "_key"}, 
-      {"type": "string", "name": "_value"}
-    ],
-    "name": "setDeviceProperty",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"type": "bytes32", "name": "_deviceId"}, 
-      {"type": "string", "name": "_key"}
-    ],
-    "name": "getDeviceProperty",
-    "outputs": [{"type": "string", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"type": "bytes32", "name": "_tagId"}, 
-      {"type": "string", "name": "_key"}, 
-      {"type": "string", "name": "_value"}
-    ],
-    "name": "setTagProperty",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"type": "bytes32", "name": "_tagId"}, 
-      {"type": "string", "name": "_key"}
-    ],
-    "name": "getTagProperty",
-    "outputs": [{"type": "string", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"type": "bytes32", "name": "_deviceId"}, 
-      {"type": "string", "name": "_key"}
-    ],
-    "name": "getPropertyValue",
-    "outputs": [{"type": "string", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {"type": "bytes32", "name": "_deviceId"}, 
-      {"type": "string", "name": "_key"}
-    ],
-    "name": "hasProperty",
-    "outputs": [{"type": "bool", "name": ""}],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "device",
-        "type": "address"
-      }
-    ],
-    "name": "addDevice",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
-      }
-    ],
-    "name": "addTag",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      }
-    ],
-    "name": "addUser",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "name",
-        "type": "string"
-      },
-      {
-        "internalType": "string",
-        "name": "description",
-        "type": "string"
-      }
-    ],
-    "name": "createUserGroup",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "getDevice",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getDeviceCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getLabel",
-    "outputs": [
-      {
-        "internalType": "string",
-        "name": "",
-        "type": "string"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getOwner",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "getTag",
-    "outputs": [
-      {
-        "components": [
+      "inputs": [
           {
-            "internalType": "string",
-            "name": "name",
-            "type": "string"
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "isUserInGroup",
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
           },
           {
-            "internalType": "string",
-            "name": "description",
-            "type": "string"
+              "name": "_groupId",
+              "type": "bytes32",
+              "internalType": "bytes32"
           }
-        ],
-        "internalType": "struct Fleet.Tag",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getTagCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "getUser",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getUserCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "index",
-        "type": "uint256"
-      }
-    ],
-    "name": "getUserGroup",
-    "outputs": [
-      {
-        "components": [
+      ],
+      "outputs": [
           {
-            "internalType": "string",
-            "name": "name",
-            "type": "string"
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "label",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "operator",
+      "inputs": [],
+      "outputs": [
+          {
+              "name": "",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "stateMutability": "view"
+  },
+  {
+      "type": "function",
+      "name": "removeDevice",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "removeDeviceFromTag",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
           },
           {
-            "internalType": "string",
-            "name": "description",
-            "type": "string"
+              "name": "_tagId",
+              "type": "bytes32",
+              "internalType": "bytes32"
           }
-        ],
-        "internalType": "struct Fleet.UserGroup",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [],
-    "name": "getUserGroupCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
+      "type": "function",
+      "name": "removeTag",
+      "inputs": [
+          {
+              "name": "_tagId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "device",
-        "type": "address"
-      }
-    ],
-    "name": "removeDevice",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "removeUser",
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "tagId",
-        "type": "uint256"
-      }
-    ],
-    "name": "removeTag",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "removeUserFromGroup",
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "_groupId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "user",
-        "type": "address"
-      }
-    ],
-    "name": "removeUser",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "removeUserGroup",
+      "inputs": [
+          {
+              "name": "_groupId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "groupId",
-        "type": "uint256"
-      }
-    ],
-    "name": "removeUserGroup",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "setDeviceProperty",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_key",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_value",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
   },
   {
-    "inputs": [
-      {
-        "internalType": "string",
-        "name": "newLabel",
-        "type": "string"
-      }
-    ],
-    "name": "updateLabel",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
+      "type": "function",
+      "name": "setTagProperty",
+      "inputs": [
+          {
+              "name": "_tagId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_key",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_value",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "setUserAdmin",
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "_isAdmin",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "transferDeviceOwnership",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_newOwner",
+              "type": "address",
+              "internalType": "address"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "updateDevice",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_name",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_description",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_deviceType",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_location",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "updateDeviceLastSeen",
+      "inputs": [
+          {
+              "name": "_deviceId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "updateLabel",
+      "inputs": [
+          {
+              "name": "_newLabel",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "updateTag",
+      "inputs": [
+          {
+              "name": "_tagId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_name",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_description",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_color",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "updateUser",
+      "inputs": [
+          {
+              "name": "_userAddress",
+              "type": "address",
+              "internalType": "address"
+          },
+          {
+              "name": "_nickname",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_email",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_avatarURI",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "function",
+      "name": "updateUserGroup",
+      "inputs": [
+          {
+              "name": "_groupId",
+              "type": "bytes32",
+              "internalType": "bytes32"
+          },
+          {
+              "name": "_name",
+              "type": "string",
+              "internalType": "string"
+          },
+          {
+              "name": "_description",
+              "type": "string",
+              "internalType": "string"
+          }
+      ],
+      "outputs": [
+          {
+              "name": "",
+              "type": "bool",
+              "internalType": "bool"
+          }
+      ],
+      "stateMutability": "nonpayable"
+  },
+  {
+      "type": "event",
+      "name": "DeviceAddedToTag",
+      "inputs": [
+          {
+              "name": "deviceId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          },
+          {
+              "name": "tagId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "DeviceCreated",
+      "inputs": [
+          {
+              "name": "deviceId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          },
+          {
+              "name": "owner",
+              "type": "address",
+              "indexed": false,
+              "internalType": "address"
+          },
+          {
+              "name": "name",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "DevicePropertySet",
+      "inputs": [
+          {
+              "name": "deviceId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          },
+          {
+              "name": "key",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          },
+          {
+              "name": "value",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "DeviceRemoved",
+      "inputs": [
+          {
+              "name": "deviceId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "DeviceRemovedFromTag",
+      "inputs": [
+          {
+              "name": "deviceId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          },
+          {
+              "name": "tagId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "DeviceUpdated",
+      "inputs": [
+          {
+              "name": "deviceId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          },
+          {
+              "name": "name",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "FleetLabelUpdated",
+      "inputs": [
+          {
+              "name": "newLabel",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "TagCreated",
+      "inputs": [
+          {
+              "name": "tagId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          },
+          {
+              "name": "name",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "TagPropertySet",
+      "inputs": [
+          {
+              "name": "tagId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          },
+          {
+              "name": "key",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          },
+          {
+              "name": "value",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "TagRemoved",
+      "inputs": [
+          {
+              "name": "tagId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "TagUpdated",
+      "inputs": [
+          {
+              "name": "tagId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          },
+          {
+              "name": "name",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "UserAddedToGroup",
+      "inputs": [
+          {
+              "name": "userAddress",
+              "type": "address",
+              "indexed": true,
+              "internalType": "address"
+          },
+          {
+              "name": "groupId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "UserCreated",
+      "inputs": [
+          {
+              "name": "userAddress",
+              "type": "address",
+              "indexed": true,
+              "internalType": "address"
+          },
+          {
+              "name": "nickname",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "UserGroupCreated",
+      "inputs": [
+          {
+              "name": "groupId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          },
+          {
+              "name": "name",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "UserGroupRemoved",
+      "inputs": [
+          {
+              "name": "groupId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "UserGroupUpdated",
+      "inputs": [
+          {
+              "name": "groupId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          },
+          {
+              "name": "name",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "UserRemoved",
+      "inputs": [
+          {
+              "name": "userAddress",
+              "type": "address",
+              "indexed": true,
+              "internalType": "address"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "UserRemovedFromGroup",
+      "inputs": [
+          {
+              "name": "userAddress",
+              "type": "address",
+              "indexed": true,
+              "internalType": "address"
+          },
+          {
+              "name": "groupId",
+              "type": "bytes32",
+              "indexed": true,
+              "internalType": "bytes32"
+          }
+      ],
+      "anonymous": false
+  },
+  {
+      "type": "event",
+      "name": "UserUpdated",
+      "inputs": [
+          {
+              "name": "userAddress",
+              "type": "address",
+              "indexed": true,
+              "internalType": "address"
+          },
+          {
+              "name": "nickname",
+              "type": "string",
+              "indexed": false,
+              "internalType": "string"
+          }
+      ],
+      "anonymous": false
   }
 ];
 

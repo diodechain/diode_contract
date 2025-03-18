@@ -7,9 +7,6 @@ import * as deviceManagement from './device-management.js';
 import * as tagManagement from './tag-management.js';
 import * as navigation from './navigation.js';
 import * as utils from './utils.js';
-// Expose utility functions to window for external access
-window.showToastMessage = utils.showToastMessage;
-window.setLoadingWithSafety = utils.setLoadingWithSafety;
 
 const { createApp, ref, computed, watch, onMounted } = Vue;
 
@@ -100,7 +97,7 @@ const app = createApp({
       if (accounts.length === 0) {
         isConnected.value = false;
         account.value = '';
-        showToastMessage('Please connect to MetaMask.');
+        utils.showToastMessage('Please connect to MetaMask.');
       } else if (accounts[0] !== account.value) {
         account.value = accounts[0];
         isConnected.value = true;
@@ -111,7 +108,7 @@ const app = createApp({
     // Connect wallet
     const connectWallet = async () => {
       try {
-        setLoadingWithSafety(true);
+        utils.setLoadingWithSafety(true);
         
         try {
           // Initialize MetaMask and set ethereum.value
@@ -149,7 +146,7 @@ const app = createApp({
           
         } catch (walletError) {
           if (walletError.message && walletError.message.includes('MetaMask is not installed')) {
-            showToastMessage('MetaMask is not installed. Please install MetaMask to use this application.');
+            utils.showToastMessage('MetaMask is not installed. Please install MetaMask to use this application.');
             console.warn('MetaMask is not installed. The application will have limited functionality.');
           } else {
             throw walletError; // Re-throw other errors to be caught by the outer catch block
@@ -158,9 +155,9 @@ const app = createApp({
         
       } catch (error) {
         console.error('Error connecting wallet:', error);
-        showToastMessage('Failed to connect wallet: ' + error.message);
+        utils.showToastMessage('Failed to connect wallet: ' + error.message);
       } finally {
-        setLoadingWithSafety(false);
+        utils.setLoadingWithSafety(false);
       }
     };
 
@@ -169,7 +166,7 @@ const app = createApp({
       try {
         if (!isConnected.value || !registryContract.value) return;
         
-        setLoadingWithSafety(true);
+        utils.setLoadingWithSafety(true);
         
         // Get available accounts
         availableAccounts.value = await web3.value.eth.getAccounts();
@@ -216,9 +213,9 @@ const app = createApp({
         
       } catch (error) {
         console.error('Error loading user data:', error);
-        showToastMessage('Failed to load fleet data: ' + error.message);
+        utils.showToastMessage('Failed to load fleet data: ' + error.message);
       } finally {
-        setLoadingWithSafety(false);
+        utils.setLoadingWithSafety(false);
       }
     };
 
@@ -232,7 +229,7 @@ const app = createApp({
         }
       } catch (error) {
         console.error('Error switching account:', error);
-        showToastMessage('Failed to switch account: ' + error.message);
+        utils.showToastMessage('Failed to switch account: ' + error.message);
       }
     };
 
@@ -266,7 +263,7 @@ const app = createApp({
     // Manage fleet
     const manageFleet = async (fleetAddress) => {
       try {
-        setLoadingWithSafety(true);
+        utils.setLoadingWithSafety(true);
         
         managedFleet.value = fleetAddress;
         
@@ -282,9 +279,9 @@ const app = createApp({
         showFleetManagementModal.value = true;
       } catch (error) {
         console.error('Error managing fleet:', error);
-        showToastMessage('Failed to load fleet data: ' + error.message);
+        utils.showToastMessage('Failed to load fleet data: ' + error.message);
       } finally {
-        setLoadingWithSafety(false);
+        utils.setLoadingWithSafety(false);
       }
     };
 
@@ -320,23 +317,22 @@ const app = createApp({
     const updateFleetLabelImpl = async () => {
       try {
         if (!managedFleet.value) {
-          showToastMessage('No fleet selected');
+          utils.showToastMessage('No fleet selected');
           return;
         }
 
         if (!fleetLabel.value) {
-          showToastMessage('Please enter a fleet label');
+          utils.showToastMessage('Please enter a fleet label');
           return;
         }
 
         isUpdatingLabel.value = true;
         
-        // Call the updateFleetLabel function from fleet-operations.js
         await fleetOperations.updateFleetLabel(managedFleet.value, fleetLabel.value);
-        showToastMessage('Fleet label updated successfully!');
+        utils.showToastMessage('Fleet label updated successfully!');
       } catch (error) {
         console.error('Error updating fleet label:', error);
-        showToastMessage('Failed to update fleet label: ' + error.message);
+        utils.showToastMessage('Failed to update fleet label: ' + error.message);
       } finally {
         isUpdatingLabel.value = false;
       }
@@ -360,47 +356,32 @@ const app = createApp({
     const createFleet = async () => {
       try {
         if (!isConnected.value || !registryContract.value) {
-          showToastMessage('Please connect your wallet first');
+          utils.showToastMessage('Please connect your wallet first');
           return;
         }
         
         isCreatingFleet.value = true;
         
-        // Call the CreateFleet method on the registry contract
         const result = await registryContract.value.methods.CreateFleet(newFleetLabel.value).send({ from: account.value });
         console.log('Fleet created:', result);
         
-        // Refresh the fleet list
         await loadUserData();
         
-        // Show success message
-        showToastMessage('Fleet created successfully!');
+        utils.showToastMessage('Fleet created successfully!');
         
-        // Reset the form
         newFleetLabel.value = '';
         
-        // Navigate back to dashboard
-        showDashboard();
+        navigation.showDashboard();
       } catch (error) {
         console.error('Error creating fleet:', error);
-        showToastMessage('Failed to create fleet: ' + error.message);
+        utils.showToastMessage('Failed to create fleet: ' + error.message);
       } finally {
         isCreatingFleet.value = false;
       }
     };
 
-    // Create an object with all the methods and state that we want to expose
-    const appMethods = {
-      connectWallet,
-      loadUserData,
-      manageFleet,
-      addFleetUserFromManager,
-      showToastMessage: (message) => showToastMessage(message),
-      setLoadingWithSafety: (state) => setLoadingWithSafety(state)
-    };
-
-    // Expose methods to window object
-    window.appMethods = appMethods;
+    // Load user data
+    window.loadUserData = () => loadUserData(); 
 
     // Return all functions and state variables
     return {
@@ -540,8 +521,8 @@ const app = createApp({
 });
 
 // Mount the app
+app.component('device-management-component', deviceManagement.DeviceManagementComponent);
 const mountedApp = app.mount('#app');
 
 // Store the app reference in the window object for external access
 window.app = mountedApp;
-window.loadUserData = () => window.appMethods.loadUserData(); 
