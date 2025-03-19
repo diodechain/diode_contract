@@ -70,7 +70,7 @@
                @click.prevent="showFleetManagement(fleet.fleet)"
                class="nav-link px-4 py-2 flex items-center text-white hover:bg-opacity-80 truncate"
                :class="{'nav-active': activePage === 'fleetManagement' && managedFleet === fleet.fleet}">
-              <span class="truncate">{{ fleet.fleet }}</span>
+              <span class="truncate">{{ fleet.label || shortenAddress(fleet.fleet) }}</span>
             </a>
           </div>
         </div>
@@ -93,7 +93,7 @@
                  @click.prevent="showFleetManagement(fleet.fleet)"
                  class="nav-link px-4 py-2 flex items-center text-white hover:bg-opacity-80 truncate"
                  :class="{'nav-active': activePage === 'fleetManagement' && managedFleet === fleet.fleet}">
-                <span class="truncate">{{ fleet.fleet }}</span>
+                <span class="truncate">{{ fleet.label || shortenAddress(fleet.fleet) }}</span>
               </a>
             </div>
           </div>
