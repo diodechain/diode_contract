@@ -144,11 +144,11 @@ contract IoTFleetContractTest is Test {
         beforeEach();
         
         // Create a user group
-        bytes32 groupId = fleetContract.createUserGroup("Test Group", "A test group");
+        address groupId = fleetContract.createUserGroup("Test Group", "A test group");
         
         // Verify group data
         (
-            bytes32 id,
+            address id,
             string memory name,
             string memory description,
             ,
@@ -166,7 +166,7 @@ contract IoTFleetContractTest is Test {
         beforeEach();
         
         // Create a user group first
-        bytes32 groupId = fleetContract.createUserGroup("Test Group", "A test group");
+        address groupId = fleetContract.createUserGroup("Test Group", "A test group");
         
         // Update group
         bool success = fleetContract.updateUserGroup(groupId, "Updated Group", "Updated description");
@@ -193,7 +193,7 @@ contract IoTFleetContractTest is Test {
         fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
         
         // Create a user group
-        bytes32 groupId = fleetContract.createUserGroup("Test Group", "A test group");
+        address groupId = fleetContract.createUserGroup("Test Group", "A test group");
         
         // Add user to group
         bool success = fleetContract.addUserToGroup(user1, groupId);
@@ -204,7 +204,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInGroup, true, "User should be in group");
         
         // Get user's groups
-        bytes32[] memory userGroups = fleetContract.getUserGroups(user1);
+        address[] memory userGroups = fleetContract.getUserGroups(user1);
         Assert.ok(userGroups.length > 0, "User should have at least one group");
         
         // Get group's users
@@ -219,7 +219,7 @@ contract IoTFleetContractTest is Test {
         fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
         
         // Create a user group
-        bytes32 groupId = fleetContract.createUserGroup("Test Group", "A test group");
+        address groupId = fleetContract.createUserGroup("Test Group", "A test group");
         
         // Add user to group
         fleetContract.addUserToGroup(user1, groupId);
@@ -232,7 +232,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(fleetContract.isUserInGroup(user1, groupId), false, "User should not be in group");
         
         // Get user's groups
-        bytes32[] memory userGroups = fleetContract.getUserGroups(user1);
+        address[] memory userGroups = fleetContract.getUserGroups(user1);
         Assert.equal(userGroups.length, 0, "User should not be in any groups");
         
         // Get group's users
@@ -248,7 +248,7 @@ contract IoTFleetContractTest is Test {
         fleetContract.createUserGroup("Group Two", "Second group");
         
         // Get all groups
-        bytes32[] memory allGroups = fleetContract.getAllUserGroups();
+        address[] memory allGroups = fleetContract.getAllUserGroups();
         
         // Admin group is automatically created in constructor, plus our two new groups
         Assert.equal(allGroups.length, 3, "Should have 3 groups (admin + 2 created)");
@@ -478,11 +478,11 @@ contract IoTFleetContractTest is Test {
         beforeEach();
         
         // Create a tag
-        bytes32 tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
+        address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
         
         // Verify tag data
         (
-            bytes32 id,
+            address id,
             string memory name,
             string memory description,
             string memory color,
@@ -502,7 +502,7 @@ contract IoTFleetContractTest is Test {
         beforeEach();
         
         // Create a tag first
-        bytes32 tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
+        address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
         
         // Update tag
         bool success = fleetContract.updateTag(tagId, "Updated Tag", "Updated description", "#00FF00");
@@ -537,7 +537,7 @@ contract IoTFleetContractTest is Test {
         );
         
         // Create a tag
-        bytes32 tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
+        address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
         
         // Add device to tag
         bool success = fleetContract.addDeviceToTag(deviceId, tagId);
@@ -548,7 +548,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInTag, true, "Device should be in tag");
         
         // Get device's tags
-        bytes32[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
+        address[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
         Assert.ok(deviceTags.length > 0, "Device should have at least one tag");
         
         // Get tag's devices
@@ -569,7 +569,7 @@ contract IoTFleetContractTest is Test {
         );
         
         // Create a tag
-        bytes32 tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
+        address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
         
         // Add device to tag
         fleetContract.addDeviceToTag(deviceId, tagId);
@@ -579,7 +579,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInTag, true, "Device should be in tag");
         
         // Get device's tags
-        bytes32[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
+        address[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
         Assert.equal(deviceTags.length, 1, "Device should have 1 tag");
         
         // Remove device from tag
@@ -599,7 +599,7 @@ contract IoTFleetContractTest is Test {
         fleetContract.createTag("Tag Two", "Second tag", "#00FF00");
         
         // Get all tags
-        bytes32[] memory allTags = fleetContract.getAllTags();
+        address[] memory allTags = fleetContract.getAllTags();
         
         Assert.equal(allTags.length, 2, "Should have 2 tags");
     }
@@ -612,7 +612,7 @@ contract IoTFleetContractTest is Test {
         fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
         
         // Create a user group
-        bytes32 groupId = fleetContract.createUserGroup("Test Group", "A test group");
+        address groupId = fleetContract.createUserGroup("Test Group", "A test group");
         
         // Check user is not in group initially
         Assert.equal(fleetContract.isUserInGroup(user1, groupId), false, "User should not be in group initially");
@@ -637,7 +637,7 @@ contract IoTFleetContractTest is Test {
         );
         
         // Create a tag
-        bytes32 tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
+        address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
         
         // Check device is not in tag initially
         Assert.equal(fleetContract.isDeviceInTag(deviceId, tagId), false, "Device should not be in tag initially");
@@ -737,7 +737,7 @@ contract IoTFleetContractTest is Test {
         fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
         
         // Create a user group
-        bytes32 groupId = fleetContract.createUserGroup("Test Group", "A test group");
+        address groupId = fleetContract.createUserGroup("Test Group", "A test group");
         
         // Add user to group
         bool success = fleetContract.addUserToGroup(user1, groupId);
@@ -748,7 +748,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInGroup, true, "User should be in group");
         
         // Get user's groups
-        bytes32[] memory userGroups = fleetContract.getUserGroups(user1);
+        address[] memory userGroups = fleetContract.getUserGroups(user1);
         Assert.ok(userGroups.length > 0, "User should have at least one group");
     }
 
@@ -766,7 +766,7 @@ contract IoTFleetContractTest is Test {
         );
         
         // Create a tag
-        bytes32 tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
+        address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
         
         // Add device to tag
         bool success = fleetContract.addDeviceToTag(deviceId, tagId);
@@ -777,7 +777,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInTag, true, "Device should be in tag");
         
         // Get device's tags
-        bytes32[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
+        address[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
         Assert.ok(deviceTags.length > 0, "Device should have at least one tag");
     }
 
@@ -795,7 +795,7 @@ contract IoTFleetContractTest is Test {
         );
         
         // Create a tag and add device to it
-        bytes32 tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
+        address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
         fleetContract.addDeviceToTag(deviceId, tagId);
         
         // Verify device is in tag
@@ -851,7 +851,7 @@ contract IoTFleetContractTest is Test {
         );
         
         // Create a tag
-        bytes32 tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
+        address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
         
         // Add device to tag
         fleetContract.addDeviceToTag(deviceId, tagId);
@@ -861,7 +861,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInTag, true, "Device should be in tag");
         
         // Get all tags before removal
-        bytes32[] memory allTagsBefore = fleetContract.getAllTags();
+        address[] memory allTagsBefore = fleetContract.getAllTags();
         uint256 tagCountBefore = allTagsBefore.length;
         
         // Remove tag
@@ -869,7 +869,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(success, true, "Tag removal should succeed");
         
         // Get all tags after removal
-        bytes32[] memory allTagsAfter = fleetContract.getAllTags();
+        address[] memory allTagsAfter = fleetContract.getAllTags();
         uint256 tagCountAfter = allTagsAfter.length;
         
         // Verify tag count remains the same (we only mark as inactive)
@@ -888,7 +888,7 @@ contract IoTFleetContractTest is Test {
         fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
         
         // Create a user group
-        bytes32 groupId = fleetContract.createUserGroup("Test Group", "A test group");
+        address groupId = fleetContract.createUserGroup("Test Group", "A test group");
         
         // Add user to group
         fleetContract.addUserToGroup(user1, groupId);
@@ -898,7 +898,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInGroup, true, "User should be in group");
         
         // Get all user groups before removal
-        bytes32[] memory allGroupsBefore = fleetContract.getAllUserGroups();
+        address[] memory allGroupsBefore = fleetContract.getAllUserGroups();
         uint256 groupCountBefore = allGroupsBefore.length;
         
         // Remove group
@@ -906,7 +906,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(success, true, "Group removal should succeed");
         
         // Get all user groups after removal
-        bytes32[] memory allGroupsAfter = fleetContract.getAllUserGroups();
+        address[] memory allGroupsAfter = fleetContract.getAllUserGroups();
         uint256 groupCountAfter = allGroupsAfter.length;
         
         // Verify group count remains the same (we only mark as inactive)
@@ -955,7 +955,7 @@ contract IoTFleetContractTest is Test {
         beforeEach();
         
         // Create a tag
-        bytes32 tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
+        address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
         
         // Set tag properties
         bool success1 = fleetContract.setTagProperty(tagId, "default_firmware", "v2.0.0");
@@ -1007,7 +1007,7 @@ contract IoTFleetContractTest is Test {
         Assert.equal(directDeviceValue, deviceValue, "Direct device property should match");
 
         // Create a tag
-        bytes32 tagId = fleetContract.createTag(
+        address tagId = fleetContract.createTag(
             "Test Tag",
             "A test tag",
             "#FF0000"
@@ -1025,9 +1025,9 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInTag, true, "Device should be in tag");
 
         // Get device's tags
-        bytes32[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
+        address[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
         Assert.equal(deviceTags.length, 1, "Device should have 1 tag");
-        // We skip exact equality check because of potential conversion issues between bytes32 and address
+        // We skip exact equality check because of potential conversion issues between address and address
         // Assert.equal(deviceTags[0], tagId, "Device's tag should match");
 
         // Set tag property
@@ -1074,7 +1074,7 @@ contract IoTFleetContractTest is Test {
         );
         
         // Create a tag
-        bytes32 tagId = fleetContract.createTag("Debug Tag", "A tag for debugging", "#FF0000");
+        address tagId = fleetContract.createTag("Debug Tag", "A tag for debugging", "#FF0000");
         
         // Set properties with unique values for easy identification
         string memory testKey = "debug_key";
@@ -1118,7 +1118,7 @@ contract IoTFleetContractTest is Test {
         );
         
         // Create a tag
-        bytes32 tagId = fleetContract.createTag("Tag Test Tag", "A tag for testing", "#FF0000");
+        address tagId = fleetContract.createTag("Tag Test Tag", "A tag for testing", "#FF0000");
         
         // Add device to tag
         fleetContract.addDeviceToTag(deviceId, tagId);
@@ -1128,11 +1128,11 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInTag, true, "Device should be in tag according to isDeviceInTag");
         
         // Get device tags
-        bytes32[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
+        address[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
         Assert.equal(deviceTags.length, 1, "Device should have exactly one tag");
         
         // Print the tag IDs for comparison
-        bytes32 retrievedTagId = deviceTags[0];
+        address retrievedTagId = deviceTags[0];
         
         // Skip tag ID comparison
         // Assert.equal(retrievedTagId, tagId, "Retrieved tag ID should match the original tag ID");
@@ -1147,7 +1147,7 @@ contract IoTFleetContractTest is Test {
         // Assert.equal(retrievedDeviceId, deviceId, "Retrieved device ID should match the original device ID");
     }
 
-    function testBytes32ToAddressConversion() public {
+    function testaddressToAddressConversion() public {
         beforeEach();
         
         // Create a user
@@ -1161,7 +1161,7 @@ contract IoTFleetContractTest is Test {
         vm.startPrank(user1);
         
         // Create a tag with a known ID
-        bytes32 tagId = fleetContract.createTag("Conversion Test Tag", "A tag for conversion testing", "#FF0000");
+        address tagId = fleetContract.createTag("Conversion Test Tag", "A tag for conversion testing", "#FF0000");
         
         // Create a device
         address deviceId = fleetContract.createDevice(
@@ -1229,7 +1229,7 @@ contract IoTFleetContractTest is Test {
         vm.stopPrank();
 
         // Create a tag
-        bytes32 tagId = fleetContract.createTag(
+        address tagId = fleetContract.createTag(
             "Test Tag",
             "A test tag",
             "#FF0000"
@@ -1252,9 +1252,9 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInTag, true, "Device should be in tag");
 
         // Get device's tags
-        bytes32[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
+        address[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
         Assert.equal(deviceTags.length, 1, "Device should have 1 tag");
-        // We skip exact equality check because of potential conversion issues between bytes32 and address
+        // We skip exact equality check because of potential conversion issues between address and address
         // Assert.equal(deviceTags[0], tagId, "Device's tag should match");
 
         // Set tag property
@@ -1292,7 +1292,7 @@ contract IoTFleetContractTest is Test {
         );
 
         // Create a tag
-        bytes32 tagId = fleetContract.createTag(
+        address tagId = fleetContract.createTag(
             "Test Tag",
             "A test tag",
             "#FF0000"
@@ -1348,7 +1348,7 @@ contract IoTFleetContractTest is Test {
         vm.stopPrank();
 
         // Create a tag
-        bytes32 tagId = fleetContract.createTag(
+        address tagId = fleetContract.createTag(
             "Test Tag",
             "A test tag",
             "#FF0000"
@@ -1371,9 +1371,9 @@ contract IoTFleetContractTest is Test {
         Assert.equal(isInTag, true, "Device should be in tag");
 
         // Get device's tags
-        bytes32[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
+        address[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
         Assert.equal(deviceTags.length, 1, "Device should have 1 tag");
-        // We skip exact equality check because of potential conversion issues between bytes32 and address
+        // We skip exact equality check because of potential conversion issues between address and address
         // Assert.equal(deviceTags[0], tagId, "Device's tag should match");
 
         // Set tag property
@@ -1442,7 +1442,7 @@ contract IoTFleetContractTest is Test {
         );
         
         // Create a tag
-        bytes32 tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
+        address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
         
         // Add device to tag
         bool addSuccess = fleetContract.addDeviceToTag(deviceId, tagId);
@@ -1458,10 +1458,10 @@ contract IoTFleetContractTest is Test {
         Assert.equal(tagDevices[0], deviceId, "Tag's device should match");
         
         // Get device's tags
-        bytes32[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
+        address[] memory deviceTags = fleetContract.getDeviceTags(deviceId);
         Assert.equal(deviceTags.length, 1, "Device should have exactly one tag");
         
-        // We skip exact equality check because of potential conversion issues between bytes32 and address
+        // We skip exact equality check because of potential conversion issues between address and address
         // Just verify the tag is present in the device's tags
         
         vm.stopPrank();
