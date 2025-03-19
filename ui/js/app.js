@@ -3,8 +3,8 @@ import { initializeMetaMask } from './wallet.js';
 import * as fleetOperations from './fleet-operations.js';
 import * as userManagement from './user-management.js';
 import * as userGroupManagement from './user-group-management.js';
-import * as deviceManagement from './device-management.js';
-import * as tagManagement from './tag-management.js';
+import { DeviceManagementComponent } from './device-management.js';
+import { TagManagementComponent } from './tag-management.js';
 import * as navigation from './navigation.js';
 import * as utils from './utils.js';
 
@@ -436,11 +436,7 @@ const app = createApp({
       showDeviceTransferModal,
       newDeviceOwner,
       
-      // Tag management
-      tags,
-      selectedTag,
-      newTagData,
-      tagDevices,
+      // Tag management variables removed - now handled by TagManagementComponent
       
       // Methods
       connectWallet,
@@ -477,15 +473,6 @@ const app = createApp({
       addUserToGroup: userGroupManagement.addUserToGroup,
       removeUserFromGroup: userGroupManagement.removeUserFromGroup,
       
-      // Tag management
-      loadTags: tagManagement.loadTags,
-      selectTag: tagManagement.selectTag,
-      loadTagDevices: tagManagement.loadTagDevices,
-      createTag: tagManagement.createTag,
-      updateTag: tagManagement.updateTag,
-      removeTag: tagManagement.removeTag,
-      removeDeviceFromTag: tagManagement.removeDeviceFromTag,
-      
       // Navigation
       activePage: ref('dashboard'),
       showDashboard: navigation.showDashboard,
@@ -508,7 +495,8 @@ const app = createApp({
 });
 
 // Mount the app
-app.component('device-management-component', deviceManagement.DeviceManagementComponent);
+app.component('device-management-component', DeviceManagementComponent);
+app.component('tag-management-component', TagManagementComponent);
 const mountedApp = app.mount('#app');
 
 // Store the app reference in the window object for external access
