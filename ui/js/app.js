@@ -179,11 +179,21 @@ const app = createApp({
         ownFleets.value = [];
         for (let i = 0; i < ownFleetCount.value; i++) {
           const fleet = await registryContract.value.methods.GetOwnFleet(i).call({ from: account.value });
+          
+          // Get fleet label
+          let fleetLabel = '';
+          try {
+            fleetLabel = await fleetOperations.getFleetLabel(fleet.fleet);
+          } catch (error) {
+            console.warn(`Could not get label for fleet ${fleet.fleet}:`, error);
+          }
+          
           ownFleets.value.push({
             owner: fleet.owner,
             fleet: fleet.fleet,
             createdAt: new Date(fleet.createdAt * 1000),
-            updatedAt: new Date(fleet.updatedAt * 1000)
+            updatedAt: new Date(fleet.updatedAt * 1000),
+            label: fleetLabel || ''
           });
         }
         
@@ -202,11 +212,21 @@ const app = createApp({
           
           for (let j = 0; j < sharedFleetCount; j++) {
             const fleet = await registryContract.value.methods.GetSharedFleet(sharingUser, j).call({ from: account.value });
+            
+            // Get fleet label
+            let fleetLabel = '';
+            try {
+              fleetLabel = await fleetOperations.getFleetLabel(fleet.fleet);
+            } catch (error) {
+              console.warn(`Could not get label for shared fleet ${fleet.fleet}:`, error);
+            }
+            
             sharedFleets.value.push({
               owner: fleet.owner,
               fleet: fleet.fleet,
               createdAt: new Date(fleet.createdAt * 1000),
-              updatedAt: new Date(fleet.updatedAt * 1000)
+              updatedAt: new Date(fleet.updatedAt * 1000),
+              label: fleetLabel || ''
             });
           }
         }
