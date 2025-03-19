@@ -109,8 +109,8 @@ const fleetContractAbi = [
             },
             {
                 "name": "_tagId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
@@ -133,8 +133,8 @@ const fleetContractAbi = [
             },
             {
                 "name": "_groupId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
@@ -208,8 +208,8 @@ const fleetContractAbi = [
         "outputs": [
             {
                 "name": "",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "stateMutability": "nonpayable"
@@ -266,8 +266,8 @@ const fleetContractAbi = [
         "outputs": [
             {
                 "name": "",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "stateMutability": "nonpayable"
@@ -311,8 +311,8 @@ const fleetContractAbi = [
         "outputs": [
             {
                 "name": "",
-                "type": "bytes32[]",
-                "internalType": "bytes32[]"
+                "type": "address[]",
+                "internalType": "address[]"
             }
         ],
         "stateMutability": "view"
@@ -324,8 +324,8 @@ const fleetContractAbi = [
         "outputs": [
             {
                 "name": "",
-                "type": "bytes32[]",
-                "internalType": "bytes32[]"
+                "type": "address[]",
+                "internalType": "address[]"
             }
         ],
         "stateMutability": "view"
@@ -439,8 +439,8 @@ const fleetContractAbi = [
         "outputs": [
             {
                 "name": "",
-                "type": "bytes32[]",
-                "internalType": "bytes32[]"
+                "type": "address[]",
+                "internalType": "address[]"
             }
         ],
         "stateMutability": "view"
@@ -451,8 +451,8 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "_groupId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
@@ -518,15 +518,15 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "_tagId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
             {
                 "name": "id",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             },
             {
                 "name": "name",
@@ -567,8 +567,8 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "_tagId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
@@ -586,8 +586,8 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "_tagId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             },
             {
                 "name": "_key",
@@ -678,15 +678,15 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "_groupId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
             {
                 "name": "id",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             },
             {
                 "name": "name",
@@ -729,8 +729,8 @@ const fleetContractAbi = [
         "outputs": [
             {
                 "name": "",
-                "type": "bytes32[]",
-                "internalType": "bytes32[]"
+                "type": "address[]",
+                "internalType": "address[]"
             }
         ],
         "stateMutability": "view"
@@ -801,8 +801,8 @@ const fleetContractAbi = [
             },
             {
                 "name": "_tagId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
@@ -868,8 +868,8 @@ const fleetContractAbi = [
             },
             {
                 "name": "_groupId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
@@ -937,8 +937,8 @@ const fleetContractAbi = [
             },
             {
                 "name": "_tagId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
@@ -956,8 +956,8 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "_tagId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
@@ -999,8 +999,8 @@ const fleetContractAbi = [
             },
             {
                 "name": "_groupId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
@@ -1018,8 +1018,8 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "_groupId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             }
         ],
         "outputs": [
@@ -1066,8 +1066,8 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "_tagId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             },
             {
                 "name": "_key",
@@ -1220,8 +1220,8 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "_tagId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             },
             {
                 "name": "_name",
@@ -1288,8 +1288,8 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "_groupId",
-                "type": "bytes32",
-                "internalType": "bytes32"
+                "type": "address",
+                "internalType": "address"
             },
             {
                 "name": "_name",
@@ -1323,9 +1323,9 @@ const fleetContractAbi = [
             },
             {
                 "name": "tagId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             }
         ],
         "anonymous": false
@@ -1405,9 +1405,9 @@ const fleetContractAbi = [
             },
             {
                 "name": "tagId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             }
         ],
         "anonymous": false
@@ -1450,9 +1450,9 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "tagId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             },
             {
                 "name": "name",
@@ -1469,9 +1469,9 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "tagId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             },
             {
                 "name": "key",
@@ -1494,9 +1494,9 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "tagId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             }
         ],
         "anonymous": false
@@ -1507,9 +1507,9 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "tagId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             },
             {
                 "name": "name",
@@ -1532,9 +1532,9 @@ const fleetContractAbi = [
             },
             {
                 "name": "groupId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             }
         ],
         "anonymous": false
@@ -1564,9 +1564,9 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "groupId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             },
             {
                 "name": "name",
@@ -1583,9 +1583,9 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "groupId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             }
         ],
         "anonymous": false
@@ -1596,9 +1596,9 @@ const fleetContractAbi = [
         "inputs": [
             {
                 "name": "groupId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             },
             {
                 "name": "name",
@@ -1634,9 +1634,9 @@ const fleetContractAbi = [
             },
             {
                 "name": "groupId",
-                "type": "bytes32",
+                "type": "address",
                 "indexed": true,
-                "internalType": "bytes32"
+                "internalType": "address"
             }
         ],
         "anonymous": false
