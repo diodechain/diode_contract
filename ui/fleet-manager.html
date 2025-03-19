@@ -8,6 +8,7 @@
   <script src="./assets/vue.global.js"></script>
   <!-- Web3.js -->
   <script src="./assets/web3.min.js"></script>
+  <script src="./assets/metamask-sdk.js"></script>
   <!-- Tailwind CSS for styling -->
   <script src="./assets/tailwindcss.min.js"></script>
   <style>
@@ -110,7 +111,7 @@
         <div v-if="isConnected" class="flex flex-col">
           <div class="flex items-center justify-between mb-2">
             <span class="text-sm text-gray-400">Connected as:</span>
-            <button @click="changeAccount" class="text-xs text-blue-400 hover:text-blue-300">Change</button>
+            <button @click="changeAccount" class="text-xs text-blue-400 hover:text-blue-300">Change Account</button>
           </div>
           
           <!-- Account Selector -->
@@ -129,8 +130,32 @@
           </div>
           
           <!-- Single Account Display -->
-          <div v-else class="text-sm font-mono bg-gray-700 rounded px-2 py-1 truncate">
+          <div v-else class="text-sm font-mono bg-gray-700 rounded px-2 py-1 truncate mb-2">
             {{ shortenAddress(account) }}
+          </div>
+          
+          <!-- Network Selector - Added new section -->
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-sm text-gray-400">Network:</span>
+            <button @click="showNetworkSelector = !showNetworkSelector" class="text-xs text-blue-400 hover:text-blue-300">
+              Change Network
+            </button>
+          </div>
+          
+          <!-- Network Dropdown -->
+          <div v-if="showNetworkSelector" class="mb-2">
+            <select 
+              v-model="selectedNetworkIndex" 
+              @change="switchNetwork(selectedNetworkIndex)"
+              class="w-full bg-gray-700 text-white rounded px-2 py-1 text-sm">
+              <option 
+                v-for="(network, index) in networks" 
+                :key="network.chainId" 
+                :value="network.index"
+                :selected="selectedNetworkIndex === network.index">
+                {{ network.name }}
+              </option>
+            </select>
           </div>
         </div>
         

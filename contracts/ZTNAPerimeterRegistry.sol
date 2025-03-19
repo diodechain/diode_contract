@@ -4,7 +4,7 @@
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.8.20;
 
-import "./Proxy8.sol";
+import "./ManagedProxy.sol";
 import "./deps/Set.sol";
 import "./ZTNAPerimeterContract.sol";
 
@@ -13,7 +13,7 @@ interface InitializableFleet {
 }
 
 // Per user Fleet Registry used for Tracking user fleets in the Fleet ManagementUser Interface
-contract ZTNAPerimeterRegistry {
+contract ZTNAPerimeterRegistry is IProxyResolver {
     bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
     using Set for Set.Data;
 
@@ -57,6 +57,10 @@ contract ZTNAPerimeterRegistry {
         defaultFleetImplementation = _defaultFleetImplementation;
     }
 
+    function resolve(bytes32) external view returns (address) {
+        return address(defaultFleetImplementation);
+    }
+
     function Owner() public view returns (address) {
         address owner;
         assembly {owner := sload(OWNER_SLOT)}
@@ -68,8 +72,8 @@ contract ZTNAPerimeterRegistry {
     }
     
     // Add a fleet to the registry
-    function CreateFleet(string memory label) external {
-        address fleet = address(new Proxy8(defaultFleetImplementation, msg.sender));
+    function CreateFleet(string memory label) public {
+        address fleet = address(new ManagedProxy(this, "ZTNAPerimeterRegistry"));
         InitializableFleet(fleet).initialize(payable(msg.sender), label);
         
         // Initialize struct fields individually instead of using struct constructor
@@ -82,19 +86,8 @@ contract ZTNAPerimeterRegistry {
         userFleets[msg.sender].push(fleet);
     }
 
-    // For backward compatibility - creates a fleet with an empty label
     function CreateFleet() external {
-        address fleet = address(new Proxy8(defaultFleetImplementation, msg.sender));
-        InitializableFleet(fleet).initialize(payable(msg.sender), "");
-        
-        // Initialize struct fields individually instead of using struct constructor
-        fleets[fleet].owner = msg.sender;
-        fleets[fleet].fleet = fleet;
-        fleets[fleet].createdAt = block.timestamp;
-        fleets[fleet].updatedAt = block.timestamp;
-        // Note: users Set.Data will be initialized to its default empty state
-        
-        userFleets[msg.sender].push(fleet);
+        CreateFleet(string(abi.encodePacked("Fleet ", userFleets[msg.sender].length + 1)));
     }
 
     function AddFleetUser(address fleet, address user) external {

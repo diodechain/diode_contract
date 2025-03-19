@@ -1,65 +1,39 @@
-// Wallet connection utilities
-
 // Initialize MetaMask SDK
+let ethereum;
+
 export const initializeMetaMask = async () => {
+  if (ethereum) {
+    return ethereum;
+  }
+
   try {
-    // Fallback to window.ethereum if already available
-    if (window.ethereum) {
-      console.log('Using window.ethereum provider');
-      return window.ethereum;
-    } else if (window.MetaMaskSDK) {
-      console.log('Initializing MetaMask SDK');
-      let sdk;
-      try {
-        // Try the new SDK initialization method
-        sdk = new window.MetaMaskSDK({
-          dappMetadata: {
-            name: "ZTNA Perimeter Manager",
-            url: window.location.href,
-          },
-          logging: {
-            sdk: false
-          }
-        });
-        
-        // Check if the SDK has initialization method
-        if (typeof sdk.init === 'function') {
-          console.log('Using new SDK init method');
-          await sdk.init();
-        }
-        
-        // Check which provider accessor method is available
-        if (typeof sdk.getProvider === 'function') {
-          console.log('Using getProvider method');
-          return sdk.getProvider();
-        } else if (sdk.provider) {
-          console.log('Using provider property');
-          return sdk.provider;
-        } else {
-          throw new Error('Unable to get provider from SDK');
-        }
-      } catch (error) {
-        console.error('Error initializing SDK with new method:', error);
-        // Fall back to older SDK initialization if available
-        try {
-          console.log('Trying legacy SDK initialization');
-          if (window.ethereum) {
-            console.log('Using window.ethereum from SDK');
-            return window.ethereum;
-          } else {
-            throw new Error('No ethereum provider available from SDK');
-          }
-        } catch (fallbackError) {
-          console.error('Error with legacy initialization:', fallbackError);
-          throw new Error('Failed to initialize MetaMask: ' + fallbackError.message);
-        }
+    const sdk = new MetaMaskSDK.MetaMaskSDK({
+      dappMetadata: {
+        name: "ZTNA Perimeter Manager",
+        url: window.location.href,
+      },
+      logging: {
+        sdk: false
       }
-    } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      // For development/testing, provide a mock provider
-      console.warn('MetaMask not detected, but running in development environment. Using mock provider.');
-      return createMockProvider();
+    });
+
+    // Check if the SDK has initialization method
+    if (typeof sdk.init === 'function') {
+      console.log('Using new SDK init method');
+      await sdk.init();
+    }
+    
+    // Check which provider accessor method is available
+    if (typeof sdk.getProvider === 'function') {
+      console.log('Using getProvider method');
+      ethereum = sdk.getProvider();
+      return ethereum;
+    } else if (sdk.provider) {
+      console.log('Using provider property');
+      ethereum = sdk.provider;
+      return ethereum;
     } else {
-      throw new Error('MetaMask is not installed. Please install MetaMask to use this application.');
+      throw new Error('Unable to get provider from SDK');
     }
   } catch (error) {
     console.error('Error initializing MetaMask:', error);
@@ -109,7 +83,6 @@ import { showToast } from './utils.js';
 let web3;
 let account;
 let accounts;
-let ethereum;
 
 /**
  * Initialize Web3 and connect to the wallet
@@ -155,7 +128,7 @@ export async function connectWallet() {
   }
 
   try {
-    ethereum = await initializeMetaMask();
+    await initializeMetaMask();
     let ret = await initWeb3();
     web3 = ret.web3;
     account = ret.account;
@@ -229,3 +202,94 @@ export async function switchAccount(account) {
     throw error;
   }
 } 
+
+// Network configurations
+export var networks = [
+  {
+    index: 0,
+    chainId: "0x5afe",
+    name: "Oasis Sapphire",
+    rpcUrls: ["https://sapphire.oasis.io"],
+    nativeCurrency: {
+      name: "ROSE",
+      symbol: "ROSE",
+      decimals: 18
+    },
+    blockExplorerUrls: ["https://explorer.oasis.io/mainnet/sapphire"]
+  },
+  {
+    index: 1,
+    chainId: "0x5aff",
+    name: "Oasis Sapphire Testnet",
+    rpcUrls: ["https://testnet.sapphire.oasis.io"],
+    nativeCurrency: {
+      name: "TEST",
+      symbol: "TEST",
+      decimals: 18
+    },
+    blockExplorerUrls: ["https://explorer.oasis.io/testnet/sapphire"],
+    registry: '0x18D1c56474505893082e1B50A7c5a7cdc7854Eca'
+  }
+];
+
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+  networks.push({
+    index: 2,
+    chainId: "0x539",
+    name: "Anvil",
+    rpcUrls: ["http://localhost:8545"],
+    nativeCurrency: {
+      name: "ETH",
+      symbol: "ETH",
+      decimals: 18
+    },
+    blockExplorerUrls: ["http://localhost:8545"],
+    registry: '0x5FbDB2315678afecb367f032d93F642f64180aa3'
+  });
+}
+
+export async function getCurrentChain() {
+  try {
+    const chainId = await ethereum.request({ 
+      method: "eth_chainId" 
+    });
+    console.log("Current chain ID:", chainId);
+
+    return networks.find(network => network.chainId === chainId);
+    // return chainId;
+  } catch (err) {
+    console.error("Error getting chain:", err);
+  }
+}
+
+export async function switchNetwork(networkKey) {
+  const network = networks[networkKey];
+  
+  try {
+    // Try to switch to the network
+    await ethereum.request({
+      method: "wallet_switchEthereumChain",
+      params: [{ chainId: network.chainId }]
+    });
+  } catch (err) {
+    // If the error code is 4902, the network needs to be added
+    if (err.code === 4902) {
+      try {
+        await ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId: network.chainId,
+            chainName: network.name,
+            rpcUrls: network.rpcUrls,
+            nativeCurrency: network.nativeCurrency,
+            blockExplorerUrls: network.blockExplorerUrls
+          }]
+        });
+      } catch (addError) {
+        console.error("Error adding network:", addError);
+      }
+    } else {
+      console.error("Error switching network:", err);
+    }
+  }
+}
