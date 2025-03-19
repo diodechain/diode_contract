@@ -439,8 +439,11 @@
             
             <!-- Tags Tab -->
             <div v-if="activeTab === 'tags'" class="p-6">
-              <!-- Tags content will be implemented here -->
-              <p>Tag management will be implemented in a future update.</p>
+              <tag-management-component 
+                :managed-fleet="managedFleet"
+                :is-loading="isLoading"
+                @show-toast="showToastMessage">
+              </tag-management-component>
             </div>
           </div>
         </div>
