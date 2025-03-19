@@ -29,9 +29,9 @@ echo "Default account: $DEFAULT_ACCOUNT"
 PRIVATE_KEY="0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80"
 echo "Using private key for default account"
 
-# Deploy the IoTFleetRegistry contract
-echo "Deploying IoTFleetRegistry contract..."
-DEPLOYMENT_RESULT=$(forge create contracts/IoTFleetRegistry.sol:IoTFleetRegistry --rpc-url http://localhost:8545 --private-key $PRIVATE_KEY --legacy)
+# Deploy the ZTNAPerimeterRegistry contract
+echo "Deploying ZTNAPerimeterRegistry contract..."
+DEPLOYMENT_RESULT=$(forge create contracts/ZTNAPerimeterRegistry.sol:ZTNAPerimeterRegistry --rpc-url http://localhost:8545 --private-key $PRIVATE_KEY --legacy)
 echo "$DEPLOYMENT_RESULT"
 
 # Extract the deployed contract address

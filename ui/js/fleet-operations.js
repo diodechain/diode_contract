@@ -1,7 +1,7 @@
 // Fleet operations for the Fleet Manager application
 import { showToastMessage } from './utils.js';
 import { connectWallet } from './wallet.js';
-import fleetContractAbi from './fleet-contract-abi.js';
+import fleetContractAbi from './perimeter-abi.js';
 
 async function wrapAddress(address) {
   const { web3, account } = await connectWallet();

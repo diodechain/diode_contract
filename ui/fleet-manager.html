@@ -43,7 +43,7 @@
         
         <!-- Your Fleets Section -->
         <div class="mt-4">
-          <h3 class="px-4 text-sm uppercase text-gray-400 font-semibold mb-2">Your Fleets</h3>
+          <h3 class="px-4 text-sm uppercase text-gray-400 font-semibold mb-2">Your Perimeters</h3>
           
           <!-- Create Fleet Link - Updated with special styling -->
           <a href="#" @click.prevent="showCreateFleetView" 
@@ -53,18 +53,18 @@
               <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              Create New Fleet
+              Create New Perimeter
             </span>
           </a>
           
           <!-- Loading State -->
           <div v-if="isLoading" class="px-4 py-2 text-gray-400">
-            <span>Loading fleets...</span>
+            <span>Loading perimeters...</span>
           </div>
           
           <!-- No Fleets State -->
           <div v-else-if="ownFleets.length === 0 && !isLoading" class="px-4 py-2 text-gray-400">
-            <span>No fleets found</span>
+            <span>No perimeters found</span>
           </div>
           
           <!-- Fleet List -->
@@ -82,7 +82,7 @@
         
         <!-- Shared Fleets Section -->
         <div class="mt-4" v-if="Object.keys(groupedSharedFleets).length > 0">
-          <h3 class="px-4 text-sm uppercase text-gray-400 font-semibold mb-2">Shared Fleets</h3>
+          <h3 class="px-4 text-sm uppercase text-gray-400 font-semibold mb-2">Shared Perimeters</h3>
           
           <!-- Shared Fleet Groups -->
           <div v-for="(fleets, owner) in groupedSharedFleets" :key="owner" class="mb-2">
@@ -158,7 +158,7 @@
         <h1 class="text-xl font-semibold text-gray-800">
           <!-- Dynamic Title based on current view -->
           <span v-if="activePage === 'dashboard'">Dashboard</span>
-          <span v-else-if="activePage === 'createFleet'">Create New Fleet</span>
+          <span v-else-if="activePage === 'createFleet'">Create New Perimeter</span>
           <span v-else-if="activePage === 'fleetManagement'">
             Fleet Management: {{ fleetLabel || shortenAddress(managedFleet) }}
           </span>
@@ -182,7 +182,7 @@
         <!-- Dashboard View -->
         <div v-if="activePage === 'dashboard'" class="space-y-6">
           <div v-if="!isConnected" class="bg-white rounded-lg shadow p-6 text-center">
-            <h2 class="text-xl font-semibold mb-4">Welcome to ZTNA Perimeter Manager</h2>
+            <h2 class="text-xl font-semibold mb-4">ZTNA Perimeter Manager</h2>
             <p class="mb-4">Connect your wallet to get started managing your ZTNA Perimeters.</p>
             <button 
               @click="connectWallet" 
@@ -196,27 +196,27 @@
             <!-- Your Fleets Section -->
             <div class="bg-white rounded-lg shadow overflow-hidden">
               <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                <h2 class="text-lg font-semibold text-gray-800">Your Fleets</h2>
+                <h2 class="text-lg font-semibold text-gray-800">Your Perimeters</h2>
                 <button 
                   @click="showCreateFleetView" 
                   class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm">
-                  Create New Fleet
+                  Create New Perimeter
                 </button>
               </div>
               
               <div v-if="isLoading" class="p-6 text-center text-gray-500">
-                <p>Loading your fleets...</p>
+                <p>Loading your perimeters...</p>
               </div>
               
               <div v-else-if="ownFleets.length === 0" class="p-6 text-center text-gray-500">
-                <p>You don't have any fleets yet. Create one to get started!</p>
+                <p>You don't have any perimeters yet. Create one to get started!</p>
               </div>
               
               <div v-else class="overflow-x-auto">
                 <table class="min-w-full divide-y divide-gray-200">
                   <thead class="bg-gray-50">
                     <tr>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fleet Address</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perimeter Address</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
                       <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -248,7 +248,7 @@
             <!-- Shared Fleets Section -->
             <div v-if="sharedFleets.length > 0" class="bg-white rounded-lg shadow overflow-hidden">
               <div class="px-6 py-4 border-b border-gray-200">
-                <h2 class="text-lg font-semibold text-gray-800">Shared Fleets</h2>
+                <h2 class="text-lg font-semibold text-gray-800">Shared Perimeters</h2>
               </div>
               
               <div class="overflow-x-auto">
@@ -256,7 +256,7 @@
                   <thead class="bg-gray-50">
                     <tr>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Owner</th>
-                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fleet Address</th>
+                      <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perimeter Address</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
                       <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
                       <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
@@ -285,10 +285,10 @@
         
         <!-- Create Fleet View -->
         <div v-else-if="activePage === 'createFleet'" class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-semibold mb-4">Create New Fleet</h2>
+          <h2 class="text-xl font-semibold mb-4">Create New Perimeter</h2>
           
           <div v-if="!isConnected" class="text-center py-4">
-            <p class="mb-4">Please connect your wallet to create a fleet.</p>
+            <p class="mb-4">Please connect your wallet to create a perimeter.</p>
             <button 
               @click="connectWallet" 
               class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded"
@@ -299,13 +299,13 @@
           
           <form v-else @submit.prevent="createFleet" class="space-y-4">
             <div>
-              <label for="fleetLabel" class="block text-sm font-medium text-gray-700">Fleet Label (Optional)</label>
+              <label for="fleetLabel" class="block text-sm font-medium text-gray-700">Perimeter Label (Optional)</label>
               <input 
                 type="text" 
                 id="fleetLabel" 
                 v-model="newFleetLabel" 
                 class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                placeholder="Enter a label for your fleet">
+                placeholder="Enter a label for your perimeter">
             </div>
             
             <div class="pt-2">
@@ -313,7 +313,7 @@
                 type="submit" 
                 class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                 :disabled="isCreatingFleet">
-                {{ isCreatingFleet ? 'Creating Fleet...' : 'Create Fleet' }}
+                {{ isCreatingFleet ? 'Creating Perimeter...' : 'Create Perimeter' }}
               </button>
             </div>
           </form>
@@ -325,7 +325,7 @@
           <div class="bg-white rounded-lg shadow overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-200">
               <div class="flex justify-between items-center">
-                <h2 class="text-lg font-semibold text-gray-800">Fleet Details</h2>
+                <h2 class="text-lg font-semibold text-gray-800">Perimeter Details</h2>
                 
                 <!-- Edit Label Form -->
                 <div class="flex items-center space-x-2">
@@ -333,7 +333,7 @@
                     type="text" 
                     v-model="fleetLabel" 
                     class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm"
-                    placeholder="Fleet Label">
+                    placeholder="Perimeter Label">
                   <button 
                     @click="updateFleetLabel" 
                     class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
@@ -347,7 +347,7 @@
             <div class="p-6">
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p class="text-sm text-gray-500">Fleet Address:</p>
+                  <p class="text-sm text-gray-500">Perimeter Address:</p>
                   <p class="font-mono">{{ managedFleet }}</p>
                 </div>
               </div>
@@ -466,7 +466,7 @@
       <div class="fixed inset-0 bg-black opacity-50"></div>
       <div class="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
         <div class="px-6 py-4 border-b border-gray-200">
-          <h3 class="text-lg font-semibold text-gray-800">Add User to Fleet</h3>
+          <h3 class="text-lg font-semibold text-gray-800">Add User to Perimeter</h3>
         </div>
         
         <div class="p-6">

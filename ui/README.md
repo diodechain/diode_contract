@@ -1,6 +1,6 @@
 # IoT Fleet Manager UI
 
-A single-file Vue.js application for managing IoT device fleets using the IoTFleetRegistry smart contract.
+A single-file Vue.js application for managing IoT device fleets using the ZTNAPerimeterRegistry smart contract.
 
 ## Features
 
@@ -13,8 +13,8 @@ A single-file Vue.js application for managing IoT device fleets using the IoTFle
 ## Prerequisites
 
 - MetaMask browser extension installed
-- Access to an Ethereum network with the IoTFleetRegistry contract deployed
-- The IoTFleetRegistry contract should be deployed at `0x5FbDB2315678afecb367f032d93F642f64180aa3`
+- Access to an Ethereum network with the ZTNAPerimeterRegistry contract deployed
+- The ZTNAPerimeterRegistry contract should be deployed at `0x5FbDB2315678afecb367f032d93F642f64180aa3`
 
 ## Usage
 
@@ -31,7 +31,7 @@ A single-file Vue.js application for managing IoT device fleets using the IoTFle
    - Make sure MetaMask is connected to `localhost:8545` (Anvil)
    - Click the "Connect Wallet" button
 
-4. Interact with the IoTFleetRegistry contract:
+4. Interact with the ZTNAPerimeterRegistry contract:
    - Create new fleets
    - View fleet details
    - Add/remove users to your fleets
@@ -48,7 +48,7 @@ All code is contained in a single HTML file for simplicity.
 
 ## Contract Integration
 
-The UI interacts with the following IoTFleetRegistry contract functions:
+The UI interacts with the following ZTNAPerimeterRegistry contract functions:
 
 - `Version()` - Get the registry version
 - `CreateFleet()` - Create a new fleet
