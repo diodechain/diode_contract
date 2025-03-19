@@ -20,22 +20,22 @@ contract IoTFleetContract is FleetContractUpgradeable {
     event UserCreated(address indexed userAddress, string nickname);
     event UserUpdated(address indexed userAddress, string nickname);
     event UserRemoved(address indexed userAddress);
-    event UserGroupCreated(bytes32 indexed groupId, string name);
-    event UserGroupUpdated(bytes32 indexed groupId, string name);
-    event UserGroupRemoved(bytes32 indexed groupId);
-    event UserAddedToGroup(address indexed userAddress, bytes32 indexed groupId);
-    event UserRemovedFromGroup(address indexed userAddress, bytes32 indexed groupId);
+    event UserGroupCreated(address indexed groupId, string name);
+    event UserGroupUpdated(address indexed groupId, string name);
+    event UserGroupRemoved(address indexed groupId);
+    event UserAddedToGroup(address indexed userAddress, address indexed groupId);
+    event UserRemovedFromGroup(address indexed userAddress, address indexed groupId);
     event DeviceCreated(address indexed deviceId, address owner, string name);
     event DeviceUpdated(address indexed deviceId, string name);
     event DeviceRemoved(address indexed deviceId);
-    event TagCreated(bytes32 indexed tagId, string name);
-    event TagUpdated(bytes32 indexed tagId, string name);
-    event TagRemoved(bytes32 indexed tagId);
-    event DeviceAddedToTag(address indexed deviceId, bytes32 indexed tagId);
-    event DeviceRemovedFromTag(address indexed deviceId, bytes32 indexed tagId);
+    event TagCreated(address indexed tagId, string name);
+    event TagUpdated(address indexed tagId, string name);
+    event TagRemoved(address indexed tagId);
+    event DeviceAddedToTag(address indexed deviceId, address indexed tagId);
+    event DeviceRemovedFromTag(address indexed deviceId, address indexed tagId);
     event FleetLabelUpdated(string newLabel);
     event DevicePropertySet(address indexed deviceId, string key, string value);
-    event TagPropertySet(bytes32 indexed tagId, string key, string value);
+    event TagPropertySet(address indexed tagId, string key, string value);
 
     // ======== Structs ========
     struct User {
@@ -50,7 +50,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
     }
 
     struct UserGroup {
-        bytes32 id;
+        address id;
         string name;
         string description;
         uint256 createdAt;
@@ -72,7 +72,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
     }
 
     struct Tag {
-        bytes32 id;
+        address id;
         string name;
         string description;
         string color; // For UI representation
@@ -83,18 +83,18 @@ contract IoTFleetContract is FleetContractUpgradeable {
 
     // ======== Storage ========
     mapping(address => User) private users;
-    mapping(bytes32 => UserGroup) private userGroups;
+    mapping(address => UserGroup) private userGroups;
     mapping(address => Device) private devices;
-    mapping(bytes32 => Tag) private tags;
+    mapping(address => Tag) private tags;
     
     // Lookup mappings
-    mapping(bytes32 => Set.Data) private groupUsers; // groupId => Set of user addresses
-    mapping(bytes32 => Set.Data) private tagDevices; // tagId => Set of device IDs
+    mapping(address => Set.Data) private groupUsers; // groupId => Set of user addresses
+    mapping(address => Set.Data) private tagDevices; // tagId => Set of device IDs
     mapping(address => Set.Data) private userDevices; // user address => Set of device IDs
     
     // Property mappings
     mapping(address => mapping(string => string)) private deviceProperties; // deviceId => key => value
-    mapping(bytes32 => mapping(string => string)) private tagProperties; // tagId => key => value
+    mapping(address => mapping(string => string)) private tagProperties; // tagId => key => value
     
     // Counters for IDs
     uint256 private userGroupCounter;
@@ -102,9 +102,9 @@ contract IoTFleetContract is FleetContractUpgradeable {
     
     // List of all entities for enumeration
     address[] private allUsers;
-    bytes32[] private allUserGroups;
+    address[] private allUserGroups;
     address[] private allDevices;
-    bytes32[] private allTags;
+    address[] private allTags;
 
     // Override initialize to include label
     function initialize(address payable _owner, string memory _label) public initializer {
@@ -116,7 +116,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         _createUser(_owner, "Admin", "", "", true);
         
         // Create default user group
-        bytes32 adminGroupId = _createUserGroup("Administrators", "Users with administrative privileges");
+        address adminGroupId = _createUserGroup("Administrators", "Users with administrative privileges");
         _addUserToGroup(_owner, adminGroupId);
     }
 
@@ -146,7 +146,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         _;
     }
     
-    modifier userGroupExists(bytes32 _groupId) {
+    modifier userGroupExists(address _groupId) {
         require(userGroups[_groupId].active, "User group does not exist");
         _;
     }
@@ -156,7 +156,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         _;
     }
     
-    modifier tagExists(bytes32 _tagId) {
+    modifier tagExists(address _tagId) {
         require(tags[_tagId].active, "Tag does not exist");
         _;
     }
@@ -236,7 +236,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         // Remove user from all groups
         address[] memory userGroupsList = Set.Members(users[_userAddress].groups);
         for (uint i = 0; i < userGroupsList.length; i++) {
-            bytes32 groupId = bytes32(uint256(uint160(userGroupsList[i])));
+            address groupId = userGroupsList[i];
             _removeUserFromGroup(_userAddress, groupId);
         }
         
@@ -276,16 +276,9 @@ contract IoTFleetContract is FleetContractUpgradeable {
         external 
         view 
         userExists(_userAddress) 
-        returns (bytes32[] memory) 
+        returns (address[] memory) 
     {
-        address[] memory groupAddresses = Set.Members(users[_userAddress].groups);
-        bytes32[] memory result = new bytes32[](groupAddresses.length);
-        
-        for (uint i = 0; i < groupAddresses.length; i++) {
-            result[i] = bytes32(uint256(uint160(groupAddresses[i])));
-        }
-        
-        return result;
+        return Set.Members(users[_userAddress].groups);
     }
     
     function getAllUsers() 
@@ -300,16 +293,16 @@ contract IoTFleetContract is FleetContractUpgradeable {
     function createUserGroup(string memory _name, string memory _description) 
         external 
         onlyAdmin 
-        returns (bytes32) 
+        returns (address) 
     {
         return _createUserGroup(_name, _description);
     }
     
     function _createUserGroup(string memory _name, string memory _description) 
         private 
-        returns (bytes32) 
+        returns (address) 
     {
-        bytes32 groupId = keccak256(abi.encodePacked("GROUP", userGroupCounter++, block.timestamp));
+        address groupId = address(bytes20(keccak256(abi.encodePacked("GROUP", userGroupCounter++, block.timestamp))));
         
         // Initialize the user group struct fields individually
         userGroups[groupId].id = groupId;
@@ -324,7 +317,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return groupId;
     }
     
-    function updateUserGroup(bytes32 _groupId, string memory _name, string memory _description) 
+    function updateUserGroup(address _groupId, string memory _name, string memory _description) 
         external 
         onlyAdmin 
         userGroupExists(_groupId) 
@@ -337,7 +330,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function removeUserGroup(bytes32 _groupId) 
+    function removeUserGroup(address _groupId) 
         external 
         onlyAdmin 
         userGroupExists(_groupId) 
@@ -356,7 +349,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function addUserToGroup(address _userAddress, bytes32 _groupId) 
+    function addUserToGroup(address _userAddress, address _groupId) 
         external 
         onlyAdmin 
         userExists(_userAddress) 
@@ -366,12 +359,12 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return _addUserToGroup(_userAddress, _groupId);
     }
     
-    function _addUserToGroup(address _userAddress, bytes32 _groupId) 
+    function _addUserToGroup(address _userAddress, address _groupId) 
         private 
         returns (bool) 
     {
         // Add group to user's groups
-        Set.Add(users[_userAddress].groups, address(uint160(uint256(_groupId))));
+        Set.Add(users[_userAddress].groups, _groupId);
         
         // Add user to group's users
         Set.Add(groupUsers[_groupId], _userAddress);
@@ -380,7 +373,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function removeUserFromGroup(address _userAddress, bytes32 _groupId) 
+    function removeUserFromGroup(address _userAddress, address _groupId) 
         external 
         onlyAdmin 
         userExists(_userAddress) 
@@ -390,12 +383,12 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return _removeUserFromGroup(_userAddress, _groupId);
     }
     
-    function _removeUserFromGroup(address _userAddress, bytes32 _groupId) 
+    function _removeUserFromGroup(address _userAddress, address _groupId) 
         private 
         returns (bool) 
     {
         // Remove group from user's groups
-        Set.Remove(users[_userAddress].groups, address(uint160(uint256(_groupId))));
+        Set.Remove(users[_userAddress].groups, _groupId);
         
         // Remove user from group's users
         Set.Remove(groupUsers[_groupId], _userAddress);
@@ -404,12 +397,12 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function getUserGroup(bytes32 _groupId) 
+    function getUserGroup(address _groupId) 
         external 
         view 
         userGroupExists(_groupId) 
         returns (
-            bytes32 id,
+            address id,
             string memory name,
             string memory description,
             uint256 createdAt,
@@ -428,7 +421,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         );
     }
     
-    function getGroupUsers(bytes32 _groupId) 
+    function getGroupUsers(address _groupId) 
         external 
         view 
         userGroupExists(_groupId) 
@@ -440,7 +433,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
     function getAllUserGroups() 
         external 
         view 
-        returns (bytes32[] memory) 
+        returns (address[] memory) 
     {
         return allUserGroups;
     }
@@ -548,7 +541,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         // Remove device from all tags
         address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
         for (uint i = 0; i < deviceTagsList.length; i++) {
-            bytes32 tagId = bytes32(uint256(uint160(deviceTagsList[i])));
+            address tagId = deviceTagsList[i];
             _removeDeviceFromTag(_deviceId, tagId);
         }
         
@@ -622,9 +615,9 @@ contract IoTFleetContract is FleetContractUpgradeable {
     function createTag(string memory _name, string memory _description, string memory _color) 
         external 
         onlyAdmin 
-        returns (bytes32) 
+        returns (address) 
     {
-        bytes32 tagId = keccak256(abi.encodePacked("TAG", tagCounter++, block.timestamp));
+        address tagId = address(bytes20(keccak256(abi.encodePacked("TAG", tagCounter++, block.timestamp))));
         
         // Initialize the tag struct fields individually
         tags[tagId].id = tagId;
@@ -640,7 +633,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return tagId;
     }
     
-    function updateTag(bytes32 _tagId, string memory _name, string memory _description, string memory _color) 
+    function updateTag(address _tagId, string memory _name, string memory _description, string memory _color) 
         external 
         onlyAdmin 
         tagExists(_tagId) 
@@ -654,7 +647,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function removeTag(bytes32 _tagId) 
+    function removeTag(address _tagId) 
         external 
         onlyAdmin 
         tagExists(_tagId) 
@@ -663,8 +656,8 @@ contract IoTFleetContract is FleetContractUpgradeable {
         // Remove all devices from this tag
         address[] memory tagDevicesList = Set.Members(tagDevices[_tagId]);
         for (uint i = 0; i < tagDevicesList.length; i++) {
-            bytes32 deviceId = bytes32(uint256(uint160(tagDevicesList[i])));
-            _removeDeviceFromTag(address(uint160(uint256(deviceId))), _tagId);
+            address deviceId = tagDevicesList[i];
+            _removeDeviceFromTag(deviceId, _tagId);
         }
         
         // Mark tag as inactive
@@ -674,7 +667,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function addDeviceToTag(address _deviceId, bytes32 _tagId) 
+    function addDeviceToTag(address _deviceId, address _tagId) 
         external 
         deviceExists(_deviceId)
         tagExists(_tagId)
@@ -689,12 +682,12 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return _addDeviceToTag(_deviceId, _tagId);
     }
     
-    function _addDeviceToTag(address _deviceId, bytes32 _tagId) 
+    function _addDeviceToTag(address _deviceId, address _tagId) 
         private 
         returns (bool) 
     {
         // Add tag to device's tags
-        Set.Add(devices[_deviceId].tags, address(uint160(uint256(_tagId) & ((1 << 160) - 1))));
+        Set.Add(devices[_deviceId].tags, _tagId);
         
         // Add device to tag's devices
         Set.Add(tagDevices[_tagId], _deviceId);
@@ -703,7 +696,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function removeDeviceFromTag(address _deviceId, bytes32 _tagId) 
+    function removeDeviceFromTag(address _deviceId, address _tagId) 
         external 
         deviceExists(_deviceId)
         tagExists(_tagId)
@@ -718,12 +711,12 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return _removeDeviceFromTag(_deviceId, _tagId);
     }
     
-    function _removeDeviceFromTag(address _deviceId, bytes32 _tagId) 
+    function _removeDeviceFromTag(address _deviceId, address _tagId) 
         private 
         returns (bool) 
     {
         // Remove tag from device's tags
-        Set.Remove(devices[_deviceId].tags, address(uint160(uint256(_tagId))));
+        Set.Remove(devices[_deviceId].tags, _tagId);
         
         // Remove device from tag's devices
         Set.Remove(tagDevices[_tagId], _deviceId);
@@ -736,19 +729,12 @@ contract IoTFleetContract is FleetContractUpgradeable {
         external 
         view 
         deviceExists(_deviceId)
-        returns (bytes32[] memory) 
+        returns (address[] memory) 
     {
-        address[] memory tagAddresses = Set.Members(devices[_deviceId].tags);
-        bytes32[] memory result = new bytes32[](tagAddresses.length);
-        
-        for (uint i = 0; i < tagAddresses.length; i++) {
-            result[i] = bytes32(uint256(uint160(tagAddresses[i])) & ((1 << 160) - 1));
-        }
-        
-        return result;
+        return Set.Members(devices[_deviceId].tags);
     }
     
-    function getTagDevices(bytes32 _tagId) 
+    function getTagDevices(address _tagId) 
         external 
         view 
         tagExists(_tagId)
@@ -757,7 +743,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return Set.Members(tagDevices[_tagId]);
     }
     
-    function isDeviceInTag(address _deviceId, bytes32 _tagId) 
+    function isDeviceInTag(address _deviceId, address _tagId) 
         external 
         view 
         returns (bool) 
@@ -767,7 +753,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         }
         
         // Check if tag is in device's tags
-        bool deviceHasTag = Set.IsMember(devices[_deviceId].tags, address(uint160(uint256(_tagId))));
+        bool deviceHasTag = Set.IsMember(devices[_deviceId].tags, _tagId);
         
         // Check if device is in tag's devices
         bool tagHasDevice = Set.IsMember(tagDevices[_tagId], _deviceId);
@@ -785,7 +771,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
     }
 
     // ======== Access Control ========
-    function isUserInGroup(address _userAddress, bytes32 _groupId) 
+    function isUserInGroup(address _userAddress, address _groupId) 
         external 
         view 
         returns (bool) 
@@ -794,7 +780,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
             return false;
         }
         
-        return Set.IsMember(users[_userAddress].groups, address(uint160(uint256(_groupId))));
+        return Set.IsMember(users[_userAddress].groups, _groupId);
     }
     
     function isUserAdmin(address _userAddress) 
@@ -824,7 +810,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return deviceProperties[_deviceId][_key];
     }
     
-    function setTagProperty(bytes32 _tagId, string memory _key, string memory _value) 
+    function setTagProperty(address _tagId, string memory _key, string memory _value) 
         external 
         onlyAdmin
         returns (bool) 
@@ -834,7 +820,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         return true;
     }
     
-    function getTagProperty(bytes32 _tagId, string memory _key) 
+    function getTagProperty(address _tagId, string memory _key) 
         external 
         view 
         returns (string memory) 
@@ -858,7 +844,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
         if (deviceTagsList.length > 0) {
             for (uint i = 0; i < deviceTagsList.length; i++) {
-                bytes32 tagId = bytes32(uint256(uint160(deviceTagsList[i])) & ((1 << 160) - 1));
+                address tagId = deviceTagsList[i];
                 
                 // Get the tag property
                 string memory tagValue = tagProperties[tagId][_key];
@@ -892,7 +878,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
         // First check tag properties
         address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
         for (uint i = 0; i < deviceTagsList.length; i++) {
-            bytes32 tagId = bytes32(uint256(uint160(deviceTagsList[i])));
+            address tagId = deviceTagsList[i];
             
             // Skip inactive tags
             if (!tags[tagId].active) {
@@ -900,7 +886,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
             }
             
             // Check if device is in this tag
-            if (Set.IsMember(devices[_deviceId].tags, address(uint160(uint256(tagId))))) {
+            if (Set.IsMember(devices[_deviceId].tags, tagId)) {
                 // Get the tag property
                 if (bytes(tagProperties[tagId][_key]).length > 0) {
                     return true;
@@ -919,17 +905,17 @@ contract IoTFleetContract is FleetContractUpgradeable {
     function getAllTags() 
         external 
         view 
-        returns (bytes32[] memory) 
+        returns (address[] memory) 
     {
         return allTags;
     }
 
-    function getTag(bytes32 _tagId) 
+    function getTag(address _tagId) 
         external 
         view 
         tagExists(_tagId)
         returns (
-            bytes32 id,
+            address id,
             string memory name,
             string memory description,
             string memory color,

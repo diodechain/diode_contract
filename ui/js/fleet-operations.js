@@ -196,6 +196,11 @@ export async function setDeviceProperty(fleetAddress, deviceId, key, value) {
   return doSend(fleetAddress, 'setDeviceProperty', [deviceId, key, value], 'Device property set successfully!');
 }
 
+// Get device property
+export async function getDeviceProperty(fleetAddress, deviceId, key) {
+  return doCall(fleetAddress, 'getDeviceProperty', [deviceId, key]);
+}
+
 // Update device last seen
 export async function updateDeviceLastSeen(fleetAddress, deviceId) {
   return doSend(fleetAddress, 'updateDeviceLastSeen', [deviceId], 'Device last seen updated successfully!');
