@@ -1,0 +1,1527 @@
+%{9 => "contracts/Proxy.sol"}
+source_map: [0, -1, 1]
+{{%{offset: 0, len: 2, op: "PUSH1", bin: <<128>>},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 0}
+{{%{offset: 2, len: 2, op: "PUSH1", bin: "@"},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 1}
+{{%{offset: 4, len: 1, op: "MSTORE", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 2}
+{{%{offset: 5, len: 2, op: "PUSH1", bin: <<4>>},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 3}
+{{%{offset: 7, len: 1, op: "CALLDATASIZE", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 4}
+{{%{offset: 8, len: 1, op: "LT", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 5}
+{{%{offset: 9, len: 3, op: "PUSH2", bin: <<0, 44>>},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 6}
+{{%{offset: 12, len: 1, op: "JUMPI", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 7}
+{{%{offset: 13, len: 1, op: "PUSH0", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 8}
+{{%{offset: 14, len: 1, op: "CALLDATALOAD", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 9}
+{{%{offset: 15, len: 2, op: "PUSH1", bin: <<224>>},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 10}
+{{%{offset: 17, len: 1, op: "SHR", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 11}
+{{%{offset: 18, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 12}
+{{%{offset: 19, len: 5, op: "PUSH4", bin: <<39, 127, 37, 148>>},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 13}
+{{%{offset: 24, len: 1, op: "EQ", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 14}
+{{%{offset: 25, len: 3, op: "PUSH2", bin: <<0, 67>>},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 15}
+{{%{offset: 28, len: 1, op: "JUMPI", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 16}
+{{%{offset: 29, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 17}
+{{%{offset: 30, len: 5, op: "PUSH4", bin: <<59, 42, 15, 242>>},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 18}
+{{%{offset: 35, len: 1, op: "EQ", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 19}
+{{%{offset: 36, len: 3, op: "PUSH2", bin: <<0, 98>>},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 20}
+{{%{offset: 39, len: 1, op: "JUMPI", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 21}
+{{%{offset: 40, len: 3, op: "PUSH2", bin: <<0, 59>>},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 22}
+{{%{offset: 43, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 23}
+{{%{offset: 44, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 24}
+{{%{offset: 45, len: 1, op: "CALLDATASIZE", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 25}
+{{%{offset: 46, len: 3, op: "PUSH2", bin: <<0, 59>>},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 26}
+{{%{offset: 49, len: 1, op: "JUMPI", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 27}
+{{%{offset: 50, len: 3, op: "PUSH2", bin: <<0, 57>>},
+  %{
+    length: 11,
+    depth: 0,
+    jump: "-",
+    source: "_fallback()",
+    source_offset: 1164,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 28}
+{{%{offset: 53, len: 3, op: "PUSH2", bin: <<0, 129>>},
+  %{
+    length: 9,
+    depth: 0,
+    jump: "-",
+    source: "_fallback",
+    source_offset: 1164,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 29}
+{{%{offset: 56, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 11,
+    depth: 0,
+    jump: "i",
+    source: "_fallback()",
+    source_offset: 1164,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 30}
+{{%{offset: 57, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 11,
+    depth: 0,
+    jump: "-",
+    source: "_fallback()",
+    source_offset: 1164,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 31}
+{{%{offset: 58, len: 1, op: "STOP", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 32}
+{{%{offset: 59, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 1480,
+    depth: 0,
+    jump: "-",
+    source: "contract Proxy {\n    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173",
+    source_offset: 157,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 33}
+{{%{offset: 60, len: 3, op: "PUSH2", bin: <<0, 57>>},
+  %{
+    length: 11,
+    depth: 0,
+    jump: "-",
+    source: "_fallback()",
+    source_offset: 1226,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 34}
+{{%{offset: 63, len: 3, op: "PUSH2", bin: <<0, 129>>},
+  %{
+    length: 9,
+    depth: 0,
+    jump: "-",
+    source: "_fallback",
+    source_offset: 1226,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 35}
+{{%{offset: 66, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 11,
+    depth: 0,
+    jump: "i",
+    source: "_fallback()",
+    source_offset: 1226,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 36}
+{{%{offset: 67, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 37}
+{{%{offset: 68, len: 1, op: "CALLVALUE", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 38}
+{{%{offset: 69, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 39}
+{{%{offset: 70, len: 1, op: "ISZERO", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 40}
+{{%{offset: 71, len: 3, op: "PUSH2", bin: <<0, 78>>},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 41}
+{{%{offset: 74, len: 1, op: "JUMPI", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 42}
+{{%{offset: 75, len: 1, op: "PUSH0", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 43}
+{{%{offset: 76, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 44}
+{{%{offset: 77, len: 1, op: "REVERT", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 45}
+{{%{offset: 78, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 46}
+{{%{offset: 79, len: 1, op: "POP", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 47}
+{{%{offset: 80, len: 3, op: "PUSH2", bin: <<0, 57>>},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 48}
+{{%{offset: 83, len: 3, op: "PUSH2", bin: <<0, 93>>},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 49}
+{{%{offset: 86, len: 1, op: "CALLDATASIZE", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 50}
+{{%{offset: 87, len: 2, op: "PUSH1", bin: <<4>>},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 51}
+{{%{offset: 89, len: 3, op: "PUSH2", bin: <<1, 125>>},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 52}
+{{%{offset: 92, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "i",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 53}
+{{%{offset: 93, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 54}
+{{%{offset: 94, len: 3, op: "PUSH2", bin: <<0, 199>>},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 55}
+{{%{offset: 97, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "i",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 56}
+{{%{offset: 98, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 57}
+{{%{offset: 99, len: 1, op: "CALLVALUE", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 58}
+{{%{offset: 100, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 59}
+{{%{offset: 101, len: 1, op: "ISZERO", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 60}
+{{%{offset: 102, len: 3, op: "PUSH2", bin: <<0, 109>>},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 61}
+{{%{offset: 105, len: 1, op: "JUMPI", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 62}
+{{%{offset: 106, len: 1, op: "PUSH0", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 63}
+{{%{offset: 107, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 64}
+{{%{offset: 108, len: 1, op: "REVERT", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 65}
+{{%{offset: 109, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 66}
+{{%{offset: 110, len: 1, op: "POP", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 67}
+{{%{offset: 111, len: 3, op: "PUSH2", bin: <<0, 57>>},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 68}
+{{%{offset: 114, len: 3, op: "PUSH2", bin: <<0, 124>>},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 69}
+{{%{offset: 117, len: 1, op: "CALLDATASIZE", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 70}
+{{%{offset: 118, len: 2, op: "PUSH1", bin: <<4>>},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 71}
+{{%{offset: 120, len: 3, op: "PUSH2", bin: <<1, 125>>},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 72}
+{{%{offset: 123, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "i",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 73}
+{{%{offset: 124, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 74}
+{{%{offset: 125, len: 3, op: "PUSH2", bin: <<1, 38>>},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 75}
+{{%{offset: 128, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "i",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 76}
+{{%{offset: 129, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 385,
+    depth: 0,
+    jump: "-",
+    source: "function _fallback() internal {\n        assembly {\n            let target := slo",
+    source_offset: 1250,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 77}
+{{%{
+    offset: 130,
+    len: 33,
+    op: "PUSH32",
+    bin: <<54, 8, 148, 161, 59, 161, 163, 33, 6, 103, 200, 40, 73, 45, 185, 141,
+      202, 62, 32, 118, 204, 55, 53, 169, 32, 163, 202, 80, 93, 56, 43, 188>>
+  },
+  %{
+    length: 11,
+    depth: 0,
+    jump: "-",
+    source: "TARGET_SLOT",
+    source_offset: 1333,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 78}
+{{%{offset: 163, len: 1, op: "SLOAD", bin: ""},
+  %{
+    length: 18,
+    depth: 0,
+    jump: "-",
+    source: "sload(TARGET_SLOT)",
+    source_offset: 1327,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 79}
+{{%{offset: 164, len: 1, op: "CALLDATASIZE", bin: ""},
+  %{
+    length: 14,
+    depth: 0,
+    jump: "-",
+    source: "calldatasize()",
+    source_offset: 1381,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 80}
+{{%{offset: 165, len: 1, op: "PUSH0", bin: ""},
+  %{
+    length: 3,
+    depth: 0,
+    jump: "-",
+    source: "0x0",
+    source_offset: 1376,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 81}
+{{%{offset: 166, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 3,
+    depth: 0,
+    jump: "-",
+    source: "0x0",
+    source_offset: 1371,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 82}
+{{%{offset: 167, len: 1, op: "CALLDATACOPY", bin: ""},
+  %{
+    length: 38,
+    depth: 0,
+    jump: "-",
+    source: "calldatacopy(0x0, 0x0, calldatasize())",
+    source_offset: 1358,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 83}
+{{%{offset: 168, len: 1, op: "PUSH0", bin: ""},
+  %{
+    length: 1,
+    depth: 0,
+    jump: "-",
+    source: "0",
+    source_offset: 1475,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 84}
+{{%{offset: 169, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 3,
+    depth: 0,
+    jump: "-",
+    source: "0x0",
+    source_offset: 1470,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 85}
+{{%{offset: 170, len: 1, op: "CALLDATASIZE", bin: ""},
+  %{
+    length: 14,
+    depth: 0,
+    jump: "-",
+    source: "calldatasize()",
+    source_offset: 1454,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 86}
+{{%{offset: 171, len: 1, op: "PUSH0", bin: ""},
+  %{
+    length: 1,
+    depth: 0,
+    jump: "-",
+    source: "0",
+    source_offset: 1451,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 87}
+{{%{offset: 172, len: 1, op: "DUP5", bin: ""},
+  %{
+    length: 6,
+    depth: 0,
+    jump: "-",
+    source: "target",
+    source_offset: 1443,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 88}
+{{%{offset: 173, len: 1, op: "GAS", bin: ""},
+  %{
+    length: 5,
+    depth: 0,
+    jump: "-",
+    source: "gas()",
+    source_offset: 1436,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 89}
+{{%{offset: 174, len: 1, op: "DELEGATECALL", bin: ""},
+  %{
+    length: 54,
+    depth: 0,
+    jump: "-",
+    source: "delegatecall(gas(), target, 0, calldatasize(), 0x0, 0)",
+    source_offset: 1423,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 90}
+{{%{offset: 175, len: 1, op: "SWAP1", bin: ""},
+  %{
+    length: 68,
+    depth: 0,
+    jump: "-",
+    source: "let result := delegatecall(gas(), target, 0, calldatasize(), 0x0, 0)",
+    source_offset: 1409,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 91}
+{{%{offset: 176, len: 1, op: "POP", bin: ""},
+  %{
+    length: 68,
+    depth: 0,
+    jump: "-",
+    source: "let result := delegatecall(gas(), target, 0, calldatasize(), 0x0, 0)",
+    source_offset: 1409,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 92}
+{{%{offset: 177, len: 1, op: "RETURNDATASIZE", bin: ""},
+  %{
+    length: 16,
+    depth: 0,
+    jump: "-",
+    source: "returndatasize()",
+    source_offset: 1515,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 93}
+{{%{offset: 178, len: 1, op: "PUSH0", bin: ""},
+  %{
+    length: 3,
+    depth: 0,
+    jump: "-",
+    source: "0x0",
+    source_offset: 1510,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 94}
+{{%{offset: 179, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 3,
+    depth: 0,
+    jump: "-",
+    source: "0x0",
+    source_offset: 1505,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 95}
+{{%{offset: 180, len: 1, op: "RETURNDATACOPY", bin: ""},
+  %{
+    length: 42,
+    depth: 0,
+    jump: "-",
+    source: "returndatacopy(0x0, 0x0, returndatasize())",
+    source_offset: 1490,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 96}
+{{%{offset: 181, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 6,
+    depth: 0,
+    jump: "-",
+    source: "result",
+    source_offset: 1552,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 97}
+{{%{offset: 182, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 21,
+    depth: 0,
+    jump: "-",
+    source: "case 0 {revert(0, 0)}",
+    source_offset: 1559,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 98}
+{{%{offset: 183, len: 1, op: "ISZERO", bin: ""},
+  %{
+    length: 21,
+    depth: 0,
+    jump: "-",
+    source: "case 0 {revert(0, 0)}",
+    source_offset: 1559,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 99}
+{{%{offset: 184, len: 3, op: "PUSH2", bin: <<0, 191>>},
+  %{
+    length: 21,
+    depth: 0,
+    jump: "-",
+    source: "case 0 {revert(0, 0)}",
+    source_offset: 1559,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 100}
+{{%{offset: 187, len: 1, op: "JUMPI", bin: ""},
+  %{
+    length: 21,
+    depth: 0,
+    jump: "-",
+    source: "case 0 {revert(0, 0)}",
+    source_offset: 1559,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 101}
+{{%{offset: 188, len: 1, op: "RETURNDATASIZE", bin: ""},
+  %{
+    length: 16,
+    depth: 0,
+    jump: "-",
+    source: "returndatasize()",
+    source_offset: 1601,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 102}
+{{%{offset: 189, len: 1, op: "PUSH0", bin: ""},
+  %{
+    length: 1,
+    depth: 0,
+    jump: "-",
+    source: "0",
+    source_offset: 1598,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 103}
+{{%{offset: 190, len: 1, op: "RETURN", bin: ""},
+  %{
+    length: 28,
+    depth: 0,
+    jump: "-",
+    source: "return (0, returndatasize())",
+    source_offset: 1590,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 104}
+{{%{offset: 191, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 21,
+    depth: 0,
+    jump: "-",
+    source: "case 0 {revert(0, 0)}",
+    source_offset: 1559,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 105}
+{{%{offset: 192, len: 1, op: "PUSH0", bin: ""},
+  %{
+    length: 1,
+    depth: 0,
+    jump: "-",
+    source: "0",
+    source_offset: 1577,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 106}
+{{%{offset: 193, len: 1, op: "DUP1", bin: ""},
+  %{
+    length: 1,
+    depth: 0,
+    jump: "-",
+    source: "0",
+    source_offset: 1574,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 107}
+{{%{offset: 194, len: 1, op: "REVERT", bin: ""},
+  %{
+    length: 12,
+    depth: 0,
+    jump: "-",
+    source: "revert(0, 0)",
+    source_offset: 1567,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 108}
+{{%{offset: 195, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 74,
+    depth: 0,
+    jump: "-",
+    source: "switch result case 0 {revert(0, 0)} default {return (0, returndatasize())}",
+    source_offset: 1545,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 109}
+{{%{offset: 196, len: 1, op: "POP", bin: ""},
+  %{
+    length: 74,
+    depth: 0,
+    jump: "-",
+    source: "switch result case 0 {revert(0, 0)} default {return (0, returndatasize())}",
+    source_offset: 1545,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 110}
+{{%{offset: 197, len: 1, op: "POP", bin: ""},
+  %{
+    length: 74,
+    depth: 0,
+    jump: "-",
+    source: "switch result case 0 {revert(0, 0)} default {return (0, returndatasize())}",
+    source_offset: 1545,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 111}
+{{%{offset: 198, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 385,
+    depth: 0,
+    jump: "o",
+    source: "function _fallback() internal {\n        assembly {\n            let target := slo",
+    source_offset: 1250,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 112}
+{{%{offset: 199, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 113}
+{{%{
+    offset: 200,
+    len: 33,
+    op: "PUSH32",
+    bin: <<181, 49, 39, 104, 74, 86, 139, 49, 115, 174, 19, 185, 248, 166, 1,
+      110, 36, 62, 99, 182, 232, 238, 17, 120, 214, 167, 23, 133, 11, 93, 97,
+      3>>
+  },
+  %{
+    length: 10,
+    depth: 0,
+    jump: "-",
+    source: "OWNER_SLOT",
+    source_offset: 961,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 114}
+{{%{offset: 233, len: 1, op: "SLOAD", bin: ""},
+  %{
+    length: 17,
+    depth: 0,
+    jump: "-",
+    source: "sload(OWNER_SLOT)",
+    source_offset: 955,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 115}
+{{%{offset: 234, len: 1, op: "CALLER", bin: ""},
+  %{
+    length: 10,
+    depth: 0,
+    jump: "-",
+    source: "msg.sender",
+    source_offset: 995,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 116}
+{{%{offset: 235, len: 2, op: "PUSH1", bin: <<1>>},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 117}
+{{%{offset: 237, len: 2, op: "PUSH1", bin: <<1>>},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 118}
+{{%{offset: 239, len: 2, op: "PUSH1", bin: <<160>>},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 119}
+{{%{offset: 241, len: 1, op: "SHL", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 120}
+{{%{offset: 242, len: 1, op: "SUB", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 121}
+{{%{offset: 243, len: 1, op: "DUP3", bin: ""},
+  %{
+    length: 19,
+    depth: 0,
+    jump: "-",
+    source: "owner == msg.sender",
+    source_offset: 986,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 122}
+{{%{offset: 244, len: 1, op: "AND", bin: ""},
+  %{
+    length: 19,
+    depth: 0,
+    jump: "-",
+    source: "owner == msg.sender",
+    source_offset: 986,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 123}
+{{%{offset: 245, len: 1, op: "SUB", bin: ""},
+  %{
+    length: 19,
+    depth: 0,
+    jump: "-",
+    source: "owner == msg.sender",
+    source_offset: 986,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 124}
+{{%{offset: 246, len: 3, op: "PUSH2", bin: <<1, 30>>},
+  %{
+    length: 111,
+    depth: 0,
+    jump: "-",
+    source: "if (owner == msg.sender) {\n            assembly {sstore(TARGET_SLOT, _newtarget)",
+    source_offset: 982,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 125}
+{{%{offset: 249, len: 1, op: "JUMPI", bin: ""},
+  %{
+    length: 111,
+    depth: 0,
+    jump: "-",
+    source: "if (owner == msg.sender) {\n            assembly {sstore(TARGET_SLOT, _newtarget)",
+    source_offset: 982,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 126}
+{{%{offset: 250, len: 1, op: "POP", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 127}
+{{%{
+    offset: 251,
+    len: 33,
+    op: "PUSH32",
+    bin: <<54, 8, 148, 161, 59, 161, 163, 33, 6, 103, 200, 40, 73, 45, 185, 141,
+      202, 62, 32, 118, 204, 55, 53, 169, 32, 163, 202, 80, 93, 56, 43, 188>>
+  },
+  %{
+    length: 11,
+    depth: 0,
+    jump: "-",
+    source: "TARGET_SLOT",
+    source_offset: 1038,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 128}
+{{%{offset: 284, len: 1, op: "SSTORE", bin: ""},
+  %{
+    length: 31,
+    depth: 0,
+    jump: "-",
+    source: "sstore(TARGET_SLOT, _newtarget)",
+    source_offset: 1031,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 129}
+{{%{offset: 285, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 274,
+    depth: 0,
+    jump: "o",
+    source: "function _proxy_set_target(address _newtarget) external {\n        address owner;",
+    source_offset: 847,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 130}
+{{%{offset: 286, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 111,
+    depth: 0,
+    jump: "-",
+    source: "if (owner == msg.sender) {\n            assembly {sstore(TARGET_SLOT, _newtarget)",
+    source_offset: 982,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 131}
+{{%{offset: 287, len: 3, op: "PUSH2", bin: <<0, 195>>},
+  %{
+    length: 11,
+    depth: 0,
+    jump: "-",
+    source: "_fallback()",
+    source_offset: 1103,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 132}
+{{%{offset: 290, len: 3, op: "PUSH2", bin: <<0, 129>>},
+  %{
+    length: 9,
+    depth: 0,
+    jump: "-",
+    source: "_fallback",
+    source_offset: 1103,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 133}
+{{%{offset: 293, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 11,
+    depth: 0,
+    jump: "i",
+    source: "_fallback()",
+    source_offset: 1103,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 134}
+{{%{offset: 294, len: 1, op: "JUMPDEST", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "-",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 135}
+{{%{
+    offset: 295,
+    len: 33,
+    op: "PUSH32",
+    bin: <<181, 49, 39, 104, 74, 86, 139, 49, 115, 174, 19, 185, 248, 166, 1,
+      110, 36, 62, 99, 182, 232, 238, 17, 120, 214, 167, 23, 133, 11, 93, 97,
+      3>>
+  },
+  %{
+    length: 10,
+    depth: 0,
+    jump: "-",
+    source: "OWNER_SLOT",
+    source_offset: 683,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 136}
+{{%{offset: 328, len: 1, op: "SLOAD", bin: ""},
+  %{
+    length: 17,
+    depth: 0,
+    jump: "-",
+    source: "sload(OWNER_SLOT)",
+    source_offset: 677,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 137}
+{{%{offset: 329, len: 1, op: "CALLER", bin: ""},
+  %{
+    length: 10,
+    depth: 0,
+    jump: "-",
+    source: "msg.sender",
+    source_offset: 717,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 138}
+{{%{offset: 330, len: 2, op: "PUSH1", bin: <<1>>},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 139}
+{{%{offset: 332, len: 2, op: "PUSH1", bin: <<1>>},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 140}
+{{%{offset: 334, len: 2, op: "PUSH1", bin: <<160>>},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 141}
+{{%{offset: 336, len: 1, op: "SHL", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 142}
+{{%{offset: 337, len: 1, op: "SUB", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 143}
+{{%{offset: 338, len: 1, op: "DUP3", bin: ""},
+  %{
+    length: 19,
+    depth: 0,
+    jump: "-",
+    source: "owner == msg.sender",
+    source_offset: 708,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 144}
+{{%{offset: 339, len: 1, op: "AND", bin: ""},
+  %{
+    length: 19,
+    depth: 0,
+    jump: "-",
+    source: "owner == msg.sender",
+    source_offset: 708,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 145}
+{{%{offset: 340, len: 1, op: "SUB", bin: ""},
+  %{
+    length: 19,
+    depth: 0,
+    jump: "-",
+    source: "owner == msg.sender",
+    source_offset: 708,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 146}
+{{%{offset: 341, len: 3, op: "PUSH2", bin: <<1, 30>>},
+  %{
+    length: 109,
+    depth: 0,
+    jump: "-",
+    source: "if (owner == msg.sender) {\n            assembly {sstore(OWNER_SLOT, _newowner)}\n",
+    source_offset: 704,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 147}
+{{%{offset: 344, len: 1, op: "JUMPI", bin: ""},
+  %{
+    length: 109,
+    depth: 0,
+    jump: "-",
+    source: "if (owner == msg.sender) {\n            assembly {sstore(OWNER_SLOT, _newowner)}\n",
+    source_offset: 704,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 148}
+{{%{offset: 345, len: 1, op: "POP", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 149}
+{{%{
+    offset: 346,
+    len: 33,
+    op: "PUSH32",
+    bin: <<181, 49, 39, 104, 74, 86, 139, 49, 115, 174, 19, 185, 248, 166, 1,
+      110, 36, 62, 99, 182, 232, 238, 17, 120, 214, 167, 23, 133, 11, 93, 97,
+      3>>
+  },
+  %{
+    length: 10,
+    depth: 0,
+    jump: "-",
+    source: "OWNER_SLOT",
+    source_offset: 760,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 150}
+{{%{offset: 379, len: 1, op: "SSTORE", bin: ""},
+  %{
+    length: 29,
+    depth: 0,
+    jump: "-",
+    source: "sstore(OWNER_SLOT, _newowner)",
+    source_offset: 753,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 151}
+{{%{offset: 380, len: 1, op: "JUMP", bin: ""},
+  %{
+    length: 270,
+    depth: 0,
+    jump: "o",
+    source: "function _proxy_set_owner(address _newowner) external {\n        address owner;\n ",
+    source_offset: 571,
+    source_file: 0,
+    source_file_name: "contracts/Proxy.sol"
+  }}, 152}
+{{%{offset: 381, len: 1, op: "JUMPDEST", bin: ""},
+  %{length: 286, depth: 0, jump: "-", source_offset: 14, source_file: 1}}, 153}
+{{%{offset: 382, len: 1, op: "PUSH0", bin: ""},
+  %{length: 6, depth: 0, jump: "-", source_offset: 73, source_file: 1}}, 154}
+{{%{offset: 383, len: 2, op: "PUSH1", bin: " "},
+  %{length: 2, depth: 0, jump: "-", source_offset: 126, source_file: 1}}, 155}
+{{%{offset: 385, len: 1, op: "DUP3", bin: ""},
+  %{length: 9, depth: 0, jump: "-", source_offset: 114, source_file: 1}}, 156}
+{{%{offset: 386, len: 1, op: "DUP5", bin: ""},
+  %{length: 7, depth: 0, jump: "-", source_offset: 105, source_file: 1}}, 157}
+{{%{offset: 387, len: 1, op: "SUB", bin: ""},
+  %{length: 23, depth: 0, jump: "-", source_offset: 101, source_file: 1}}, 158}
+{{%{offset: 388, len: 1, op: "SLT", bin: ""},
+  %{length: 32, depth: 0, jump: "-", source_offset: 97, source_file: 1}}, 159}
+{{%{offset: 389, len: 1, op: "ISZERO", bin: ""},
+  %{length: 52, depth: 0, jump: "-", source_offset: 94, source_file: 1}}, 160}
+{{%{offset: 390, len: 3, op: "PUSH2", bin: <<1, 141>>},
+  %{length: 52, depth: 0, jump: "-", source_offset: 94, source_file: 1}}, 161}
+{{%{offset: 393, len: 1, op: "JUMPI", bin: ""},
+  %{length: 52, depth: 0, jump: "-", source_offset: 94, source_file: 1}}, 162}
+{{%{offset: 394, len: 1, op: "PUSH0", bin: ""},
+  %{length: 1, depth: 0, jump: "-", source_offset: 142, source_file: 1}}, 163}
+{{%{offset: 395, len: 1, op: "DUP1", bin: ""},
+  %{length: 1, depth: 0, jump: "-", source_offset: 139, source_file: 1}}, 164}
+{{%{offset: 396, len: 1, op: "REVERT", bin: ""},
+  %{length: 12, depth: 0, jump: "-", source_offset: 132, source_file: 1}}, 165}
+{{%{offset: 397, len: 1, op: "JUMPDEST", bin: ""},
+  %{length: 52, depth: 0, jump: "-", source_offset: 94, source_file: 1}}, 166}
+{{%{offset: 398, len: 1, op: "DUP2", bin: ""},
+  %{length: 23, depth: 0, jump: "-", source_offset: 168, source_file: 1}}, 167}
+{{%{offset: 399, len: 1, op: "CALLDATALOAD", bin: ""},
+  %{length: 23, depth: 0, jump: "-", source_offset: 168, source_file: 1}}, 168}
+{{%{offset: 400, len: 2, op: "PUSH1", bin: <<1>>},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 169}
+{{%{offset: 402, len: 2, op: "PUSH1", bin: <<1>>},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 170}
+{{%{offset: 404, len: 2, op: "PUSH1", bin: <<160>>},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 171}
+{{%{offset: 406, len: 1, op: "SHL", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 172}
+{{%{offset: 407, len: 1, op: "SUB", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 173}
+{{%{offset: 408, len: 1, op: "DUP2", bin: ""},
+  %{length: 31, depth: 0, jump: "-", source_offset: 220, source_file: 1}}, 174}
+{{%{offset: 409, len: 1, op: "AND", bin: ""},
+  %{length: 31, depth: 0, jump: "-", source_offset: 220, source_file: 1}}, 175}
+{{%{offset: 410, len: 1, op: "DUP2", bin: ""},
+  %{length: 42, depth: 0, jump: "-", source_offset: 210, source_file: 1}}, 176}
+{{%{offset: 411, len: 1, op: "EQ", bin: ""},
+  %{length: 42, depth: 0, jump: "-", source_offset: 210, source_file: 1}}, 177}
+{{%{offset: 412, len: 3, op: "PUSH2", bin: <<1, 163>>},
+  %{length: 70, depth: 0, jump: "-", source_offset: 200, source_file: 1}}, 178}
+{{%{offset: 415, len: 1, op: "JUMPI", bin: ""},
+  %{length: 70, depth: 0, jump: "-", source_offset: 200, source_file: 1}}, 179}
+{{%{offset: 416, len: 1, op: "PUSH0", bin: ""},
+  %{length: 1, depth: 0, jump: "-", source_offset: 266, source_file: 1}}, 180}
+{{%{offset: 417, len: 1, op: "DUP1", bin: ""},
+  %{length: 1, depth: 0, jump: "-", source_offset: 263, source_file: 1}}, 181}
+{{%{offset: 418, len: 1, op: "REVERT", bin: ""},
+  %{length: 12, depth: 0, jump: "-", source_offset: 256, source_file: 1}}, 182}
+{{%{offset: 419, len: 1, op: "JUMPDEST", bin: ""},
+  %{length: 70, depth: 0, jump: "-", source_offset: 200, source_file: 1}}, 183}
+{{%{offset: 420, len: 1, op: "SWAP4", bin: ""},
+  %{length: 5, depth: 0, jump: "-", source_offset: 289, source_file: 1}}, 184}
+{{%{offset: 421, len: 1, op: "SWAP3", bin: ""},
+  %{length: 286, depth: 0, jump: "-", source_offset: 14, source_file: 1}}, 185}
+{{%{offset: 422, len: 1, op: "POP", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 186}
+{{%{offset: 423, len: 1, op: "POP", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 187}
+{{%{offset: 424, len: 1, op: "POP", bin: ""},
+  %{length: -1, depth: 0, jump: "-", source_offset: -1, source_file: -1}}, 188}
+{{%{offset: 425, len: 1, op: "JUMP", bin: ""},
+  %{length: 286, depth: 0, jump: "o", source_offset: 14, source_file: 1}}, 189}
