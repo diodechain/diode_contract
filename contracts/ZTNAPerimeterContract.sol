@@ -7,10 +7,10 @@ import "./FleetContractUpgradeable.sol";
 import "./deps/Set.sol";
 
 /**
- * IoTFleetContract adds new functionality around Users, User Groups, Devices, Tags (Groups of Devices)
+ * ZTNAPerimeterContract adds new functionality around Users, User Groups, Devices, Tags (Groups of Devices)
  * similar to Tailscale's tailnet configuration panel
  */
-contract IoTFleetContract is FleetContractUpgradeable {
+contract ZTNAPerimeterContract is FleetContractUpgradeable {
     using Set for Set.Data;
 
     // Fleet label

@@ -1,6 +1,6 @@
-# Anvil Deployment for IoTFleetRegistry
+# Anvil Deployment for ZTNAPerimeterRegistry
 
-This directory contains scripts to deploy the IoTFleetRegistry contract to a local Anvil instance at a consistent address.
+This directory contains scripts to deploy the ZTNAPerimeterRegistry contract to a local Anvil instance at a consistent address.
 
 ## Prerequisites
 
@@ -14,7 +14,7 @@ The `deploy_anvil.sh` script:
 
 1. Checks if Anvil is already running on port 8545 and kills it
 2. Starts a fresh Anvil instance with a consistent mnemonic
-3. Deploys the IoTFleetRegistry contract using the first account
+3. Deploys the ZTNAPerimeterRegistry contract using the first account
 4. Keeps Anvil running until manually stopped
 
 ## Usage

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.20;
 
 import "./Assert.sol";
-import "../contracts/IoTFleetRegistry.sol";
+import "../contracts/ZTNAPerimeterRegistry.sol";
 import "../contracts/Proxy8.sol";
 
 // Mock implementation for testing
@@ -26,8 +26,8 @@ contract MockFleet {
     }
 }
 
-contract IoTFleetRegistryTest {
-    IoTFleetRegistry fleetRegistry;
+contract ZTNAPerimeterRegistryTest {
+    ZTNAPerimeterRegistry fleetRegistry;
     MockFleet mockFleetImpl;
     address testUser1;
     address testUser2;
@@ -37,7 +37,7 @@ contract IoTFleetRegistryTest {
         mockFleetImpl = new MockFleet();
         
         // Create the FleetRegistry - it already has a default implementation set in constructor
-        fleetRegistry = new IoTFleetRegistry();
+        fleetRegistry = new ZTNAPerimeterRegistry();
         
         // Set up test addresses
         testUser1 = address(0x1234);
@@ -73,7 +73,7 @@ contract IoTFleetRegistryTest {
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
         
         // Get the last created fleet
-        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        ZTNAPerimeterRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Create an instance of the fleet contract to interact with it directly
         MockFleet fleetContract = MockFleet(fleet.fleet);
@@ -93,7 +93,7 @@ contract IoTFleetRegistryTest {
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
         
         // Get the last created fleet
-        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        ZTNAPerimeterRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         Assert.equal(fleet.owner, address(this), "Fleet owner should be this contract");
         Assert.notEqual(fleet.fleet, address(0), "Fleet address should not be zero");
@@ -103,7 +103,7 @@ contract IoTFleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        ZTNAPerimeterRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Add a user to the fleet
         fleetRegistry.AddFleetUser(fleet.fleet, testUser1);
@@ -128,10 +128,10 @@ contract IoTFleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        ZTNAPerimeterRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Get the fleet directly
-        IoTFleetRegistry.FleetMetadataView memory retrievedFleet = fleetRegistry.GetFleet(fleet.fleet);
+        ZTNAPerimeterRegistry.FleetMetadataView memory retrievedFleet = fleetRegistry.GetFleet(fleet.fleet);
         
         Assert.equal(retrievedFleet.owner, address(this), "Retrieved fleet owner should be this contract");
         Assert.equal(retrievedFleet.fleet, fleet.fleet, "Retrieved fleet address should match");
@@ -141,7 +141,7 @@ contract IoTFleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        ZTNAPerimeterRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Add a user to the fleet
         fleetRegistry.AddFleetUser(fleet.fleet, testUser1);
@@ -181,7 +181,7 @@ contract IoTFleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        ZTNAPerimeterRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Add a user to the fleet
         fleetRegistry.AddFleetUser(fleet.fleet, testUser1);
@@ -197,7 +197,7 @@ contract IoTFleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        ZTNAPerimeterRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Add a user to the fleet
         fleetRegistry.AddFleetUser(fleet.fleet, testUser1);
@@ -214,7 +214,7 @@ contract IoTFleetRegistryTest {
         // Create a fleet first
         fleetRegistry.CreateFleet();
         uint256 fleetCount = fleetRegistry.GetOwnFleetCount();
-        IoTFleetRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
+        ZTNAPerimeterRegistry.FleetMetadataView memory fleet = fleetRegistry.GetOwnFleet(fleetCount - 1);
         
         // Add a user to the fleet
         fleetRegistry.AddFleetUser(fleet.fleet, testUser1);

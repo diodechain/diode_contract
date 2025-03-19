@@ -3,11 +3,11 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "./Assert.sol";
-import "../contracts/IoTFleetContract.sol";
+import "../contracts/ZTNAPerimeterContract.sol";
 import "../contracts/deps/Set.sol";
 
-contract IoTFleetContractTest is Test {
-    IoTFleetContract private fleetContract;
+contract ZTNAPerimeterContractTest is Test {
+    ZTNAPerimeterContract private fleetContract;
     address private contractOwner;
     address private user1;
     address private user2;
@@ -20,7 +20,7 @@ contract IoTFleetContractTest is Test {
         user2 = address(0x2);
         user3 = address(0x3);
         
-        fleetContract = new IoTFleetContract();
+        fleetContract = new ZTNAPerimeterContract();
     }
 
     // ======== User Management Tests ========
