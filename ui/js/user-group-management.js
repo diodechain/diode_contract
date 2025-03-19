@@ -1,4 +1,3 @@
-// User group management operations for the Fleet Manager application
 import { showToastMessage, setLoadingWithSafety } from './utils.js';
 import * as fleetOperations from './fleet-operations.js';
 

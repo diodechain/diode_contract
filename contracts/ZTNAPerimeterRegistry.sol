@@ -6,14 +6,14 @@ pragma solidity ^0.8.20;
 
 import "./Proxy8.sol";
 import "./deps/Set.sol";
-import "./IoTFleetContract.sol";
+import "./ZTNAPerimeterContract.sol";
 
 interface InitializableFleet {
     function initialize(address payable _owner, string memory _label) external;
 }
 
 // Per user Fleet Registry used for Tracking user fleets in the Fleet ManagementUser Interface
-contract IoTFleetRegistry {
+contract ZTNAPerimeterRegistry {
     bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
     using Set for Set.Data;
 
@@ -49,7 +49,7 @@ contract IoTFleetRegistry {
     address public defaultFleetImplementation;
 
     constructor() {
-        defaultFleetImplementation = address(new IoTFleetContract());
+        defaultFleetImplementation = address(new ZTNAPerimeterContract());
     }
 
     function SetDefaultFleetImplementation(address _defaultFleetImplementation) external {
