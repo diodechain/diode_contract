@@ -477,19 +477,6 @@ const app = createApp({
       addUserToGroup: userGroupManagement.addUserToGroup,
       removeUserFromGroup: userGroupManagement.removeUserFromGroup,
       
-      // Device management
-      loadDevices: deviceManagement.loadDevices,
-      selectDevice: deviceManagement.selectDevice,
-      loadDeviceTags: deviceManagement.loadDeviceTags,
-      createNewDevice: deviceManagement.createNewDevice,
-      updateDeviceDetails: deviceManagement.updateDeviceDetails,
-      updateDeviceLastSeen: deviceManagement.updateDeviceLastSeen,
-      transferDeviceDialog: deviceManagement.transferDeviceDialog,
-      transferDevice: deviceManagement.transferDevice,
-      removeDevice: deviceManagement.removeDevice,
-      addTagToDevice: deviceManagement.addTagToDevice,
-      removeTagFromDevice: deviceManagement.removeTagFromDevice,
-      
       // Tag management
       loadTags: tagManagement.loadTags,
       selectTag: tagManagement.selectTag,
