@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IoT Fleet Manager</title>
+  <title>ZTNA Perimeter Manager</title>
   <!-- Vue 3 -->
   <script src="./assets/vue.global.js"></script>
   <!-- Web3.js -->
@@ -45,11 +45,16 @@
         <div class="mt-4">
           <h3 class="px-4 text-sm uppercase text-gray-400 font-semibold mb-2">Your Fleets</h3>
           
-          <!-- Create Fleet Link -->
+          <!-- Create Fleet Link - Updated with special styling -->
           <a href="#" @click.prevent="showCreateFleetView" 
-             class="nav-link px-4 py-2 flex items-center text-white hover:bg-opacity-80 mb-1"
+             class="nav-link px-4 py-2 flex items-center text-white hover:bg-opacity-80 mb-3 bg-blue-600 mx-2 rounded-md"
              :class="{'nav-active': activePage === 'createFleet'}">
-            <span>Create New Fleet</span>
+            <span class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Create New Fleet
+            </span>
           </a>
           
           <!-- Loading State -->
@@ -177,8 +182,8 @@
         <!-- Dashboard View -->
         <div v-if="activePage === 'dashboard'" class="space-y-6">
           <div v-if="!isConnected" class="bg-white rounded-lg shadow p-6 text-center">
-            <h2 class="text-xl font-semibold mb-4">Welcome to IoT Fleet Manager</h2>
-            <p class="mb-4">Connect your wallet to get started managing your IoT fleets.</p>
+            <h2 class="text-xl font-semibold mb-4">Welcome to ZTNA Perimeter Manager</h2>
+            <p class="mb-4">Connect your wallet to get started managing your ZTNA Perimeters.</p>
             <button 
               @click="connectWallet" 
               class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded"
