@@ -174,6 +174,11 @@ export const DeviceManagementComponent = {
                 <div class="space-y-4">
                   <h4 class="font-medium text-gray-700">Basic Information</h4>
                   <div>
+                    <label class="block text-sm font-medium text-gray-700">Device ID</label>
+                    <input type="text" :value="selectedDevice.id" disabled
+                      class="mt-1 block w-full bg-gray-100 rounded-md border-gray-300 shadow-sm text-gray-600">
+                  </div>
+                  <div>
                     <label class="block text-sm font-medium text-gray-700">Name</label>
                     <input type="text" v-model="newDeviceData.name" 
                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
