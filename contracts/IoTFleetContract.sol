@@ -110,6 +110,14 @@ contract IoTFleetContract is FleetContractUpgradeable {
     function initialize(address payable _owner, string memory _label) public initializer {
         super.initialize(_owner);
         label = _label;
+        operator = _owner;
+        
+        // Create default admin user with admin privileges
+        _createUser(_owner, "Admin", "", "", true);
+        
+        // Create default user group
+        bytes32 adminGroupId = _createUserGroup("Administrators", "Users with administrative privileges");
+        _addUserToGroup(_owner, adminGroupId);
     }
 
     // For backward compatibility
@@ -129,14 +137,7 @@ contract IoTFleetContract is FleetContractUpgradeable {
     }
 
     constructor() FleetContractUpgradeable(address(0)) {
-        operator = msg.sender;
-        
-        // Create default admin user with admin privileges
-        _createUser(msg.sender, "Admin", "", "", true);
-        
-        // Create default user group
-        bytes32 adminGroupId = _createUserGroup("Administrators", "Users with administrative privileges");
-        _addUserToGroup(msg.sender, adminGroupId);
+        initialize(payable(msg.sender));
     }
 
     // ======== Modifiers ========

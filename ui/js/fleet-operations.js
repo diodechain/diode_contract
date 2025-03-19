@@ -182,8 +182,8 @@ export async function getDeviceTags(fleetAddress, deviceId) {
 }
 
 // Create device
-export async function createDevice(fleetAddress, name, description, deviceType, location) {
-  return doSend(fleetAddress, 'createDevice', [name, description, deviceType, location], 'Device created successfully!');
+export async function createDevice(fleetAddress, deviceId, name, description, deviceType, location) {
+  return doSend(fleetAddress, 'createDevice', [deviceId, name, description, deviceType, location], 'Device created successfully!');
 }
 
 // Update device
