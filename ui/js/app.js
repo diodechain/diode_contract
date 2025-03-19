@@ -1,5 +1,5 @@
 import registryAbi from './registry-abi.js';
-import { initializeMetaMask } from './wallet.js';
+import * as wallet from './wallet.js';
 import * as fleetOperations from './fleet-operations.js';
 import * as userManagement from './user-management.js';
 import * as userGroupManagement from './user-group-management.js';
@@ -19,7 +19,7 @@ const app = createApp({
     const ethereum = ref(null);
     const web3 = ref(null);
     const registryContract = ref(null);
-    const registryAddress = ref('0x5FbDB2315678afecb367f032d93F642f64180aa3');
+    const registryAddress = ref('0x18D1c56474505893082e1B50A7c5a7cdc7854Eca');
     const registryVersion = ref(null);
     const ownFleetCount = ref(0);
     const ownFleets = ref([]);
@@ -44,7 +44,9 @@ const app = createApp({
     const newFleetLabel = ref('');
     const fleetLabel = ref('');
     const isUpdatingLabel = ref(false);
-    
+    const showNetworkSelector = ref(false);
+    const selectedNetworkIndex = ref(0);
+    const networks = ref(wallet.networks);
     // New state variables for enhanced fleet management
     const activeTab = ref('users'); // users, devices, userGroups, tags
     
@@ -74,12 +76,6 @@ const app = createApp({
     const showDeviceTransferModal = ref(false);
     const newDeviceOwner = ref('');
     
-    // Tag management
-    const tags = ref([]);
-    const selectedTag = ref(null);
-    const newTagData = ref({ name: '', description: '', color: '#3B82F6', properties: {} });
-    const tagDevices = ref([]);
-
     // Computed properties
     const groupedSharedFleets = computed(() => {
       const grouped = {};
@@ -112,8 +108,18 @@ const app = createApp({
         
         try {
           // Initialize MetaMask and set ethereum.value
-          ethereum.value = await initializeMetaMask();
-          
+          ethereum.value = await wallet.initializeMetaMask();
+
+          // Check the chain
+          const chain = await wallet.getCurrentChain();
+
+          if (!chain) {
+            utils.showToastMessage('Please switch to the correct network.');
+            await wallet.switchNetwork(0);
+            return;
+          }
+
+          selectedNetworkIndex.value = chain.index;
           // Request accounts
           const accounts = await ethereum.value.request({ method: 'eth_requestAccounts' });
           await handleAccountsChanged(accounts);
@@ -253,6 +259,14 @@ const app = createApp({
       }
     };
 
+    // Switch network
+    const switchNetwork = async (index) => {
+      console.log('Switching network:', index);
+      selectedNetworkIndex.value = index;
+      await wallet.switchNetwork(index);
+      await connectWallet();
+    };
+
     // Change account (MetaMask)
     const changeAccount = async () => {
       try {
@@ -361,7 +375,7 @@ const app = createApp({
     // Initialize
     onMounted(async () => {
       try {
-        await initializeMetaMask();
+        ethereum.value = await wallet.initializeMetaMask();
         
         // Auto-connect if already connected
         if (ethereum.value && ethereum.value.selectedAddress) {
@@ -381,16 +395,11 @@ const app = createApp({
         }
         
         isCreatingFleet.value = true;
-        
         const result = await registryContract.value.methods.CreateFleet(newFleetLabel.value).send({ from: account.value });
         console.log('Fleet created:', result);
-        
         await loadUserData();
-        
         utils.showToastMessage('Fleet created successfully!');
-        
         newFleetLabel.value = '';
-        
         navigation.showDashboard();
       } catch (error) {
         console.error('Error creating fleet:', error);
@@ -432,6 +441,10 @@ const app = createApp({
       newFleetLabel,
       fleetLabel,
       isUpdatingLabel,
+      showNetworkSelector,
+      selectedNetworkIndex,
+      networks,
+      switchNetwork,
       
       // New state variables for enhanced fleet management
       activeTab,
