@@ -14,7 +14,7 @@ export const initializeMetaMask = async () => {
         // Try the new SDK initialization method
         sdk = new window.MetaMaskSDK({
           dappMetadata: {
-            name: "IoT Fleet Manager",
+            name: "ZTNA Perimeter Manager",
             url: window.location.href,
           },
           logging: {

@@ -5,9 +5,9 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
-import "../contracts/IoTFleetRegistry.sol";
+import "../contracts/ZTNAPerimeterRegistry.sol";
 
-contract DeployIoTFleetRegistry is Script {
+contract DeployZTNAPerimeterRegistry is Script {
     function run() external {
         // Log the deployer address
         address deployer = vm.addr(vm.envUint("PRIVATE_KEY"));
@@ -16,11 +16,11 @@ contract DeployIoTFleetRegistry is Script {
         // Start the broadcast to record and send transactions
         vm.startBroadcast();
 
-        // Deploy the IoTFleetRegistry contract
-        IoTFleetRegistry registry = new IoTFleetRegistry();
+        // Deploy the ZTNAPerimeterRegistry contract
+        ZTNAPerimeterRegistry registry = new ZTNAPerimeterRegistry();
         
         // Log the deployment address
-        console.log("IoTFleetRegistry deployed at:", address(registry));
+        console.log("ZTNAPerimeterRegistry deployed at:", address(registry));
 
         // End the broadcast
         vm.stopBroadcast();
