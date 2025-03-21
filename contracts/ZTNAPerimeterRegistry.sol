@@ -7,14 +7,20 @@ pragma solidity ^0.8.20;
 import "./ManagedProxy.sol";
 import "./deps/Set.sol";
 import "./ZTNAPerimeterContract.sol";
+import "./ZTNAWallet.sol";
 
 interface InitializableFleet {
     function initialize(address payable _owner, string memory _label) external;
 }
 
+interface InitializableUser {
+    function initialize(address payable _owner) external;
+}
+
 // Per user Fleet Registry used for Tracking user fleets in the Fleet ManagementUser Interface
 contract ZTNAPerimeterRegistry is IProxyResolver {
     bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
+
     using Set for Set.Data;
 
     struct FleetMetadata {
@@ -46,43 +52,70 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     mapping(address => mapping(address => Set.Data)) sharedFleets;
 
     // Default Fleet Implementation
-    address public defaultFleetImplementation;
+    address perimeterImplementation;
+    address userImplementation;
+
+    mapping(address => address) userWallets;
 
     constructor() {
-        defaultFleetImplementation = address(new ZTNAPerimeterContract());
+        perimeterImplementation = address(new ZTNAPerimeterContract());
+        userImplementation = address(new ZTNAWallet());
     }
 
     function SetDefaultFleetImplementation(address _defaultFleetImplementation) external {
         require(msg.sender == Owner(), "You do not have permission to set the default fleet implementation");
-        defaultFleetImplementation = _defaultFleetImplementation;
+        perimeterImplementation = _defaultFleetImplementation;
     }
 
-    function resolve(bytes32) external view returns (address) {
-        return address(defaultFleetImplementation);
+    function resolve(bytes32 what) external view returns (address) {
+        if (what == "ZTNAPerimeterRegistry") {
+            return address(perimeterImplementation);
+        } else if (what == "ZTNAWallet") {
+            return address(userImplementation);
+        }
+        return address(0);
     }
 
     function Owner() public view returns (address) {
         address owner;
-        assembly {owner := sload(OWNER_SLOT)}
+        assembly {
+            owner := sload(OWNER_SLOT)
+        }
         return owner;
     }
 
     function Version() external pure returns (uint256) {
-        return 100;
+        return 102;
     }
-    
+
+    function CreateUserWallet() external returns (address) {
+        address user = userWallets[msg.sender];
+        if (user != address(0)) {
+            return user;
+        }
+
+        user = address(new ManagedProxy(this, "ZTNAWallet"));
+        InitializableUser(user).initialize(payable(msg.sender));
+        userWallets[msg.sender] = user;
+        return user;
+    }
+
+    function UserWallet(address user) external view returns (address) {
+        return userWallets[user];
+    }
+
     // Add a fleet to the registry
     function CreateFleet(string memory label) public {
         address fleet = address(new ManagedProxy(this, "ZTNAPerimeterRegistry"));
         InitializableFleet(fleet).initialize(payable(msg.sender), label);
-        
+
         // Initialize struct fields individually instead of using struct constructor
         fleets[fleet].owner = msg.sender;
         fleets[fleet].fleet = fleet;
         fleets[fleet].createdAt = block.timestamp;
         fleets[fleet].updatedAt = block.timestamp;
         // Note: users Set.Data will be initialized to its default empty state
-        
+
         userFleets[msg.sender].push(fleet);
     }
 
@@ -126,17 +159,26 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     }
 
     function GetFleetUserCount(address fleet) external view returns (uint256) {
-        require(fleets[fleet].owner == msg.sender || Set.IsMember(fleets[fleet].users, msg.sender), "You do not own this fleet");
+        require(
+            fleets[fleet].owner == msg.sender || Set.IsMember(fleets[fleet].users, msg.sender),
+            "You do not own this fleet"
+        );
         return Set.Size(fleets[fleet].users);
     }
 
     function GetFleetUser(address fleet, uint256 userIndex) external view returns (address) {
-        require(fleets[fleet].owner == msg.sender || Set.IsMember(fleets[fleet].users, msg.sender), "You do not own this fleet");
+        require(
+            fleets[fleet].owner == msg.sender || Set.IsMember(fleets[fleet].users, msg.sender),
+            "You do not own this fleet"
+        );
         return fleets[fleet].users.items[userIndex];
     }
 
     function GetFleet(address fleet) external view returns (FleetMetadataView memory) {
-        require(fleets[fleet].owner == msg.sender || Set.IsMember(fleets[fleet].users, msg.sender), "You do not own this fleet");
+        require(
+            fleets[fleet].owner == msg.sender || Set.IsMember(fleets[fleet].users, msg.sender),
+            "You do not own this fleet"
+        );
         return _toFleetMetadataView(fleets[fleet]);
     }
 

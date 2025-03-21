@@ -1,3 +1,8 @@
+import { wrapEthereumProvider } from 'https://cdn.jsdelivr.net/npm/@oasisprotocol/sapphire-paratime@2.1.0/+esm'
+import { showToastMessage } from './utils.js';
+import { SiweMessage } from './siwe.js'
+import authAbi from './wallet-abi.js';
+
 // Initialize MetaMask SDK
 let ethereum;
 
@@ -14,27 +19,18 @@ export const initializeMetaMask = async () => {
       },
       logging: {
         sdk: false
-      }
+      },
+      // checkInstallationImmediately: true,
     });
 
     // Check if the SDK has initialization method
-    if (typeof sdk.init === 'function') {
-      console.log('Using new SDK init method');
-      await sdk.init();
-    }
+    console.log('Using SDK connect method');
+    await sdk.connect();
     
     // Check which provider accessor method is available
-    if (typeof sdk.getProvider === 'function') {
-      console.log('Using getProvider method');
-      ethereum = sdk.getProvider();
-      return ethereum;
-    } else if (sdk.provider) {
-      console.log('Using provider property');
-      ethereum = sdk.provider;
-      return ethereum;
-    } else {
-      throw new Error('Unable to get provider from SDK');
-    }
+    console.log('Using getProvider method');
+    ethereum = sdk.getProvider();
+    return ethereum;
   } catch (error) {
     console.error('Error initializing MetaMask:', error);
     throw error;
@@ -91,14 +87,16 @@ let accounts;
 async function initWeb3() {
   if (web3 && accounts) {
     return { web3, account: accounts[0] };
-  } else if (window.ethereum) {
+  } else if (ethereum) {
     try {
       // Request account access
-      accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-      web3 = new Web3(window.ethereum);
+      console.log("Requesting account access", ethereum);
+      accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+      web3 = new Web3(ethereum);
+      window.web3 = web3;
       
       // Check if this is a mock provider (for development/testing)
-      if (window.ethereum.isMock) {
+      if (ethereum.isMock) {
         console.warn('Using mock provider for Web3. Limited functionality available.');
       }
       
@@ -107,14 +105,20 @@ async function initWeb3() {
       console.error("User denied account access");
       throw error;
     }
-  } else if (window.web3) {
-    // Legacy dapp browsers
-    web3 = new Web3(window.web3.currentProvider);
-    accounts = await web3.eth.getAccounts();
-    return { web3, account: accounts[0] };
   } else {
     throw new Error("No Ethereum browser extension detected. Please install MetaMask.");
   }
+}
+
+export async function getAccount() {
+  let response = await ethereum.request({ method: 'wallet_getPermissions', params: [] });
+  console.log("wallet_getPermissions ", response);
+  let account_permission = response.find(permission => permission.parentCapability === "eth_accounts");
+  if (!account_permission) return null;
+  let accounts = account_permission.caveats.find(caveat => caveat.type === "restrictReturnedAccounts");
+  if (!accounts || accounts.value.length === 0) return null;
+  console.log("return wallet_getPermissions = ", accounts.value[0]);
+  return accounts.value[0];
 }
 
 
@@ -167,28 +171,12 @@ export async function connectWallet() {
 }
 
 /**
- * Get all available accounts from the wallet
- * @param {Object} web3 - Web3 instance
- * @returns {Promise<Array>} List of accounts
- */
-export async function getAllAccounts(web3) {
-  try {
-    return await web3.eth.getAccounts();
-  } catch (error) {
-    console.error('Error getting accounts:', error);
-    showToast(window.app, 'Failed to get accounts: ' + error.message);
-    throw error;
-  }
-}
-
-/**
  * Switch to a different account
- * @param {string} account - Account address to switch to
  */
-export async function switchAccount(account) {
+export async function switchAccount() {
   try {
-    if (window.ethereum) {
-      await window.ethereum.request({
+    if (ethereum) {
+      await ethereum.request({
         method: 'wallet_requestPermissions',
         params: [{ eth_accounts: {} }]
       });
@@ -264,15 +252,21 @@ export async function getCurrentChain() {
 
 export async function switchNetwork(networkKey) {
   const network = networks[networkKey];
+  console.log("switching to ", network);
+  await connectWallet();
   
   try {
     // Try to switch to the network
+    console.log("req ");
     await ethereum.request({
       method: "wallet_switchEthereumChain",
       params: [{ chainId: network.chainId }]
     });
+    console.log("req ok");
+
   } catch (err) {
     // If the error code is 4902, the network needs to be added
+    console.log("err ", err);
     if (err.code === 4902) {
       try {
         await ethereum.request({
@@ -291,5 +285,90 @@ export async function switchNetwork(networkKey) {
     } else {
       console.error("Error switching network:", err);
     }
+  }
+}
+
+import registryAbi from './registry-abi.js';
+
+export async function ensureUserWallet() {
+  let chain = await getCurrentChain();
+  let { web3, account, ethereum } = await connectWallet();
+  let registryContract = new web3.eth.Contract(registryAbi, chain.registry);
+
+  let userWallet = await registryContract.methods.UserWallet(account).call();
+  console.log('User wallet:', userWallet);
+
+  if (userWallet == '0x0000000000000000000000000000000000000000') {
+    await registryContract.methods.CreateUserWallet().send({ from: account });
+    userWallet = await registryContract.methods.UserWallet(account).call();
+    console.log('User wallet:', userWallet);
+    if (userWallet == '0x0000000000000000000000000000000000000000') {
+      throw new Error('Failed to create user wallet');
+    }
+  }
+
+  const domain = "ZTNAWallet"
+  const siweMsg = new SiweMessage({
+    domain,
+    address: account, // User's selected account address.
+    uri: `http://${domain}`,
+    version: "1",
+    chainId: web3.utils.hexToNumber(chain.chainId),
+  }).toMessage();
+
+  const sig = await ethereum.request({
+      method: "personal_sign",
+      params: [web3.utils.toHex(siweMsg), account],
+    })
+
+  const sigObj = splitSignature(sig);
+  console.log('Signature:', sig, sigObj);
+  console.log('Siwe message:', siweMsg);
+  const authToken = await call(authAbi, userWallet, 'login', [siweMsg, sigObj]);
+  console.log('Auth token:', authToken);
+
+  return userWallet;
+}
+
+function splitSignature(sig) {
+  let v = web3.utils.hexToNumber('0x' + sig.slice(130, 132))
+
+  return {
+    r: '0x' + sig.slice(2, 66),
+    s: '0x' + sig.slice(66, 130),
+    v: v
+  }
+}
+
+async function wrapAddress(abi, address) {
+  const { web3, account } = await connectWallet();
+  return {contract: new web3.eth.Contract(abi, address), account, web3};
+}
+
+// Helper function for sending transactions
+export async function send(abi, address, method, args, successMessage) {
+  try {
+    const { contract, account } = await wrapAddress(abi, address);
+    const result = await contract.methods[method](...args).send({ from: account });
+    if (successMessage) {
+      showToastMessage(successMessage);
+    }
+    return result;
+  } catch (error) {
+    console.error(`Error in ${method}:`, error);
+    showToastMessage(`Failed to ${method}: ${error.message}`);
+    throw error;
+  }
+}
+
+// Helper function for calling view methods
+export async function call(abi, address, method, args) {
+  try {
+    const { contract, account } = await wrapAddress(abi, address);
+    return await contract.methods[method](...args).call({ from: account });
+  } catch (error) {
+    console.error(`Error in ${method}:`, error);
+    showToastMessage(`Failed to ${method}: ${error.message}`);
+    throw error;
   }
 }
