@@ -8,7 +8,7 @@ import { TagManagementComponent } from './tag-management.js';
 import * as navigation from './navigation.js';
 import * as utils from './utils.js';
 
-const { createApp, ref, computed, watch, onMounted } = Vue;
+const { createApp, ref, computed, onMounted } = Vue;
 
 // Create the app instance
 const app = createApp({
@@ -19,7 +19,6 @@ const app = createApp({
     const ethereum = ref(null);
     const web3 = ref(null);
     const registryContract = ref(null);
-    const registryAddress = ref('0x18D1c56474505893082e1B50A7c5a7cdc7854Eca');
     const registryVersion = ref(null);
     const ownFleetCount = ref(0);
     const ownFleets = ref([]);
@@ -107,8 +106,9 @@ const app = createApp({
         utils.setLoadingWithSafety(true);
         
         try {
-          // Initialize MetaMask and set ethereum.value
-          ethereum.value = await wallet.initializeMetaMask();
+          // Request accounts
+          console.log('Requesting accounts');
+          const accounts = await ethereum.value.request({ method: 'eth_requestAccounts' });
 
           // Check the chain
           const chain = await wallet.getCurrentChain();
@@ -119,36 +119,25 @@ const app = createApp({
             return;
           }
 
+          console.log('Current Chain:', chain);
           selectedNetworkIndex.value = chain.index;
-          // Request accounts
-          const accounts = await ethereum.value.request({ method: 'eth_requestAccounts' });
-          await handleAccountsChanged(accounts);
-          
+
           // Initialize Web3
           web3.value = new Web3(ethereum.value);
           
           // Initialize registry contract
-          registryContract.value = new web3.value.eth.Contract(registryAbi, registryAddress.value);
-          
-          // Expose contract to window for debugging and external access
-          window.web3 = web3.value;
-          
-          // Get registry version
-          try {
-            if (registryContract.value.methods.version) {
-              registryVersion.value = await registryContract.value.methods.version().call();
-              console.log('Registry version:', registryVersion.value);
-            } else {
-              console.log('Registry contract does not have a version method');
-              registryVersion.value = 'Unknown';
-            }
-          } catch (versionError) {
-            console.warn('Could not get registry version:', versionError);
-            registryVersion.value = 'Unknown';
+          if (chain.registry) {
+            registryContract.value = new web3.value.eth.Contract(registryAbi, chain.registry);
+          } else {
+            registryContract.value = null;
+            throw new Error('No registry contract found');
           }
           
+          // Get registry version
+          registryVersion.value = await registryContract.value.methods.Version().call();
+          console.log('Registry Version:', registryVersion.value);
           // Load user's fleets
-          await loadUserData();
+          await handleAccountsChanged(accounts);
           
         } catch (walletError) {
           if (walletError.message && walletError.message.includes('MetaMask is not installed')) {
@@ -170,13 +159,15 @@ const app = createApp({
     // Load user data (fleets)
     const loadUserData = async () => {
       try {
+        console.log('Loading user data', registryContract.value);
         if (!isConnected.value || !registryContract.value) return;
         
         utils.setLoadingWithSafety(true);
         
         // Get available accounts
         availableAccounts.value = await web3.value.eth.getAccounts();
-        
+        let userWallet = await wallet.ensureUserWallet();
+
         // Get own fleet count
         ownFleetCount.value = await registryContract.value.methods.GetOwnFleetCount().call({ from: account.value });
         console.log('Own fleet count:', ownFleetCount.value);
@@ -262,9 +253,11 @@ const app = createApp({
     // Switch network
     const switchNetwork = async (index) => {
       console.log('Switching network:', index);
-      selectedNetworkIndex.value = index;
       await wallet.switchNetwork(index);
+      selectedNetworkIndex.value = index;
+      console.log('Switching network done');
       await connectWallet();
+      console.log('Switching network done reload');
     };
 
     // Change account (MetaMask)
@@ -378,7 +371,7 @@ const app = createApp({
         ethereum.value = await wallet.initializeMetaMask();
         
         // Auto-connect if already connected
-        if (ethereum.value && ethereum.value.selectedAddress) {
+        if (ethereum.value && await wallet.getAccount()) {
           await connectWallet();
         }
       } catch (error) {
@@ -416,7 +409,6 @@ const app = createApp({
     return {
       isConnected,
       account,
-      registryAddress,
       registryVersion,
       ownFleetCount,
       ownFleets,

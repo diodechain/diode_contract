@@ -1,5 +1,9 @@
-// Registry contract ABI
 export default [
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
   {
     "inputs": [
       {
@@ -19,6 +23,13 @@ export default [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "CreateFleet",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "string",
@@ -27,19 +38,13 @@ export default [
       }
     ],
     "name": "CreateFleet",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "",
-        "type": "address"
-      }
-    ],
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
   {
     "inputs": [],
-    "name": "CreateFleet",
+    "name": "CreateUserWallet",
     "outputs": [
       {
         "internalType": "address",
@@ -64,12 +69,12 @@ export default [
         "components": [
           {
             "internalType": "address",
-            "name": "fleet",
+            "name": "owner",
             "type": "address"
           },
           {
             "internalType": "address",
-            "name": "owner",
+            "name": "fleet",
             "type": "address"
           },
           {
@@ -83,7 +88,7 @@ export default [
             "type": "uint256"
           }
         ],
-        "internalType": "struct FleetRegistry.FleetInfo",
+        "internalType": "struct ZTNAPerimeterRegistry.FleetMetadataView",
         "name": "",
         "type": "tuple"
       }
@@ -100,7 +105,7 @@ export default [
       },
       {
         "internalType": "uint256",
-        "name": "index",
+        "name": "userIndex",
         "type": "uint256"
       }
     ],
@@ -135,23 +140,10 @@ export default [
     "type": "function"
   },
   {
-    "inputs": [],
-    "name": "GetOwnFleetCount",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
     "inputs": [
       {
         "internalType": "uint256",
-        "name": "index",
+        "name": "fleetIndex",
         "type": "uint256"
       }
     ],
@@ -180,9 +172,22 @@ export default [
             "type": "uint256"
           }
         ],
-        "internalType": "struct FleetRegistry.FleetInfo",
+        "internalType": "struct ZTNAPerimeterRegistry.FleetMetadataView",
         "name": "",
         "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "GetOwnFleetCount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -192,12 +197,12 @@ export default [
     "inputs": [
       {
         "internalType": "address",
-        "name": "sharingUser",
+        "name": "sender",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "index",
+        "name": "fleetIndex",
         "type": "uint256"
       }
     ],
@@ -207,12 +212,12 @@ export default [
         "components": [
           {
             "internalType": "address",
-            "name": "fleet",
+            "name": "owner",
             "type": "address"
           },
           {
             "internalType": "address",
-            "name": "owner",
+            "name": "fleet",
             "type": "address"
           },
           {
@@ -226,7 +231,7 @@ export default [
             "type": "uint256"
           }
         ],
-        "internalType": "struct FleetRegistry.FleetInfo",
+        "internalType": "struct ZTNAPerimeterRegistry.FleetMetadataView",
         "name": "",
         "type": "tuple"
       }
@@ -238,7 +243,7 @@ export default [
     "inputs": [
       {
         "internalType": "address",
-        "name": "sharingUser",
+        "name": "sender",
         "type": "address"
       }
     ],
@@ -286,6 +291,19 @@ export default [
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "Owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "address",
@@ -304,16 +322,67 @@ export default [
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "_defaultFleetImplementation",
+        "type": "address"
+      }
+    ],
+    "name": "SetDefaultFleetImplementation",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "user",
+        "type": "address"
+      }
+    ],
+    "name": "UserWallet",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "Version",
     "outputs": [
       {
-        "internalType": "string",
+        "internalType": "uint256",
         "name": "",
-        "type": "string"
+        "type": "uint256"
       }
     ],
     "stateMutability": "pure",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "what",
+        "type": "bytes32"
+      }
+    ],
+    "name": "resolve",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   }
-]; 
+];
