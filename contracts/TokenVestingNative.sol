@@ -45,7 +45,13 @@ contract TokenVestingNative is Ownable {
      * @param arg_duration duration in seconds of the period in which the tokens will vest
      * @param arg_revocable whether the vesting is revocable or not
      */
-    constructor (address payable arg_beneficiary, uint256 arg_start, uint256 cliffDuration, uint256 arg_duration, bool arg_revocable) payable {
+    constructor(
+        address payable arg_beneficiary,
+        uint256 arg_start,
+        uint256 cliffDuration,
+        uint256 arg_duration,
+        bool arg_revocable
+    ) payable {
         require(arg_beneficiary != address(0), "TokenVesting: beneficiary is the zero address");
         // solhint-disable-next-line max-line-length
         require(cliffDuration <= arg_duration, "TokenVesting: cliff is longer than duration");
@@ -60,11 +66,10 @@ contract TokenVestingNative is Ownable {
         _start = arg_start;
     }
 
-
     /**
      * Allowing later fund additions
      */
-    receive() external payable { }
+    receive() external payable {}
 
     /**
      * @return the beneficiary of the tokens.

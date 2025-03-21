@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: DIODE
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
+
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/BNS.sol";
@@ -11,8 +12,11 @@ import "../contracts/DriveFactory.sol";
 
 contract TestDrive is Drive {
     constructor() Drive(address(0x0)) {}
+
     function name_slot() public pure returns (uint256 _value) {
-        assembly { _value := bns_name.slot }
+        assembly {
+            _value := bns_name.slot
+        }
     }
 }
 
@@ -70,8 +74,8 @@ contract DriveTest {
     function testInvite() public {
         Assert.equal(address(this), drive.owner(), "address(this) should be owner");
         invites.Invite(salt, number3);
-        
-        address[] memory none  = invites.Invites();
+
+        address[] memory none = invites.Invites();
         Assert.equal(none.length, 0, "This should have no invites");
         address[] memory recvd = DriveInvites(number3).Invites();
         Assert.equal(recvd.length, 1, "number3 should have 1 invite");
@@ -94,9 +98,9 @@ contract DriveTest {
     function testDomain() public {
         string memory name = drive.Name();
         Assert.greaterThan(bytes(name).length, uint256(0), "name should be longer than 0");
-        address[] memory members = drive.Members(); 
+        address[] memory members = drive.Members();
         address[] memory results = bns.ResolveEntry(name).destinations;
-        for (uint i = 0; i < members.length; i++) {
+        for (uint256 i = 0; i < members.length; i++) {
             Assert.equal(results[i], members[i], "name should resolve to drive members");
         }
     }

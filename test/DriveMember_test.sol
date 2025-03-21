@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: DIODE
 pragma solidity ^0.7.6;
+
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/DriveMember.sol";
@@ -7,8 +8,7 @@ import "../contracts/BNS.sol";
 import "../contracts/DriveFactory.sol";
 import "../contracts/Drive.sol";
 
-contract Dummy {
-}
+contract Dummy {}
 
 contract DriveMemberTest {
     BNS bns;
@@ -21,7 +21,7 @@ contract DriveMemberTest {
         drive_impl = new Drive(address(bns));
         member_impl = new DriveMember();
         factory = new DriveFactory();
-    
+
         number1 = address(new Dummy());
     }
 
@@ -30,7 +30,6 @@ contract DriveMemberTest {
 
         address raw_member = factory.Create(payable(address(this)), salt, address(member_impl));
         Assert.notEqual(raw_member, address(0), "raw_member should not be 0");
-
 
         DriveMember member = DriveMember(raw_member);
         Assert.equal(member.IsMember(address(this)), true, "this should be considered a member");

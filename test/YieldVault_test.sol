@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: DIODE
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
+
 import "./Assert.sol";
 import "../contracts/YieldVault.sol";
 import "../contracts/DiodeToken.sol";
@@ -77,9 +78,7 @@ contract YieldVaultTest is Test {
         yieldVault.deployReserve(additionalAmount);
         
         assertEq(
-            yieldVault.yieldReserve(),
-            initialReserve + additionalAmount,
-            "Reserve should increase by deployed amount"
+            yieldVault.yieldReserve(), initialReserve + additionalAmount, "Reserve should increase by deployed amount"
         );
     }
     
@@ -92,9 +91,7 @@ contract YieldVaultTest is Test {
         yieldVault.withdrawReserve(withdrawAmount);
         
         assertEq(
-            yieldVault.yieldReserve(),
-            initialReserve - withdrawAmount,
-            "Reserve should decrease by withdrawn amount"
+            yieldVault.yieldReserve(), initialReserve - withdrawAmount, "Reserve should decrease by withdrawn amount"
         );
         
         assertEq(
@@ -125,9 +122,7 @@ contract YieldVaultTest is Test {
         
         // Verify user1's balance decreased
         assertEq(
-            diodeToken.balanceOf(user1),
-            initialUser1Balance - amount,
-            "User balance should decrease by vested amount"
+            diodeToken.balanceOf(user1), initialUser1Balance - amount, "User balance should decrease by vested amount"
         );
         
         // Verify yield reserve decreased
@@ -247,11 +242,7 @@ contract YieldVaultTest is Test {
         vm.stopPrank();
         
         // Verify user received tokens
-        assertGt(
-            diodeToken.balanceOf(user1),
-            initialUser1Balance,
-            "User should receive released tokens"
-        );
+        assertGt(diodeToken.balanceOf(user1), initialUser1Balance, "User should receive released tokens");
         
         // Fast forward to halfway through vesting period
         vm.warp(startTime + LOCK_PERIOD + VESTING_PERIOD / 2);
@@ -263,11 +254,7 @@ contract YieldVaultTest is Test {
         vm.stopPrank();
         
         // Verify user received more tokens
-        assertGt(
-            diodeToken.balanceOf(user1),
-            initialUser1Balance,
-            "User should receive more released tokens"
-        );
+        assertGt(diodeToken.balanceOf(user1), initialUser1Balance, "User should receive more released tokens");
         
         // Fast forward past vesting period
         vm.warp(startTime + LOCK_PERIOD + VESTING_PERIOD + 1);
@@ -280,9 +267,7 @@ contract YieldVaultTest is Test {
         
         // Verify all tokens have been released
         assertEq(
-            diodeToken.balanceOf(vestingContractAddr),
-            0,
-            "Vesting contract should have 0 tokens after full release"
+            diodeToken.balanceOf(vestingContractAddr), 0, "Vesting contract should have 0 tokens after full release"
         );
     }
     

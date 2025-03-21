@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: DIODE
 pragma solidity ^0.7.6;
+
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/BNS.sol";
@@ -8,11 +9,13 @@ import "../contracts/Drive.sol";
 
 contract TestDrive2 is Drive {
     constructor(address _bns) Drive(_bns) {}
-    function Version() external override pure returns (int256) { return 200; }
+
+    function Version() external pure override returns (int256) {
+        return 200;
+    }
 }
 
-contract Dummy {
-}
+contract Dummy {}
 
 contract DriveFactoryTest {
     BNS bns;
@@ -25,7 +28,7 @@ contract DriveFactoryTest {
         version1 = new Drive(address(bns));
         version2 = new TestDrive2(address(bns));
         factory = new DriveFactory();
-    
+
         number1 = address(new Dummy());
     }
 
@@ -47,7 +50,7 @@ contract DriveFactoryTest {
 
         // Upgrade
         factory.Upgrade(salt, address(version2));
-        
+
         // and test again
         Assert.equal(drive.Version(), 200, "Version() should be equal 200");
         acceptanceTest(drive);

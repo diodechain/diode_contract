@@ -52,6 +52,8 @@ contract DriveMember is Group {
                 "Only members can call this"
             );
         }
+
+        _;
     }
 
     constructor() {

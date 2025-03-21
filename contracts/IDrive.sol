@@ -30,11 +30,7 @@ interface IDrive {
 
     function Nonce() external view returns (uint256);
 
-    function Join(
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
+    function Join(uint8 v, bytes32 r, bytes32 s) external;
 
     function Name() external returns (string memory);
 

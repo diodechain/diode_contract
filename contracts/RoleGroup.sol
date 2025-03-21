@@ -12,13 +12,11 @@ import "./Group.sol";
  */
 contract RoleGroup is Group {
     using Set for Set.Data;
-    mapping(address => uint256) roles; 
 
-    modifier onlyAdmin {
-        require(
-            role(msg.sender) >= RoleType.Admin,
-            "Only Admins and Owners can call this"
-        );
+    mapping(address => uint256) roles;
+
+    modifier onlyAdmin() {
+        require(role(msg.sender) >= RoleType.Admin, "Only Admins and Owners can call this");
 
         _;
     }
@@ -34,13 +32,13 @@ contract RoleGroup is Group {
         setDataValue(_role, _key, _value);
     }
 
-    function _add(address _member, uint256 _role) virtual internal {
+    function _add(address _member, uint256 _role) internal virtual {
         members.Add(_member);
         roles[_member] = _role;
         update_change_tracker();
     }
 
-    function remove(address _member) virtual internal {
+    function remove(address _member) internal virtual {
         members.Remove(_member);
         delete roles[_member];
         update_change_tracker();
@@ -51,23 +49,23 @@ contract RoleGroup is Group {
         return roles[_member];
     }
 
-    function Role(address _member) virtual external view returns (uint256) {
+    function Role(address _member) external view virtual returns (uint256) {
         return role(_member);
     }
 
-    function AddMember(address _member) virtual external onlyAdmin {
+    function AddMember(address _member) external virtual onlyAdmin {
         _add(_member, RoleType.Member);
     }
 
-    function AddMember(address _member, uint256 _role) virtual external onlyOwner {
+    function AddMember(address _member, uint256 _role) external virtual onlyOwner {
         _add(_member, _role);
     }
 
-    function RemoveSelf() virtual external {
+    function RemoveSelf() external virtual {
         remove(msg.sender);
     }
 
-    function RemoveMember(address _member) virtual external onlyAdmin {
+    function RemoveMember(address _member) external virtual onlyAdmin {
         remove(_member);
-    }    
+    }
 }
