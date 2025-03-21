@@ -3,6 +3,7 @@
 // Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity ^0.7.6;
+
 import "./deps/Ownable.sol";
 
 contract ProxyResolver is Ownable {

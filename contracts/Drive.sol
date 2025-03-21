@@ -18,9 +18,10 @@ import "./IProxyResolver.sol";
  */
 contract Drive is IDrive, RoleGroup, IProxyResolver {
     using Set for Set.Data;
+
     address password_address;
     uint256 password_nonce;
-    bytes   bns_name;
+    bytes bns_name;
     uint256 bns_members;
     address private immutable BNS;
     address private immutable CHAT_IMPL = address(new ChatGroup());
@@ -36,6 +37,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         uint256 expiry_count;
         uint256 target_role;
     }
+
     Set.Data join_code_set;
     mapping(address => JoinCode) join_code_data;
 
@@ -45,7 +47,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         update_change_tracker();
     }
 
-    function Version() external virtual override pure returns (int256) {
+    function Version() external pure virtual override returns (int256) {
         return 139;
     }
 
@@ -60,9 +62,13 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     function Swap(address payable _multisig) external override {
         uint32 _size;
         address _sender = msg.sender;
-        assembly { _size := extcodesize(_multisig) }
+        assembly {
+            _size := extcodesize(_multisig)
+        }
         require(_size > 0, "Can only swap for multisig smart contracts");
-        assembly { _size := extcodesize(_sender) }
+        assembly {
+            _size := extcodesize(_sender)
+        }
         require(_size == 0, "Can only swap from plain addresses");
         require(members.IsMember(msg.sender) || owner() == msg.sender, "Can only swap from members addresses");
 
@@ -84,7 +90,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         update_change_tracker();
     }
 
-    function Nonce() external override view returns (uint256) {
+    function Nonce() external view override returns (uint256) {
         return password_nonce;
     }
 
@@ -98,7 +104,9 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         update_change_tracker();
     }
 
-    function UpdateJoinCode(address _secret, uint256 _expiry_time, uint256 _expiry_count, uint256 _target_role) external {
+    function UpdateJoinCode(address _secret, uint256 _expiry_time, uint256 _expiry_count, uint256 _target_role)
+        external
+    {
         uint256 _role = role(msg.sender);
         require(_role >= RoleType.Admin, "Only Admins can call this");
         require(_target_role < _role, "Can only update invites to lower roles");
@@ -111,12 +119,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         update_change_tracker();
     }
 
-    function Join(
-        address _secret,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external {
+    function Join(address _secret, uint8 v, bytes32 r, bytes32 s) external {
         require(join_code_set.IsMember(_secret), "Join code does not exist");
         JoinCode storage jc = join_code_data[_secret];
         require(block.timestamp < jc.expiry_time, "Join code time expired");
@@ -128,11 +131,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         _add(msg.sender, jc.target_role);
     }
 
-    function Join(
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external override {
+    function Join(uint8 v, bytes32 r, bytes32 s) external override {
         validate_join_code(password_address, password_nonce, v, r, s);
         password_nonce++;
         _add(msg.sender, RoleType.Member);
@@ -161,7 +160,10 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
 
     function RemoveChat(address chat) external onlyMember {
         require(chats.IsMember(chat), "Chat does not exist");
-        require(role(msg.sender) >= RoleType.Admin || ChatGroup(chat).Role(msg.sender) >= RoleType.Owner, "Only admins can remove chats");
+        require(
+            role(msg.sender) >= RoleType.Admin || ChatGroup(chat).Role(msg.sender) >= RoleType.Owner,
+            "Only admins can remove chats"
+        );
         chats.Remove(chat);
         chat_contracts[ChatGroup(chat).Key(0)] = address(0);
         update_change_tracker();
@@ -186,7 +188,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     // ######## ######## ########   Overrides       ######## ######## ######## ########
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
 
-    function AddMember(address _member) external override(RoleGroup, IDrive) onlyAdmin { 
+    function AddMember(address _member) external override(RoleGroup, IDrive) onlyAdmin {
         _add(_member, RoleType.Member);
     }
 
@@ -214,7 +216,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     // ######## ######## ########   Internal only functions  ######## ######## ########
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
 
-    function bns() internal virtual view returns (IBNS) {
+    function bns() internal view virtual returns (IBNS) {
         return IBNS(BNS);
     }
 
@@ -237,30 +239,22 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     bytes constant chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+
     function encode(uint160 _arg) internal pure returns (bytes memory) {
         bytes memory ret = new bytes(20);
-        for (uint i = 0; i < 20; i++) {
+        for (uint256 i = 0; i < 20; i++) {
             ret[i] = chars[_arg % 36];
             _arg = _arg / 36;
         }
         return ret;
     }
 
-    function validate_join_code(
-        address _password_address,
-        uint256 _password_nonce,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) internal view {
+    function validate_join_code(address _password_address, uint256 _password_nonce, uint8 v, bytes32 r, bytes32 s)
+        internal
+        view
+    {
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
-        bytes32 prefixedHash = keccak256(
-            abi.encodePacked(prefix, msg.sender, _password_nonce)
-        );
-        require(
-            ecrecover(prefixedHash, v, r, s) == _password_address,
-            "Invalid signature"
-        );
-
+        bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, msg.sender, _password_nonce));
+        require(ecrecover(prefixedHash, v, r, s) == _password_address, "Invalid signature");
     }
 }

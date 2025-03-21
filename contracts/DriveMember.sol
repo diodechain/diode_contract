@@ -9,14 +9,14 @@ import "./Group.sol";
 
 /**
  * DriveMember and Identity Smart Contract
- *  
+ *
  * When used as a DriveMember the `drive` member variable should point to the address of the drive "zone"
  * that this contract is a member of.
  *
  * When used as Identity the `drive` member variable will be `0`.
  *
  * The "owner" will always be the initial "master key". The contract is being deployed using the DriveFactory.sol
- * and thus upgradeable by the `owner()` only. 
+ * and thus upgradeable by the `owner()` only.
  *
  * "additional_drives" is temporary to store multiple Zones all used with this same identity. Will be replaced
  * once the client can handle multiple identity connections.
@@ -27,11 +27,12 @@ import "./Group.sol";
  */
 contract DriveMember is Group {
     using Set for Set.Data;
+
     bool protected;
     address drive;
     address[] additional_drives;
 
-    modifier onlyMember override {
+    modifier onlyMember() override {
         if (protected) {
             require(owner() == msg.sender, "Only the owner can call this in protected mode");
         } else {
@@ -46,7 +47,7 @@ contract DriveMember is Group {
         update_change_tracker();
     }
 
-    function Version() external virtual pure returns (int256) {
+    function Version() external pure virtual returns (int256) {
         return 114;
     }
 
@@ -90,13 +91,11 @@ contract DriveMember is Group {
         return additional_drives;
     }
 
-    function SubmitTransaction(address dst, bytes memory data) public onlyMember
-    {
+    function SubmitTransaction(address dst, bytes memory data) public onlyMember {
         require(external_call(dst, data.length, data), "General Transaction failed");
     }
 
-    function SubmitDriveTransaction(bytes memory data) public onlyMember
-    {
+    function SubmitDriveTransaction(bytes memory data) public onlyMember {
         require(external_call(drive, data.length, data), "Drive Transaction failed");
     }
 }

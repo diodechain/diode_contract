@@ -14,10 +14,11 @@ contract ChatGroup is RoleGroup {
     using Set for Set.Data;
     // List of group keys, only the most recent key should be
     // used for encryption
+
     uint256 constant GROUP_KEYS = uint256(keccak256("GROUP_KEYS"));
     uint256 constant ZONE = uint256(keccak256("ZONE"));
 
-    function initialize(address payable owner, address _zone, address initial_key) initializer public {
+    function initialize(address payable owner, address _zone, address initial_key) public initializer {
         set_at(ZONE, uint256(_zone));
         list_push(GROUP_KEYS, uint256(initial_key));
         super.initialize(owner);

@@ -12,14 +12,18 @@ contract Proxy8 {
         assembly {
             sstore(TARGET_SLOT, _target)
             sstore(OWNER_SLOT, _owner)
-        } 
-    } 
+        }
+    }
 
     function _proxy_set_owner(address _newowner) external {
         address owner;
-        assembly {owner := sload(OWNER_SLOT)}
+        assembly {
+            owner := sload(OWNER_SLOT)
+        }
         if (owner == msg.sender) {
-            assembly {sstore(OWNER_SLOT, _newowner)}
+            assembly {
+                sstore(OWNER_SLOT, _newowner)
+            }
             return;
         }
 
@@ -28,9 +32,13 @@ contract Proxy8 {
 
     function _proxy_set_target(address _newtarget) external {
         address owner;
-        assembly {owner := sload(OWNER_SLOT)}
+        assembly {
+            owner := sload(OWNER_SLOT)
+        }
         if (owner == msg.sender) {
-            assembly {sstore(TARGET_SLOT, _newtarget)}
+            assembly {
+                sstore(TARGET_SLOT, _newtarget)
+            }
             return;
         }
 
@@ -51,7 +59,9 @@ contract Proxy8 {
             calldatacopy(0x0, 0x0, calldatasize())
             let result := delegatecall(gas(), target, 0, calldatasize(), 0x0, 0)
             returndatacopy(0x0, 0x0, returndatasize())
-            switch result case 0 {revert(0, 0)} default {return (0, returndatasize())}
+            switch result
+            case 0 { revert(0, 0) }
+            default { return(0, returndatasize()) }
         }
     }
 }

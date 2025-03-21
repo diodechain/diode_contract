@@ -10,11 +10,15 @@ pragma experimental ABIEncoderV2;
  */
 contract Storage {
     function at(uint256 slot) public view returns (uint256 _value) {
-        assembly { _value := sload(slot) }
+        assembly {
+            _value := sload(slot)
+        }
     }
 
     function set_at(uint256 slot, uint256 value) internal {
-        assembly { sstore(slot, value) }
+        assembly {
+            sstore(slot, value)
+        }
     }
 
     function hash_at(uint256 base, uint256 key) public view returns (uint256) {
@@ -60,5 +64,4 @@ contract Storage {
     function list_slot(uint256 base, uint256 key) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(base))) + key;
     }
-
 }

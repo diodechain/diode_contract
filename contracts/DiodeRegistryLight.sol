@@ -21,7 +21,6 @@ import "./IFleetContract.sol";
  * 2. Submitting Service Tickets for Traffic and Connections
  *
  */
-
 contract DiodeRegistryLight is Initializable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -123,10 +122,7 @@ contract DiodeRegistryLight is Initializable {
     }
 
     function ContractStake(IFleetContract _fleet, uint256 amount) public {
-        require(
-            _fleet.Accountant() == msg.sender,
-            "Only the fleet accountant can do this"
-        );
+        require(_fleet.Accountant() == msg.sender, "Only the fleet accountant can do this");
 
         FleetStats storage fleet = fleetStats[address(_fleet)];
 
@@ -140,20 +136,14 @@ contract DiodeRegistryLight is Initializable {
     }
 
     function ContractUnstake(IFleetContract _fleet, uint256 amount) public {
-        require(
-            _fleet.Accountant() == msg.sender,
-            "Only the fleet accountant can do this"
-        );
+        require(_fleet.Accountant() == msg.sender, "Only the fleet accountant can do this");
         FleetStats storage fleet = fleetStats[address(_fleet)];
         require(fleet.exists, "Only existing fleets can be unstaked");
         fleet.withdrawRequestSize = amount;
     }
 
     function ContractWithdraw(IFleetContract _fleet) public {
-        require(
-            _fleet.Accountant() == msg.sender,
-            "Only the fleet accountant can do this"
-        );
+        require(_fleet.Accountant() == msg.sender, "Only the fleet accountant can do this");
         FleetStats storage fleet = fleetStats[address(_fleet)];
         Token.safeTransfer(msg.sender, fleet.withdrawableBalance);
         fleet.withdrawableBalance = 0;
@@ -165,7 +155,7 @@ contract DiodeRegistryLight is Initializable {
     }
 
     function RelayWithdraw(address nodeAddress) public {
-        require (relayRewards[nodeAddress].reward > 0, "No rewards to withdraw");
+        require(relayRewards[nodeAddress].reward > 0, "No rewards to withdraw");
         Token.safeTransfer(nodeAddress, relayRewards[nodeAddress].reward);
         relayRewards[nodeAddress].reward = 0;
     }
@@ -178,9 +168,7 @@ contract DiodeRegistryLight is Initializable {
         byteScore = _byteScore;
     }
 
-    function SetConnectionScore(
-        uint256 _connectionScore
-    ) external onlyFoundation {
+    function SetConnectionScore(uint256 _connectionScore) external onlyFoundation {
         connectionScore = _connectionScore;
     }
 
@@ -203,7 +191,7 @@ contract DiodeRegistryLight is Initializable {
 
     function EndEpochForAllFleets() public {
         EndEpoch();
-        for (uint f = 0; f < fleetArray.length; f++) {
+        for (uint256 f = 0; f < fleetArray.length; f++) {
             EndEpochForFleet(fleetArray[f]);
         }
     }
@@ -234,13 +222,13 @@ contract DiodeRegistryLight is Initializable {
         // No need to continue beyond this point, if there is nothing to distribute
         reward -= foundationTax;
         if (reward == 0) return;
-        uint rest = reward;
+        uint256 rest = reward;
 
         for (uint256 n = 0; n < fleet.nodeArray.length; n++) {
             address nodeAddress = fleet.nodeArray[n];
             NodeStats storage node = fleet.nodeStats[nodeAddress];
 
-            uint value = (reward * node.score) / fleet.score;
+            uint256 value = (reward * node.score) / fleet.score;
 
             if (value > 0) {
                 if (!relayRewards[nodeAddress].exists) {
@@ -284,20 +272,16 @@ contract DiodeRegistryLight is Initializable {
      * a single connection ticket.
      */
     function SubmitTicketRaw(bytes32[] calldata _connectionTicket) external {
-        if (_connectionTicket.length == 0 || _connectionTicket.length % 9 != 0)
+        if (_connectionTicket.length == 0 || _connectionTicket.length % 9 != 0) {
             revert("Invalid ticket length");
+        }
 
         for (uint256 i = 0; i < _connectionTicket.length; i += 9) {
-            bytes32[3] memory deviceSignature = [
-                _connectionTicket[i + 6],
-                _connectionTicket[i + 7],
-                _connectionTicket[i + 8]
-            ];
+            bytes32[3] memory deviceSignature =
+                [_connectionTicket[i + 6], _connectionTicket[i + 7], _connectionTicket[i + 8]];
             SubmitTicket(
                 uint256(_connectionTicket[i + 0]),
-                IFleetContract(
-                    Utils.bytes32ToAddress(_connectionTicket[i + 1])
-                ),
+                IFleetContract(Utils.bytes32ToAddress(_connectionTicket[i + 1])),
                 Utils.bytes32ToAddress(_connectionTicket[i + 2]),
                 uint256(_connectionTicket[i + 3]),
                 uint256(_connectionTicket[i + 4]),
@@ -333,22 +317,11 @@ contract DiodeRegistryLight is Initializable {
         message[5] = bytes32(totalBytes);
         message[6] = localAddress;
 
-        address client = ecrecover(
-            Utils.bytes32Hash(message),
-            uint8(uint256(signature[2])),
-            signature[0],
-            signature[1]
-        );
+        address client = ecrecover(Utils.bytes32Hash(message), uint8(uint256(signature[2])), signature[0], signature[1]);
         // ======= END =======
 
         validateFleetAccess(fleetContract, client);
-        updateTrafficCount(
-            fleetContract,
-            nodeAddress,
-            client,
-            totalConnections,
-            totalBytes
-        );
+        updateTrafficCount(fleetContract, nodeAddress, client, totalConnections, totalBytes);
     }
 
     // ====================================================================================
@@ -381,7 +354,7 @@ contract DiodeRegistryLight is Initializable {
         return fleetArray;
     }
 
-    function FleetArrayLength() external view returns (uint) {
+    function FleetArrayLength() external view returns (uint256) {
         return fleetArray.length;
     }
 
@@ -389,33 +362,25 @@ contract DiodeRegistryLight is Initializable {
         return relayArray;
     }
 
-    function RelayArrayLength() external view returns (uint) {
+    function RelayArrayLength() external view returns (uint256) {
         return relayArray.length;
     }
 
-    function GetFleet(
-        IFleetContract _fleet
-    ) external view returns (FleetStat memory) {
+    function GetFleet(IFleetContract _fleet) external view returns (FleetStat memory) {
         FleetStats storage f = fleetStats[address(_fleet)];
         return
-            FleetStat(
-                f.exists,
-                f.currentBalance,
-                f.withdrawRequestSize,
-                f.withdrawableBalance,
-                f.currentEpoch,
-                f.score
-            );
+            FleetStat(f.exists, f.currentBalance, f.withdrawRequestSize, f.withdrawableBalance, f.currentEpoch, f.score);
     }
 
-    function GetClientScore(IFleetContract _fleet, address nodeAddress, address clientAddress) external view returns (uint256) {
+    function GetClientScore(IFleetContract _fleet, address nodeAddress, address clientAddress)
+        external
+        view
+        returns (uint256)
+    {
         return fleetStats[address(_fleet)].nodeStats[nodeAddress].clientStats[clientAddress].score;
     }
 
-    function GetNode(
-        IFleetContract _fleet,
-        address nodeAddress
-    ) external view returns (Node memory) {
+    function GetNode(IFleetContract _fleet, address nodeAddress) external view returns (Node memory) {
         NodeStats storage n = fleetStats[address(_fleet)].nodeStats[nodeAddress];
         Node memory node = Node(nodeAddress, n.score);
         return node;
@@ -436,10 +401,7 @@ contract DiodeRegistryLight is Initializable {
         uint256 totalBytes
     ) internal {
         FleetStats storage fleet = fleetStats[address(fleetContract)];
-        uint256 score = totalConnections *
-            connectionScore +
-            totalBytes *
-            byteScore;
+        uint256 score = totalConnections * connectionScore + totalBytes * byteScore;
 
         if (fleet.exists == false) {
             fleet.exists = true;
@@ -467,7 +429,9 @@ contract DiodeRegistryLight is Initializable {
     }
 
     function validateFleetAccess(IFleetContract fleetContract, address client) internal view {
-        require(fleetContract.DeviceAllowlist(client), string(abi.encodePacked("Unregistered device\x00", address(client))));
+        require(
+            fleetContract.DeviceAllowlist(client), string(abi.encodePacked("Unregistered device\x00", address(client)))
+        );
     }
 
     function Version() external pure returns (uint256) {
