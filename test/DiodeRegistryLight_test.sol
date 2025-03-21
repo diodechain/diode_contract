@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: DIODE
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
+
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/DiodeRegistryLight.sol";
@@ -35,7 +36,7 @@ contract DiodeRegistryLightTest is Test {
         fleet2 = new FleetContract(address(this), address(this));
 
         // Initializing fleet1 with some stake
-        uint amount = 100000;
+        uint256 amount = 100000;
         foundation_token.mint(address(this), amount);
         assertEq(diode.balanceOf(address(this)), amount);
 
@@ -43,7 +44,7 @@ contract DiodeRegistryLightTest is Test {
     }
 
     function testUnstake() public {
-        uint amount = 100000;
+        uint256 amount = 100000;
         reg.ContractStake(fleet1, amount);
 
         assertEq(diode.balanceOf(address(reg)), amount);
@@ -57,7 +58,7 @@ contract DiodeRegistryLightTest is Test {
         assertEq(f.currentBalance, amount);
         assertEq(f.withdrawRequestSize, amount);
         assertEq(f.withdrawableBalance, 0);
-        uint epoch = f.currentEpoch;
+        uint256 epoch = f.currentEpoch;
 
         vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
         reg.EndEpochForAllFleets();
@@ -71,11 +72,11 @@ contract DiodeRegistryLightTest is Test {
 
     function testReward_100k() public {
         (address alice, uint256 alicePk) = makeAddrAndKey("alice");
-        uint amount = 100000;
+        uint256 amount = 100000;
         reg.ContractStake(fleet1, amount);
-        uint epoch = block.timestamp / reg.SecondsPerEpoch();
-        uint totalConnections = 3;
-        uint totalBytes = 5;
+        uint256 epoch = block.timestamp / reg.SecondsPerEpoch();
+        uint256 totalConnections = 3;
+        uint256 totalBytes = 5;
         vm.roll(block.number + 2);
 
         bytes32[] memory ticket = new bytes32[](7);
@@ -87,24 +88,13 @@ contract DiodeRegistryLightTest is Test {
         ticket[5] = bytes32(totalBytes);
         ticket[6] = "fake";
 
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            alicePk,
-            Utils.bytes32Hash(ticket)
-        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(alicePk, Utils.bytes32Hash(ticket));
 
         bytes32[3] memory sig = [r, s, bytes32(uint256(v))];
         fleet1.SetDeviceAllowlist(alice, true);
 
         vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
-        reg.SubmitTicket(
-            epoch,
-            fleet1,
-            address(relay1),
-            totalConnections,
-            totalBytes,
-            ticket[6],
-            sig
-        );
+        reg.SubmitTicket(epoch, fleet1, address(relay1), totalConnections, totalBytes, ticket[6], sig);
 
         DiodeRegistryLight.FleetStat memory f = reg.GetFleet(fleet1);
         assertEq(f.score, 3077, "prev fleetScore==3077");
@@ -115,51 +105,32 @@ contract DiodeRegistryLightTest is Test {
         reg.EndEpochForAllFleets();
 
         f = reg.GetFleet(fleet1);
-        uint expectedReward = amount / 100;
-        uint expectedTax = expectedReward / 100;
+        uint256 expectedReward = amount / 100;
+        uint256 expectedTax = expectedReward / 100;
 
         assertEq(f.score, 0, "fleetScore==0");
-        assertEq(
-            f.currentBalance,
-            amount - expectedReward,
-            "currentBalance==0"
-        );
-        assertEq(
-            reg.foundationWithdrawableBalance(),
-            expectedTax,
-            "foundationWithdrawableBalance==10"
-        );
-        assertEq(
-            reg.RelayRewards(address(relay1)),
-            expectedReward - expectedTax,
-            "RelayRewards==1000"
-        );
+        assertEq(f.currentBalance, amount - expectedReward, "currentBalance==0");
+        assertEq(reg.foundationWithdrawableBalance(), expectedTax, "foundationWithdrawableBalance==10");
+        assertEq(reg.RelayRewards(address(relay1)), expectedReward - expectedTax, "RelayRewards==1000");
 
         reg.FoundationWithdraw();
         reg.RelayWithdraw(address(relay1));
 
-        assertEq(
-            reg.foundationWithdrawableBalance(),
-            0,
-            "foundationWithdrawableBalance==0"
-        );
+        assertEq(reg.foundationWithdrawableBalance(), 0, "foundationWithdrawableBalance==0");
         assertEq(reg.RelayRewards(address(relay1)), 0, "RelayRewards==0");
 
-        assertEq(
-            diode.balanceOf(address(relay1)),
-            expectedReward - expectedTax
-        );
+        assertEq(diode.balanceOf(address(relay1)), expectedReward - expectedTax);
         assertEq(diode.balanceOf(foundation), expectedTax);
         assertEq(diode.balanceOf(address(reg)), amount - expectedReward);
     }
 
     function testReward_1k() public {
         (address alice, uint256 alicePk) = makeAddrAndKey("alice");
-        uint amount = 1000;
+        uint256 amount = 1000;
         reg.ContractStake(fleet1, amount);
-        uint epoch = block.timestamp / reg.SecondsPerEpoch();
-        uint totalConnections = 3;
-        uint totalBytes = 5;
+        uint256 epoch = block.timestamp / reg.SecondsPerEpoch();
+        uint256 totalConnections = 3;
+        uint256 totalBytes = 5;
         vm.roll(block.number + 2);
 
         bytes32[] memory ticket = new bytes32[](7);
@@ -171,25 +142,14 @@ contract DiodeRegistryLightTest is Test {
         ticket[5] = bytes32(totalBytes);
         ticket[6] = "fake";
 
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            alicePk,
-            Utils.bytes32Hash(ticket)
-        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(alicePk, Utils.bytes32Hash(ticket));
 
         bytes32[3] memory sig = [r, s, bytes32(uint256(v))];
 
         fleet1.SetDeviceAllowlist(alice, true);
 
         vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
-        reg.SubmitTicket(
-            epoch,
-            fleet1,
-            address(relay1),
-            totalConnections,
-            totalBytes,
-            ticket[6],
-            sig
-        );
+        reg.SubmitTicket(epoch, fleet1, address(relay1), totalConnections, totalBytes, ticket[6], sig);
 
         DiodeRegistryLight.FleetStat memory f = reg.GetFleet(fleet1);
         assertEq(f.score, 3077, "prev fleetScore==3077");
@@ -200,40 +160,21 @@ contract DiodeRegistryLightTest is Test {
         reg.EndEpochForAllFleets();
 
         f = reg.GetFleet(fleet1);
-        uint expectedReward = amount / 100;
-        uint expectedTax = expectedReward / 100;
+        uint256 expectedReward = amount / 100;
+        uint256 expectedTax = expectedReward / 100;
 
         assertEq(f.score, 0, "fleetScore==0");
-        assertEq(
-            f.currentBalance,
-            amount - expectedReward,
-            "currentBalance==0"
-        );
-        assertEq(
-            reg.foundationWithdrawableBalance(),
-            expectedTax,
-            "foundationWithdrawableBalance==10"
-        );
-        assertEq(
-            reg.RelayRewards(address(relay1)),
-            expectedReward - expectedTax,
-            "RelayRewards==1000"
-        );
+        assertEq(f.currentBalance, amount - expectedReward, "currentBalance==0");
+        assertEq(reg.foundationWithdrawableBalance(), expectedTax, "foundationWithdrawableBalance==10");
+        assertEq(reg.RelayRewards(address(relay1)), expectedReward - expectedTax, "RelayRewards==1000");
 
         reg.FoundationWithdraw();
         reg.RelayWithdraw(address(relay1));
 
-        assertEq(
-            reg.foundationWithdrawableBalance(),
-            0,
-            "foundationWithdrawableBalance==0"
-        );
+        assertEq(reg.foundationWithdrawableBalance(), 0, "foundationWithdrawableBalance==0");
         assertEq(reg.RelayRewards(address(relay1)), 0, "RelayRewards==0");
 
-        assertEq(
-            diode.balanceOf(address(relay1)),
-            expectedReward - expectedTax
-        );
+        assertEq(diode.balanceOf(address(relay1)), expectedReward - expectedTax);
         assertEq(diode.balanceOf(foundation), expectedTax);
         assertEq(diode.balanceOf(address(reg)), amount - expectedReward);
     }
@@ -242,11 +183,11 @@ contract DiodeRegistryLightTest is Test {
         (address alice, uint256 alicePk) = makeAddrAndKey("alice");
         // (address bob, uint256 bobPk) = makeAddrAndKey("bob");
         // Testing for rounding errors with 1001 divided by to relays
-        uint amount = 1100;
+        uint256 amount = 1100;
         reg.ContractStake(fleet1, amount);
-        uint epoch = block.timestamp / reg.SecondsPerEpoch();
-        uint totalConnections = 3;
-        uint totalBytes = 5;
+        uint256 epoch = block.timestamp / reg.SecondsPerEpoch();
+        uint256 totalConnections = 3;
+        uint256 totalBytes = 5;
         vm.roll(block.number + 2);
 
         bytes32[] memory ticket = new bytes32[](7);
@@ -258,38 +199,19 @@ contract DiodeRegistryLightTest is Test {
         ticket[5] = bytes32(totalBytes);
         ticket[6] = "fake";
 
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(
-            alicePk,
-            Utils.bytes32Hash(ticket)
-        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(alicePk, Utils.bytes32Hash(ticket));
 
         bytes32[3] memory sig = [r, s, bytes32(uint256(v))];
         fleet1.SetDeviceAllowlist(alice, true);
         vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
-        reg.SubmitTicket(
-            epoch,
-            fleet1,
-            address(relay1),
-            totalConnections,
-            totalBytes,
-            ticket[6],
-            sig
-        );
+        reg.SubmitTicket(epoch, fleet1, address(relay1), totalConnections, totalBytes, ticket[6], sig);
 
         // Update the ticket for a different relay
         ticket[3] = Utils.addressToBytes32(address(relay2));
         (v, r, s) = vm.sign(alicePk, Utils.bytes32Hash(ticket));
 
         sig = [r, s, bytes32(uint256(v))];
-        reg.SubmitTicket(
-            epoch,
-            fleet1,
-            address(relay2),
-            totalConnections,
-            totalBytes,
-            ticket[6],
-            sig
-        );
+        reg.SubmitTicket(epoch, fleet1, address(relay2), totalConnections, totalBytes, ticket[6], sig);
 
         // Check values
         DiodeRegistryLight.FleetStat memory f = reg.GetFleet(fleet1);
@@ -303,36 +225,18 @@ contract DiodeRegistryLightTest is Test {
 
         // Check rewards
         f = reg.GetFleet(fleet1);
-        uint expectedReward = amount / (2 * 100);
-        uint expectedTax = expectedReward / 100;
+        uint256 expectedReward = amount / (2 * 100);
+        uint256 expectedTax = expectedReward / 100;
 
         assertEq(f.score, 0, "fleetScore==0");
-        assertEq(
-            f.currentBalance,
-            amount - 2 * expectedReward - 1,
-            "currentBalance==1089"
-        );
-        assertEq(
-            reg.foundationWithdrawableBalance(),
-            2 * expectedTax + 1,
-            "foundationWithdrawableBalance==2"
-        );
-        assertEq(
-            reg.RelayRewards(address(relay1)),
-            expectedReward - expectedTax,
-            "RelayRewards==5"
-        );
-        assertEq(
-            reg.RelayRewards(address(relay2)),
-            expectedReward - expectedTax,
-            "RelayRewards==5"
-        );
+        assertEq(f.currentBalance, amount - 2 * expectedReward - 1, "currentBalance==1089");
+        assertEq(reg.foundationWithdrawableBalance(), 2 * expectedTax + 1, "foundationWithdrawableBalance==2");
+        assertEq(reg.RelayRewards(address(relay1)), expectedReward - expectedTax, "RelayRewards==5");
+        assertEq(reg.RelayRewards(address(relay2)), expectedReward - expectedTax, "RelayRewards==5");
         assertEq(
             diode.balanceOf(address(reg)),
-            reg.RelayRewards(address(relay1)) +
-                reg.RelayRewards(address(relay2)) +
-                reg.foundationWithdrawableBalance() +
-                f.currentBalance,
+            reg.RelayRewards(address(relay1)) + reg.RelayRewards(address(relay2)) + reg.foundationWithdrawableBalance()
+                + f.currentBalance,
             "sum==amount"
         );
 
@@ -340,34 +244,16 @@ contract DiodeRegistryLightTest is Test {
         reg.RelayWithdraw(address(relay1));
         reg.RelayWithdraw(address(relay2));
 
-        assertEq(
-            reg.foundationWithdrawableBalance(),
-            0,
-            "foundationWithdrawableBalance==0"
-        );
+        assertEq(reg.foundationWithdrawableBalance(), 0, "foundationWithdrawableBalance==0");
         assertEq(reg.RelayRewards(address(relay1)), 0, "relay1Rewards==0");
         assertEq(reg.RelayRewards(address(relay2)), 0, "relay2Rewards==0");
 
-        assertEq(
-            diode.balanceOf(address(relay1)),
-            expectedReward - expectedTax,
-            "relay1 got reward"
-        );
-        assertEq(
-            diode.balanceOf(address(relay2)),
-            expectedReward - expectedTax,
-            "relay2 got reward"
-        );
-        assertEq(
-            diode.balanceOf(foundation),
-            2 * expectedTax + 1,
-            "Foundation got tax rounded up"
-        );
+        assertEq(diode.balanceOf(address(relay1)), expectedReward - expectedTax, "relay1 got reward");
+        assertEq(diode.balanceOf(address(relay2)), expectedReward - expectedTax, "relay2 got reward");
+        assertEq(diode.balanceOf(foundation), 2 * expectedTax + 1, "Foundation got tax rounded up");
         assertEq(diode.balanceOf(foundation), 1, "Foundation got tax");
         assertEq(
-            diode.balanceOf(address(reg)),
-            amount - 2 * expectedReward - 1,
-            "registry deducted rewards rounded down"
+            diode.balanceOf(address(reg)), amount - 2 * expectedReward - 1, "registry deducted rewards rounded down"
         );
     }
 }

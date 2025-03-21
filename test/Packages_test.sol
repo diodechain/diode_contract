@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: DIODE
 pragma solidity ^0.7.6;
+
 import "./Assert.sol";
 import "../contracts/BNS.sol";
 import "../contracts/Packages.sol";
@@ -7,6 +8,7 @@ import "../contracts/Packages.sol";
 contract PackagesTest {
     BNS bns;
     Packages packages;
+
     constructor() {
         bns = new BNS();
         packages = new Packages(bns);
@@ -24,6 +26,8 @@ contract PackagesTest {
 
         Assert.equal(packages.LookupHash(domain_name, package_name), package_hash, "package_hash should match");
         Assert.notEqual(packages.LookupHash("other_name", package_name), package_hash, "package_hash should not match");
-        Assert.notEqual(packages.LookupHash(domain_name, "other_package"), package_hash, "package_hash should not match");
+        Assert.notEqual(
+            packages.LookupHash(domain_name, "other_package"), package_hash, "package_hash should not match"
+        );
     }
 }

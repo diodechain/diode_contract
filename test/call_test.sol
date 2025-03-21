@@ -5,51 +5,59 @@ pragma experimental ABIEncoderV2;
 import "./Assert.sol";
 
 contract DelegateCall {
-    int storage_id = 2; 
+    int256 storage_id = 2;
     address TARGET = msg.sender;
-    fallback() external payable{
+
+    fallback() external payable {
         assembly {
             let target := sload(TARGET.slot)
             calldatacopy(0x0, 0x0, calldatasize())
             let result := delegatecall(gas(), target, 0, calldatasize(), 0x0, 0)
             returndatacopy(0x0, 0x0, returndatasize())
-            switch result case 0 {revert(0, 0)} default {return (0, returndatasize())}
+            switch result
+            case 0 { revert(0, 0) }
+            default { return(0, returndatasize()) }
         }
     }
 }
 
-
 contract CallCode {
-    int storage_id = 3; 
+    int256 storage_id = 3;
     address TARGET = msg.sender;
+
     fallback() external payable {
         assembly {
             let target := sload(TARGET.slot)
             calldatacopy(0x0, 0x0, calldatasize())
             let result := callcode(gas(), target, 0, 0x0, calldatasize(), 0x0, 0)
             returndatacopy(0x0, 0x0, returndatasize())
-            switch result case 0 {revert(0, 0)} default {return (0, returndatasize())}
+            switch result
+            case 0 { revert(0, 0) }
+            default { return(0, returndatasize()) }
         }
     }
 }
 
 contract Call {
-    int constant storage_id = 4; 
+    int256 constant storage_id = 4;
     address TARGET = msg.sender;
+
     fallback() external payable {
         assembly {
             let target := sload(TARGET.slot)
             calldatacopy(0x0, 0x0, calldatasize())
             let result := call(gas(), target, 0, 0x0, calldatasize(), 0x0, 0)
             returndatacopy(0x0, 0x0, returndatasize())
-            switch result case 0 {revert(0, 0)} default {return (0, returndatasize())}
+            switch result
+            case 0 { revert(0, 0) }
+            default { return(0, returndatasize()) }
         }
     }
 }
 
 contract CallTest {
-    int storage_id = 1; 
-    address TARGET; 
+    int256 storage_id = 1;
+    address TARGET;
     DelegateCall private dc;
     CallCode private cc;
     Call private ca;
@@ -65,15 +73,15 @@ contract CallTest {
         address origin;
         address sender;
         address destination;
-        uint value;
-        int storage_id;
+        uint256 value;
+        int256 storage_id;
     }
 
-    function getInfo() payable public returns (Info memory) {
+    function getInfo() public payable returns (Info memory) {
         return Info(tx.origin, msg.sender, address(this), msg.value, storage_id);
     }
 
-    function testDelegateCall() payable public {
+    function testDelegateCall() public payable {
         CallTest test = CallTest(address(dc));
         Info memory info = test.getInfo{value: 123}();
 
@@ -84,7 +92,7 @@ contract CallTest {
         Assert.equal(info.storage_id, 2, "dc storage_id should match 2");
     }
 
-    function testCallCode() payable public {
+    function testCallCode() public payable {
         CallTest test = CallTest(address(cc));
         Info memory info = test.getInfo{value: 124}();
 
@@ -95,7 +103,7 @@ contract CallTest {
         Assert.equal(info.storage_id, 3, "cc storage_id should match 3");
     }
 
-    function testCall() payable public {
+    function testCall() public payable {
         CallTest test = CallTest(address(ca));
         Info memory info = test.getInfo{value: 125}();
 
