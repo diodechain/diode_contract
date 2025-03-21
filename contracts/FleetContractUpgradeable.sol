@@ -3,6 +3,7 @@
 // Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
 pragma solidity >=0.7.6;
+
 import "./IFleetContract.sol";
 
 /**
@@ -20,18 +21,18 @@ contract FleetContractUpgradeable is IFleetContract {
     address private immutable REGISTRY;
 
     /**
-    * @dev Indicates that the contract has been initialized.
-    */
+     * @dev Indicates that the contract has been initialized.
+     */
     bool private initialized;
 
     /**
-    * @dev Indicates that the contract is in the process of being initialized.
-    */
+     * @dev Indicates that the contract is in the process of being initialized.
+     */
     bool private initializing;
 
     /**
-    * @dev Modifier to use in the initializer function of a contract.
-    */
+     * @dev Modifier to use in the initializer function of a contract.
+     */
     modifier initializer() {
         require(initializing || isConstructor() || !initialized, "Contract instance has already been initialized");
 
@@ -57,24 +58,19 @@ contract FleetContractUpgradeable is IFleetContract {
         // under construction or not.
         address self = address(this);
         uint256 cs;
-        assembly { cs := extcodesize(self) }
+        assembly {
+            cs := extcodesize(self)
+        }
         return cs == 0;
     }
 
-
     modifier onlyOperator() {
-        require(
-            msg.sender == operator,
-            "Only the operator can call this method"
-        );
+        require(msg.sender == operator, "Only the operator can call this method");
         _;
     }
 
     modifier onlyAccountant() {
-        require(
-            msg.sender == accountant,
-            "Only the accountant can call this method"
-        );
+        require(msg.sender == accountant, "Only the accountant can call this method");
         _;
     }
 
@@ -88,7 +84,7 @@ contract FleetContractUpgradeable is IFleetContract {
         accountant = _owner;
     }
 
-    function Accountant() override external view returns (address) {
+    function Accountant() external view override returns (address) {
         return accountant;
     }
 
@@ -96,32 +92,24 @@ contract FleetContractUpgradeable is IFleetContract {
         return operator;
     }
 
-    function SetDeviceAllowlist(address _client, bool _value)
-        public
-        virtual
-        onlyOperator
-    {
+    function SetDeviceAllowlist(address _client, bool _value) public virtual onlyOperator {
         allowlist[_client] = _value;
     }
 
-    function DeviceAllowlist(address _client)
-        public
-        override
-        view
-        returns (bool)
-    {
+    function DeviceAllowlist(address _client) public view override returns (bool) {
         return allowlist[_client];
     }
 
+    /**
+     *
+     *   DEPRECATED FUNCTIONS    **
+     *
+     */
+    function SetDeviceWhitelist(address _client, bool _value) external {
+        SetDeviceAllowlist(_client, _value);
+    }
 
-  /*******************************
-   **   DEPRECATED FUNCTIONS    **
-   *******************************/
-  function SetDeviceWhitelist(address _client, bool _value) external {
-    SetDeviceAllowlist(_client, _value);
-  }
-
-  function deviceWhitelist(address _client) override external view returns (bool) {
-    return DeviceAllowlist(_client);
-  }
+    function deviceWhitelist(address _client) external view override returns (bool) {
+        return DeviceAllowlist(_client);
+    }
 }

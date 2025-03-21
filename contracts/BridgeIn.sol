@@ -15,7 +15,7 @@ interface Vault {
 
 /**
  * BridgeIn contract
- * 
+ *
  * This contract is responsible for receiving transactions from other non-L1 chains.
  * Hence the BridgeIn always operates on a ERC20 Diode Token. The token is spawned
  * as part of the initial bridge deployment.
@@ -50,21 +50,13 @@ contract BridgeIn is Initializable {
     // but for testing it makes sense to override this
     uint256 public immutable in_chainid;
     Vault public vault;
-    constructor(
-        uint256 _chainid,
-        address _foundation,
-        address[] memory _validators,
-        uint256 _threshold
-    ) {
+    constructor(uint256 _chainid, address _foundation, address[] memory _validators, uint256 _threshold) {
         in_chainid = _chainid;
         in_foundation = _foundation;
         initialize(_validators, _threshold);
     }
 
-    function initialize(
-        address[] memory _validators,
-        uint256 _threshold
-    ) public virtual initializer {
+    function initialize(address[] memory _validators, uint256 _threshold) public virtual initializer {
         address _diode = address(new DiodeToken(in_foundation, address(this), false));
         diode = DiodeToken(address(new Proxy(_diode, in_foundation)));
         diode.initialize(in_foundation, address(this), false);
@@ -76,26 +68,17 @@ contract BridgeIn is Initializable {
         return in_txs[chain].length;
     }
 
-    function inTxsAt(
-        uint256 chain,
-        uint256 index
-    ) public view returns (InTransaction memory) {
+    function inTxsAt(uint256 chain, uint256 index) public view returns (InTransaction memory) {
         return in_txs[chain][index];
     }
 
     function setValidators(address[] memory _validators) public {
-        require(
-            msg.sender == in_foundation,
-            "BridgeIn: only in_foundation can set validators"
-        );
+        require(msg.sender == in_foundation, "BridgeIn: only in_foundation can set validators");
         in_validators = _validators;
     }
 
     function setThreshold(uint256 _threshold) public {
-        require(
-            msg.sender == in_foundation,
-            "BridgeIn: only in_foundation can set threshold"
-        );
+        require(msg.sender == in_foundation, "BridgeIn: only in_foundation can set threshold");
         require(_threshold > 0, "BridgeIn: threshold must be larger than 0");
         in_threshold = _threshold;
     }
@@ -114,32 +97,18 @@ contract BridgeIn is Initializable {
         }
     }
 
-    function bridgeIn(
-        uint256 sourceChain,
-        InTransactionMsg[] memory msgs
-    ) public {
-        require(
-            msgs.length >= 0,
-            "BridgeOut: there must be at least one transaction"
-        );
+    function bridgeIn(uint256 sourceChain, InTransactionMsg[] memory msgs) public {
+        require(msgs.length >= 0, "BridgeOut: there must be at least one transaction");
 
         bytes32 historyHash;
 
         for (uint256 i = 0; i < msgs.length; i++) {
             uint256 len = in_txs[sourceChain].length;
             bytes32 prev = len == 0
-                ? keccak256(
-                    abi.encodePacked(
-                        sourceChain,
-                        "diode_bridge_genesis",
-                        in_chainid
-                    )
-                )
+                ? keccak256(abi.encodePacked(sourceChain, "diode_bridge_genesis", in_chainid))
                 : in_txs[sourceChain][len - 1].historyHash;
 
-            historyHash = keccak256(
-                abi.encodePacked(msgs[i].destination, msgs[i].amount, prev)
-            );
+            historyHash = keccak256(abi.encodePacked(msgs[i].destination, msgs[i].amount, prev));
             in_txs[sourceChain].push(
                 InTransaction({
                     destination: msgs[i].destination,
@@ -162,35 +131,17 @@ contract BridgeIn is Initializable {
         }
 
         uint256 _trustScore = calcTrustScore(historyHash);
-        require(
-            _trustScore >= in_threshold,
-            "BridgeOut: trust score must reach at least threshold"
-        );
+        require(_trustScore >= in_threshold, "BridgeOut: trust score must reach at least threshold");
     }
 
-    function hashTransactions(
-        uint256 sourceChain,
-        InTransactionMsg[] memory msgs
-    ) public view returns (bytes32) {
+    function hashTransactions(uint256 sourceChain, InTransactionMsg[] memory msgs) public view returns (bytes32) {
         uint256 len = in_txs[sourceChain].length;
         bytes32 tmpHistoryHash = len == 0
-            ? keccak256(
-                abi.encodePacked(
-                    sourceChain,
-                    "diode_bridge_genesis",
-                    in_chainid
-                )
-            )
+            ? keccak256(abi.encodePacked(sourceChain, "diode_bridge_genesis", in_chainid))
             : in_txs[sourceChain][len - 1].historyHash;
 
         for (uint256 i = 0; i < msgs.length; i++) {
-            tmpHistoryHash = keccak256(
-                abi.encodePacked(
-                    msgs[i].destination,
-                    msgs[i].amount,
-                    tmpHistoryHash
-                )
-            );
+            tmpHistoryHash = keccak256(abi.encodePacked(msgs[i].destination, msgs[i].amount, tmpHistoryHash));
         }
 
         return tmpHistoryHash;

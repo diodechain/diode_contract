@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: DIODE
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
+
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/BNS.sol";
@@ -12,8 +13,11 @@ import "./forge-std/Test.sol";
 
 contract TestDrive is Drive {
     constructor() Drive(address(0x0)) {}
+
     function name_slot() public pure returns (uint256 _value) {
-        assembly { _value := bns_name.slot }
+        assembly {
+            _value := bns_name.slot
+        }
     }
 }
 
@@ -46,7 +50,7 @@ contract DriveJoinTest is Test {
         uint8 rec = 27;
         bytes32 r = bytes32(0x0a81ebd45fca048189ad7c022750a55d4d506a10d34164183e207d71c4350b98);
         bytes32 s = bytes32(0x5617d73d70019ccb2612aba50f32d4a965b02d095d2b4f78b828e0e24ba9f8a0);
-        
+
         drive.SetPasswordPublic(pass);
         vm.prank(newMember);
         drive.Join(rec, r, s);
@@ -69,7 +73,7 @@ contract DriveJoinTest is Test {
         uint8 rec = 27;
         bytes32 r = bytes32(0x0a81ebd45fca048189ad7c022750a55d4d506a10d34164183e207d71c4350b98);
         bytes32 s = bytes32(0x5617d73d70019ccb2612aba50f32d4a965b02d095d2b4f78b828e0e24ba9f8a0);
-        
+
         drive.AddJoinCode(pass, uint256(-1), 1, RoleType.Reader);
         vm.prank(newMember);
         drive.Join(pass, rec, r, s);

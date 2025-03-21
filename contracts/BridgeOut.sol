@@ -36,6 +36,7 @@ contract BridgeOut is Initializable {
     uint256 public immutable chainid;
     mapping(uint256 => bool) public enabledChains;
     address immutable foundation;
+
     constructor(uint256 _chainid, address _foundation, address _token) {
         chainid = _chainid;
         foundation = _foundation;
@@ -56,18 +57,11 @@ contract BridgeOut is Initializable {
         return txs[chain].length;
     }
 
-    function txsAt(
-        uint256 chain,
-        uint256 index
-    ) public view returns (Transaction memory) {
+    function txsAt(uint256 chain, uint256 index) public view returns (Transaction memory) {
         return txs[chain][index];
     }
 
-    function bridgeOut(
-        address destination,
-        uint256 destinationChain,
-        uint256 amount
-    ) public {
+    function bridgeOut(address destination, uint256 destinationChain, uint256 amount) public {
         burnable().burn(msg.sender, amount);
         _bridgeOut(destination, destinationChain, amount);
     }
@@ -82,32 +76,14 @@ contract BridgeOut is Initializable {
         _bridgeOut(msg.sender, 1284, amount);
     }
 
-    function _bridgeOut(
-        address destination,
-        uint256 destinationChain,
-        uint256 amount
-    ) internal {
-        require(
-            enabledChains[destinationChain],
-            "BridgeOut: destination chain is not enabled"
-        );
-        require(
-            amount >= 10000000000000000,
-            "BridgeOut: value must be at least 0.01 $DIODE"
-        );
+    function _bridgeOut(address destination, uint256 destinationChain, uint256 amount) internal {
+        require(enabledChains[destinationChain], "BridgeOut: destination chain is not enabled");
+        require(amount >= 10000000000000000, "BridgeOut: value must be at least 0.01 $DIODE");
         uint256 len = txs[destinationChain].length;
         bytes32 prev = len == 0
-            ? keccak256(
-                abi.encodePacked(
-                    chainid,
-                    "diode_bridge_genesis",
-                    destinationChain
-                )
-            )
+            ? keccak256(abi.encodePacked(chainid, "diode_bridge_genesis", destinationChain))
             : txs[destinationChain][len - 1].historyHash;
-        bytes32 historyHash = keccak256(
-            abi.encodePacked(destination, amount, prev)
-        );
+        bytes32 historyHash = keccak256(abi.encodePacked(destination, amount, prev));
         txs[destinationChain].push(
             Transaction({
                 sender: msg.sender,
@@ -120,7 +96,7 @@ contract BridgeOut is Initializable {
         );
     }
 
-    function burnable() virtual public view returns (Burnable) {
+    function burnable() public view virtual returns (Burnable) {
         return burnable_;
     }
 }

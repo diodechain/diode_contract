@@ -15,17 +15,14 @@ import "./ChangeTracker.sol";
 contract Packages is ChangeTracker {
     struct Package {
         uint256 last_update;
-        bytes32 package_hash; 
+        bytes32 package_hash;
     }
 
     IBNS bns;
     mapping(bytes32 => Package) packages;
 
     modifier onlyDomainOwner(string memory _domain) {
-        require(
-            bns.ResolveEntry(_domain).owner == msg.sender,
-            "Only the domain owner can call this"
-        );
+        require(bns.ResolveEntry(_domain).owner == msg.sender, "Only the domain owner can call this");
 
         _;
     }
@@ -38,7 +35,10 @@ contract Packages is ChangeTracker {
         return 101;
     }
 
-    function AddPackage(string calldata _domain, string calldata _package_name, bytes32 _package_hash) external onlyDomainOwner(_domain) {
+    function AddPackage(string calldata _domain, string calldata _package_name, bytes32 _package_hash)
+        external
+        onlyDomainOwner(_domain)
+    {
         packages[convert(_domain, _package_name)] = Package(block.number, _package_hash);
         update_change_tracker();
     }
@@ -64,10 +64,11 @@ contract Packages is ChangeTracker {
         return bns;
     }
 
-    /*******************************************************
-     ***********   INTERNAL FUNCTIONS **********************
-     *******************************************************/    
-
+    /**
+     *
+     *   INTERNAL FUNCTIONS **********************
+     *
+     */
     function convert(string memory _domain, string memory _package_name) internal pure returns (bytes32) {
         validate(_package_name);
         return keccak256(abi.encodePacked(_domain, "/", _package_name));
@@ -79,15 +80,16 @@ contract Packages is ChangeTracker {
         require(b.length > 2, "Names must be longer than 2 characters");
         require(b.length <= 128, "Names must be within 128 characters");
 
-        for(uint i; i < b.length; i++) {
+        for (uint256 i; i < b.length; i++) {
             bytes1 char = b[i];
 
             require(
-                (char >= 0x30 && char <= 0x39) || //9-0
-                (char >= 0x41 && char <= 0x5A) || //A-Z
-                (char >= 0x61 && char <= 0x7A) || //a-z
-                (char == 0x2D) || (char == 0x2E) || (char == 0x5F), // -._
-                "Names can only contain: [0-9A-Za-z_.-]");
+                (char >= 0x30 && char <= 0x39) //9-0
+                    || (char >= 0x41 && char <= 0x5A) //A-Z
+                    || (char >= 0x61 && char <= 0x7A) //a-z
+                    || (char == 0x2D) || (char == 0x2E) || (char == 0x5F), // -._
+                "Names can only contain: [0-9A-Za-z_.-]"
+            );
         }
     }
 }

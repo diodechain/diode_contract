@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: DIODE
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
+
 import "./Assert.sol";
 import "./CallForwarder.sol";
 import "../contracts/Bridge.sol";
@@ -11,14 +12,13 @@ import "../contracts/TokenVesting.sol";
 import "./forge-std/Test.sol";
 
 /**
-    This test runs within the same chain (anvil) and thus simulates
-    both sides Diode L1 and Moonbeam using the DiodeToken and the native token 
-    respectively.
-
-    This bridge tests is testing to bridge in/out from the same chain,
-    this is not a real use case but it is useful for testing the bridge.
+ * This test runs within the same chain (anvil) and thus simulates
+ *     both sides Diode L1 and Moonbeam using the DiodeToken and the native token 
+ *     respectively.
+ *
+ *     This bridge tests is testing to bridge in/out from the same chain,
+ *     this is not a real use case but it is useful for testing the bridge.
  */
-
 contract BridgeTest is Test {
     Bridge bridge;
     DiodeToken token;
@@ -61,10 +61,7 @@ contract BridgeTest is Test {
         bytes32 hashv = bridge.txsAt(block.chainid, 0).historyHash;
 
         BridgeIn.InTransactionMsg[] memory msgs = new BridgeIn.InTransactionMsg[](1);
-        msgs[0] = BridgeIn.InTransactionMsg({
-            destination: destination,
-            amount: amount
-        });
+        msgs[0] = BridgeIn.InTransactionMsg({destination: destination, amount: amount});
 
         assertEq(bridge.hashTransactions(block.chainid, msgs), hashv, "hashv=hashTxs()");
 

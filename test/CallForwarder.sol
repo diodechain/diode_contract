@@ -8,7 +8,7 @@ contract CallForwarder {
     address target;
 
     constructor(address _target) {
-        target = _target; 
+        target = _target;
     }
 
     function __updateTarget(address _target) public {
@@ -21,7 +21,9 @@ contract CallForwarder {
             calldatacopy(0x0, 0x0, calldatasize())
             let result := call(gas(), t, 0, 0x0, calldatasize(), 0x0, 0)
             returndatacopy(0x0, 0x0, returndatasize())
-            switch result case 0 {revert(0, 0)} default {return (0, returndatasize())}
+            switch result
+            case 0 { revert(0, 0) }
+            default { return(0, returndatasize()) }
         }
     }
 
@@ -31,7 +33,9 @@ contract CallForwarder {
             calldatacopy(0x0, 0x0, calldatasize())
             let result := call(gas(), t, callvalue(), 0x0, calldatasize(), 0x0, 0)
             returndatacopy(0x0, 0x0, returndatasize())
-            switch result case 0 {revert(0, 0)} default {return (0, returndatasize())}
+            switch result
+            case 0 { revert(0, 0) }
+            default { return(0, returndatasize()) }
         }
     }
 }

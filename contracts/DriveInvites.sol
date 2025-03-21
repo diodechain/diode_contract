@@ -14,7 +14,6 @@ import "./ChangeTracker.sol";
  * Drive Smart Contract
  * On-Chain invites for asynchronous eventing
  */
-
 interface IDriveFactory {
     function Create2Address(bytes32 _salt) external view returns (IDrive);
 }
@@ -30,7 +29,7 @@ contract DriveInvites is ChangeTracker {
         update_change_tracker();
     }
 
-    function Version() external virtual pure returns (int256) {
+    function Version() external pure virtual returns (int256) {
         return 3;
     }
 
@@ -48,10 +47,7 @@ contract DriveInvites is ChangeTracker {
     // To be called by drive contract (msg.sender)
     function Uninvite(address driveId, address whom) public {
         IDrive drive = factory().Create2Address(bytes32(uint256(driveId)));
-        require(
-            drive.Role(msg.sender) >= RoleType.Admin,
-            "Only Admins can manage invites"
-        );
+        require(drive.Role(msg.sender) >= RoleType.Admin, "Only Admins can manage invites");
         invites[whom].Remove(driveId);
         update_change_tracker();
     }
@@ -71,7 +67,7 @@ contract DriveInvites is ChangeTracker {
     // ######## ######## ########   Internal only functions  ######## ######## ########
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
 
-    function factory() internal virtual view returns (IDriveFactory) {
+    function factory() internal view virtual returns (IDriveFactory) {
         return IDriveFactory(FACTORY);
     }
 }

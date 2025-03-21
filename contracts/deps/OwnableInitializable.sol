@@ -15,6 +15,7 @@ import "./Context.sol";
  * `onlyOwner`, which can be applied to your functions to restrict their use to
  * the owner.
  */
+
 contract OwnableInitializable is Context, Initializable {
     address payable private _owner;
 
@@ -23,7 +24,7 @@ contract OwnableInitializable is Context, Initializable {
     /**
      * @dev Initializes the contract setting the deployer as the initial owner.
      */
-    function initialize(address payable arg_owner) initializer virtual public {
+    function initialize(address payable arg_owner) public virtual initializer {
         _owner = arg_owner;
         emit OwnershipTransferred(address(0), arg_owner);
     }
