@@ -1,0 +1,10 @@
+Ref	Amount	Purpose	Destination	Start	End	Lock	Cliff	Revocable
+19	5,000	Ecosystem - Emerging economy node hosts	0xF2E114c7E54fa389CDEb516285322559f9290eB7	2025/07/01	2027/07/01	None	None	Revocable
+20	10,000	Ecosystem - Forum manager	0xb671FB685c21147183FD99DD5Bf7d12e3b8aA543	2025/07/01	2027/07/01	None	None	Revocable
+21	500	Team - Allen Messimer	0x1a498918DA73205a1F76aB8fD34fee4e57240134	2026/03/07	2027/03/07	12mo	None	Revocable
+22	500	Team - Jon Stone	0xc6f47b5a6f413976f4af1addf558baaba86b10cf	2026/03/07	2027/03/07	12mo	None	Revocable
+23	1,000	Team - Andy Chen	0xe54d8E4c80306FCF09EA86587172496d7fe23e4F	2026/03/07	2027/03/07	12mo	None	Revocable
+24	1,000	Team - Maliah Kuyn	0x2E30b7AC9CB9907be6129cb4b4744B5d028027d6	2026/03/07	2027/03/07	12mo	None	Revocable
+25	500	Team - Calvin Chu	0xE18F9e69ed9b493262757EF59b37958f3FcB0E3e	2026/03/07	2027/03/07	12mo	None	Revocable
+26	2,000	Team - Przemech	0x3c85DCccC477c74a529c8F63E3cFB8c35596d530	2026/03/07	2027/03/07	12mo	None	Revocable
+27	2,000	Team - Suna Aliayan	0x07b622CdAdbB42DB0b06D644A636DF9a660D84A4	2026/03/07	2027/03/07	12mo	None	Revocable

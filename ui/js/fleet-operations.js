@@ -1,39 +1,15 @@
 // Fleet operations for the Fleet Manager application
-import { showToastMessage } from './utils.js';
-import { connectWallet } from './wallet.js';
+import * as wallet from './wallet.js';
 import fleetContractAbi from './perimeter-abi.js';
-
-async function wrapAddress(address) {
-  const { web3, account } = await connectWallet();
-  return {contract: new web3.eth.Contract(fleetContractAbi, address), account, web3};
-}
 
 // Helper function for sending transactions
 async function doSend(fleetAddress, method, args, successMessage) {
-  try {
-    const { contract, account } = await wrapAddress(fleetAddress);
-    const result = await contract.methods[method](...args).send({ from: account });
-    if (successMessage) {
-      showToastMessage(successMessage);
-    }
-    return result;
-  } catch (error) {
-    console.error(`Error in ${method}:`, error);
-    showToastMessage(`Failed to ${method}: ${error.message}`);
-    throw error;
-  }
+  return await wallet.send(fleetContractAbi, fleetAddress, method, args, successMessage);
 }
 
 // Helper function for calling view methods
 async function doCall(fleetAddress, method, args) {
-  try {
-    const { contract, account } = await wrapAddress(fleetAddress);
-    return await contract.methods[method](...args).call({ from: account });
-  } catch (error) {
-    console.error(`Error in ${method}:`, error);
-    showToastMessage(`Failed to ${method}: ${error.message}`);
-    throw error;
-  }
+  return await wallet.call(fleetContractAbi, fleetAddress, method, args);
 }
 
 // Update fleet label
