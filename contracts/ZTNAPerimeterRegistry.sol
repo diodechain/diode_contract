@@ -40,32 +40,49 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     }
 
     // All fleet metadata
-    mapping(address => FleetMetadata) fleets;
+    mapping(address => FleetMetadata) private fleets;
 
     // Users own fleets
-    mapping(address => address[]) userFleets;
+    mapping(address => address[]) private userFleets;
 
     // Shared Users: Receiver User => Sender User
-    mapping(address => Set.Data) users;
+    mapping(address => Set.Data) private users;
 
     // Shared Fleets: Sender User => Receiver User => Fleet Address
-    mapping(address => mapping(address => Set.Data)) sharedFleets;
+    mapping(address => mapping(address => Set.Data)) private sharedFleets;
 
     // Default Fleet Implementation
-    address perimeterImplementation;
-    address userImplementation;
+    address private _perimeterImplementationReserved;
+    address private _userImplementationReserved;
 
-    mapping(address => address) userWallets;
+    mapping(address => address) private userWallets;
+
+    address private immutable perimeterImplementation;
+    address private immutable userImplementation;
 
     constructor() {
         perimeterImplementation = address(new ZTNAPerimeterContract());
         userImplementation = address(new ZTNAWallet());
     }
 
-    function SetDefaultFleetImplementation(address _defaultFleetImplementation) external {
-        require(msg.sender == Owner(), "You do not have permission to set the default fleet implementation");
-        perimeterImplementation = _defaultFleetImplementation;
-    }
+    // function Validate() external view returns (string memory) {
+    //     if (perimeterImplementation == address(0)) {
+    //         return "Perimeter implementation not set";
+    //     }
+    //     if (userImplementation == address(0)) {
+    //         return "User implementation not set";
+    //     }
+    //     return "Contract is valid";
+    // }
+
+    // function SetImplementation(bytes32 what, address implementation) external {
+    //     require(msg.sender == Owner(), "You do not have permission to set the default fleet implementation");
+    //     if (what == "ZTNAPerimeterRegistry") {
+    //         perimeterImplementation = implementation;
+    //     } else if (what == "ZTNAWallet") {
+    //         userImplementation = implementation;
+    //     }
+    // }
 
     function resolve(bytes32 what) external view returns (address) {
         if (what == "ZTNAPerimeterRegistry") {
@@ -85,23 +102,28 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     }
 
     function Version() external pure returns (uint256) {
-        return 102;
+        return 109;
     }
 
     function CreateUserWallet() external returns (address) {
-        address user = userWallets[msg.sender];
+        address key = userWalletKey(msg.sender);
+        address user = userWallets[key];
         if (user != address(0)) {
             return user;
         }
 
         user = address(new ManagedProxy(this, "ZTNAWallet"));
         InitializableUser(user).initialize(payable(msg.sender));
-        userWallets[msg.sender] = user;
+        userWallets[key] = user;
         return user;
     }
 
     function UserWallet(address user) external view returns (address) {
-        return userWallets[user];
+        return userWallets[userWalletKey(user)];
+    }
+
+    function userWalletKey(address user) internal pure returns (address) {
+        return address(bytes20(keccak256(abi.encodePacked("userWallet", user))));
     }
 
     // Add a fleet to the registry

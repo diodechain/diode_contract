@@ -48,4 +48,12 @@ contract ZTNAWallet is SiweAuth {
             default { return(0, returndatasize()) }
         }
     }
+
+    function Owner() public view returns (address) {
+        return owner;
+    }
+
+    function Version() external pure returns (uint256) {
+        return 104;
+    }
 }
