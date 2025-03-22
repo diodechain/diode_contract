@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 import "./Assert.sol";
 import "../contracts/ZTNAPerimeterRegistry.sol";
 import "../contracts/Proxy8.sol";
+import "../contracts/ZTNAWallet.sol";
 
 // Mock implementation for testing
 contract MockFleet {
@@ -42,6 +43,13 @@ contract ZTNAPerimeterRegistryTest {
         // Set up test addresses
         testUser1 = address(0x1234);
         testUser2 = address(0x5678);
+    }
+
+    function testCreateUserWallet() public {
+        ZTNAWallet refWallet = new ZTNAWallet();
+        ZTNAWallet userWallet = ZTNAWallet(fleetRegistry.CreateUserWallet());
+
+        Assert.equal(refWallet.Version(), userWallet.Version(), "User Wallet versions don't match");
     }
 
     function testCreateFleet() public {
