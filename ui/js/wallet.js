@@ -203,7 +203,8 @@ export var networks = [
       symbol: "ROSE",
       decimals: 18
     },
-    blockExplorerUrls: ["https://explorer.oasis.io/mainnet/sapphire"]
+    blockExplorerUrls: ["https://explorer.oasis.io/mainnet/sapphire"],
+    registry: '0xf90314E31D34C7ad82382f1a9dCB5Fc0FDA71ACe'
   },
   {
     index: 1,
@@ -296,6 +297,7 @@ export async function ensureUserWallet() {
   let registryContract = new web3.eth.Contract(registryAbi, chain.registry);
 
   let userWallet = await registryContract.methods.UserWallet(account).call();
+  userWallet = userWallet.toLowerCase();
   console.log('User wallet:', userWallet);
 
   if (userWallet == '0x0000000000000000000000000000000000000000') {
@@ -306,6 +308,9 @@ export async function ensureUserWallet() {
       throw new Error('Failed to create user wallet');
     }
   }
+
+  console.log("Siwe version:", await call(authAbi, userWallet, 'Version', []));
+
 
   const domain = "ZTNAWallet"
   const siweMsg = new SiweMessage({
@@ -324,6 +329,7 @@ export async function ensureUserWallet() {
   const sigObj = splitSignature(sig);
   console.log('Signature:', sig, sigObj);
   console.log('Siwe message:', siweMsg);
+  console.log("Siwe test", await call(authAbi, userWallet, 'login_test', [siweMsg, sigObj]));
   const authToken = await call(authAbi, userWallet, 'login', [siweMsg, sigObj]);
   console.log('Auth token:', authToken);
 
