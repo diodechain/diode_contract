@@ -1,4 +1,4 @@
- // Fleet operations for the Fleet Manager application
+ // Registry operations for the Perimeter Manager application
 import * as wallet from './wallet.js';
 import registryContractAbi from './registry-abi.js  ';
 

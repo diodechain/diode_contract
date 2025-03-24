@@ -1,6 +1,6 @@
 import { showToastMessage } from './utils.js';
 import * as fleetOperations from './fleet-operations.js';
-// Navigation functions for the Fleet Manager application
+// Navigation functions for the Perimeter Manager application
 
 // Show the dashboard view
 export const showDashboard = () => {
@@ -13,11 +13,11 @@ export const showCreateFleetView = () => {
 };
 
 // Show the fleet management view
-export const showFleetManagement = async (fleetAddress) => {
-  console.log('showFleetManagement called for fleet:', fleetAddress);
+export const showPerimeterManagement = async (fleetAddress) => {
+  console.log('showPerimeterManagement called for fleet:', fleetAddress);
   try {
     window.app.isLoading = true;
-    console.log('Set isLoading to true in showFleetManagement');
+    console.log('Set isLoading to true in showPerimeterManagement');
     window.app.managedFleet = fleetAddress;
     
     // Set active tab to users (default)
@@ -42,7 +42,7 @@ export const showFleetManagement = async (fleetAddress) => {
     console.error('Error managing fleet:', error);
     showToastMessage('Error loading fleet data');
   } finally {
-    console.log('Resetting isLoading in showFleetManagement finally block');
+    console.log('Resetting isLoading in showPerimeterManagement finally block');
     window.app.isLoading = false;
   }
 }; 

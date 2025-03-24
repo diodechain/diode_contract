@@ -34,7 +34,7 @@ const app = createApp({
     const isAddingUser = ref(false);
     const availableAccounts = ref([]);
     const selectedAccountIndex = ref(0);
-    const showFleetManagementModal = ref(false);
+    const showPerimeterManagementModal = ref(false);
     const managedFleet = ref('');
     const managedFleetUsers = ref([]);
     const newFleetUserAddress = ref('');
@@ -272,8 +272,8 @@ const app = createApp({
     };
 
     // Close fleet management modal
-    const closeFleetManagementModal = () => {
-      showFleetManagementModal.value = false;
+    const closePerimeterManagementModal = () => {
+      showPerimeterManagementModal.value = false;
       managedFleet.value = '';
       managedFleetUsers.value = [];
       newFleetUserAddress.value = '';
@@ -295,7 +295,7 @@ const app = createApp({
           managedFleetUsers.value.push(userAddress);
         }
         
-        showFleetManagementModal.value = true;
+        showPerimeterManagementModal.value = true;
       } catch (error) {
         console.error('Error managing fleet:', error);
         utils.showToastMessage('Failed to load fleet data: ' + error.message);
@@ -416,7 +416,7 @@ const app = createApp({
       groupedSharedFleets,
       availableAccounts,
       selectedAccountIndex,
-      showFleetManagementModal,
+      showPerimeterManagementModal,
       managedFleet,
       managedFleetUsers,
       newFleetUserAddress,
@@ -460,7 +460,7 @@ const app = createApp({
       createFleet,
       addFleetUser: fleetOperations.addFleetUser,
       removeFleetUser: fleetOperations.removeFleetUser,
-      closeFleetManagementModal,
+      closePerimeterManagementModal,
       addFleetUserFromManager,
       updateFleetLabel: updateFleetLabelImpl,
       
@@ -494,7 +494,7 @@ const app = createApp({
       activePage: ref('dashboard'),
       showDashboard: navigation.showDashboard,
       showCreateFleetView: navigation.showCreateFleetView,
-      showFleetManagement: navigation.showFleetManagement,
+      showPerimeterManagement: navigation.showPerimeterManagement,
       
       // Modal state
       showingAddUserModal,
