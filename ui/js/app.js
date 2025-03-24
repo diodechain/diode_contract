@@ -1,6 +1,7 @@
 import registryAbi from './registry-abi.js';
 import * as wallet from './wallet.js';
 import * as fleetOperations from './fleet-operations.js';
+import * as registryOperations from './registry-operations.js';
 import * as userManagement from './user-management.js';
 import * as userGroupManagement from './user-group-management.js';
 import { DeviceManagementComponent } from './device-management.js';
@@ -18,7 +19,6 @@ const app = createApp({
     const account = ref('');
     const ethereum = ref(null);
     const web3 = ref(null);
-    const registryContract = ref(null);
     const registryVersion = ref(null);
     const ownFleetCount = ref(0);
     const ownFleets = ref([]);
@@ -125,16 +125,8 @@ const app = createApp({
           // Initialize Web3
           web3.value = new Web3(ethereum.value);
           
-          // Initialize registry contract
-          if (chain.registry) {
-            registryContract.value = new web3.value.eth.Contract(registryAbi, chain.registry);
-          } else {
-            registryContract.value = null;
-            throw new Error('No registry contract found');
-          }
-          
           // Get registry version
-          registryVersion.value = await registryContract.value.methods.Version().call();
+          registryVersion.value = await registryOperations.getRegistryVersion();
           console.log('Registry Version:', registryVersion.value);
           // Load user's fleets
           await handleAccountsChanged(accounts);
@@ -159,8 +151,8 @@ const app = createApp({
     // Load user data (fleets)
     const loadUserData = async () => {
       try {
-        console.log('Loading user data', registryContract.value);
-        if (!isConnected.value || !registryContract.value) return;
+        console.log('Loading user data');
+        if (!isConnected.value) return;
         
         utils.setLoadingWithSafety(true);
         
@@ -169,13 +161,13 @@ const app = createApp({
         let userWallet = await wallet.ensureUserWallet();
 
         // Get own fleet count
-        ownFleetCount.value = await registryContract.value.methods.GetOwnFleetCount().call({ from: account.value });
+        ownFleetCount.value = await registryOperations.getOwnFleetCount();
         console.log('Own fleet count:', ownFleetCount.value);
         
         // Get own fleets
         ownFleets.value = [];
         for (let i = 0; i < ownFleetCount.value; i++) {
-          const fleet = await registryContract.value.methods.GetOwnFleet(i).call({ from: account.value });
+          const fleet = await registryOperations.getOwnFleet(i);
           
           // Get fleet label
           let fleetLabel = '';
@@ -198,17 +190,17 @@ const app = createApp({
         sharedFleets.value = [];
         
         // Get sharing user count
-        const sharingUserCount = await registryContract.value.methods.GetSharingUserCount().call({ from: account.value });
+        const sharingUserCount = await registryOperations.getSharingUserCount();
         console.log('Sharing user count:', sharingUserCount);
         
         // Get shared fleets for each sharing user
         for (let i = 0; i < sharingUserCount; i++) {
-          const sharingUser = await registryContract.value.methods.GetSharingUser(i).call({ from: account.value });
+          const sharingUser = await registryOperations.getSharingUser(i);
           
-          const sharedFleetCount = await registryContract.value.methods.GetSharedFleetCount(sharingUser).call({ from: account.value });
+          const sharedFleetCount = await registryOperations.getSharedFleetCount(sharingUser);
           
           for (let j = 0; j < sharedFleetCount; j++) {
-            const fleet = await registryContract.value.methods.GetSharedFleet(sharingUser, j).call({ from: account.value });
+            const fleet = await registryOperations.getSharedFleet(sharingUser, j);
             
             // Get fleet label
             let fleetLabel = '';
@@ -296,10 +288,10 @@ const app = createApp({
         
         // Get fleet users
         managedFleetUsers.value = [];
-        const userCount = await registryContract.value.methods.GetFleetUserCount(fleetAddress).call({ from: account.value });
+        const userCount = await registryOperations.getFleetUserCount(fleetAddress);
         
         for (let i = 0; i < userCount; i++) {
-          const userAddress = await registryContract.value.methods.GetFleetUser(fleetAddress, i).call({ from: account.value });
+          const userAddress = await registryOperations.getFleetUser(fleetAddress, i);
           managedFleetUsers.value.push(userAddress);
         }
         
@@ -382,13 +374,13 @@ const app = createApp({
     // Create a new fleet
     const createFleet = async () => {
       try {
-        if (!isConnected.value || !registryContract.value) {
+        if (!isConnected.value) {
           utils.showToastMessage('Please connect your wallet first');
           return;
         }
         
         isCreatingFleet.value = true;
-        const result = await registryContract.value.methods.CreateFleet(newFleetLabel.value).send({ from: account.value });
+        const result = await registryOperations.createFleet(newFleetLabel.value);
         console.log('Fleet created:', result);
         await loadUserData();
         utils.showToastMessage('Fleet created successfully!');
