@@ -1,7 +1,7 @@
 import { wrapEthereumProvider } from 'https://cdn.jsdelivr.net/npm/@oasisprotocol/sapphire-paratime@2.1.0/+esm'
 import { showToastMessage } from './utils.js';
 import { SiweMessage } from './siwe.js'
-import authAbi from './wallet-abi.js';
+import walletAbi from './wallet-abi.js';
 
 // Initialize MetaMask SDK
 let ethereum;
@@ -294,11 +294,19 @@ import registryAbi from './registry-abi.js';
 export async function ensureUserWallet() {
   let chain = await getCurrentChain();
   let { web3, account, ethereum } = await connectWallet();
-  let registryContract = new web3.eth.Contract(registryAbi, chain.registry);
+  let storageKey = "siwe_token_" + account + "_" + chain.chainId;
 
+  let registryContract = new web3.eth.Contract(registryAbi, chain.registry);
   let userWallet = await registryContract.methods.UserWallet(account).call();
   userWallet = userWallet.toLowerCase();
   console.log('User wallet:', userWallet);
+
+  let siweToken = localStorage.getItem(storageKey);
+
+  if (siweToken) {
+    console.log("Using cached SIWE token");
+    return {address: userWallet, token: siweToken};
+   }
 
   if (userWallet == '0x0000000000000000000000000000000000000000') {
     await registryContract.methods.CreateUserWallet().send({ from: account });
@@ -309,8 +317,7 @@ export async function ensureUserWallet() {
     }
   }
 
-  console.log("Siwe version:", await call(authAbi, userWallet, 'Version', []));
-
+  console.log("Siwe version:", await call(walletAbi, userWallet, 'Version', []));
 
   const domain = "ZTNAWallet"
   const siweMsg = new SiweMessage({
@@ -329,11 +336,11 @@ export async function ensureUserWallet() {
   const sigObj = splitSignature(sig);
   console.log('Signature:', sig, sigObj);
   console.log('Siwe message:', siweMsg);
-  console.log("Siwe test", await call(authAbi, userWallet, 'login_test', [siweMsg, sigObj]));
-  const authToken = await call(authAbi, userWallet, 'login', [siweMsg, sigObj]);
-  console.log('Auth token:', authToken);
-
-  return userWallet;
+  console.log("Siwe test", await call(walletAbi, userWallet, 'login_test', [siweMsg, sigObj]));
+  siweToken = await call(walletAbi, userWallet, 'login', [siweMsg, sigObj]);
+  console.log('Auth token:', siweToken);
+  localStorage.setItem(storageKey, siweToken);
+  return {address: userWallet, token: siweToken};
 }
 
 function splitSignature(sig) {
@@ -346,19 +353,31 @@ function splitSignature(sig) {
   }
 }
 
-async function wrapAddress(abi, address) {
-  const { web3, account } = await connectWallet();
-  return {contract: new web3.eth.Contract(abi, address), account, web3};
-}
-
 // Helper function for sending transactions
 export async function send(abi, address, method, args, successMessage) {
   try {
-    const { contract, account } = await wrapAddress(abi, address);
-    const result = await contract.methods[method](...args).send({ from: account });
+    const { account, ethereum } = await connectWallet();
+    let web3 = new Web3(wrapEthereumProvider(ethereum));
+    let contract = new web3.eth.Contract(abi, address);
+    let result;
+
+    // Only wallet-abi calls are direct calls to the contract,
+    // all other are going through the ZTNAWallet contract as meta-transactions / meta-calls
+    // and are either:
+    // - view calls (no gas) via submit(address destination, bytes token, bytes data)
+    // - transaction sends (gas) via submit(address destination, bytes data)
+    if (abi == walletAbi) {
+      result = await contract.methods[method](...args).send({ from: account });
+    } else {
+      let data = contract.methods[method](...args).encodeABI();
+      let {address: userWallet} = await ensureUserWallet();
+      result = await send(walletAbi, userWallet, 'submit', [address, data]);
+    }
+
     if (successMessage) {
       showToastMessage(successMessage);
     }
+
     return result;
   } catch (error) {
     console.error(`Error in ${method}:`, error);
@@ -370,8 +389,27 @@ export async function send(abi, address, method, args, successMessage) {
 // Helper function for calling view methods
 export async function call(abi, address, method, args) {
   try {
-    const { contract, account } = await wrapAddress(abi, address);
-    return await contract.methods[method](...args).call({ from: account });
+    const { ethereum } = await connectWallet();
+    let web3 = new Web3(wrapEthereumProvider(ethereum));
+    let {address: userWallet, token: token} = await ensureUserWallet();
+
+    let methodAbi = abi.find(item => item.name === method && item.inputs.length === args.length);
+    if (!methodAbi) {
+      throw new Error(`Method ${method} not found in ABI`);
+    }
+
+    let targetContract = new web3.eth.Contract([methodAbi], address);
+    let data = targetContract.methods[method](...args).encodeABI();
+
+    let submitAbi = walletAbi.find(item => item.name === 'submit' && item.inputs.length === 3);
+    if (!submitAbi) {
+      throw new Error(`Submit method not found in wallet ABI`);
+    }
+
+    // Constructing meta transaction ABI
+    submitAbi.outputs = methodAbi.outputs;
+    let metaContract = new web3.eth.Contract([submitAbi], userWallet);
+    return await metaContract.methods.submit(address, token, data).call();
   } catch (error) {
     console.error(`Error in ${method}:`, error);
     showToastMessage(`Failed to ${method}: ${error.message}`);
