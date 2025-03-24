@@ -73,7 +73,7 @@
             <a href="#" 
                v-for="fleet in ownFleets" 
                :key="fleet.fleet"
-               @click.prevent="showFleetManagement(fleet.fleet)"
+               @click.prevent="showPerimeterManagement(fleet.fleet)"
                class="nav-link px-4 py-2 flex items-center text-white hover:bg-opacity-80 truncate"
                :class="{'nav-active': activePage === 'fleetManagement' && managedFleet === fleet.fleet}">
               <span class="truncate">{{ fleet.label || shortenAddress(fleet.fleet) }}</span>
@@ -96,7 +96,7 @@
               <a href="#" 
                  v-for="fleet in fleets" 
                  :key="fleet.fleet"
-                 @click.prevent="showFleetManagement(fleet.fleet)"
+                 @click.prevent="showPerimeterManagement(fleet.fleet)"
                  class="nav-link px-4 py-2 flex items-center text-white hover:bg-opacity-80 truncate"
                  :class="{'nav-active': activePage === 'fleetManagement' && managedFleet === fleet.fleet}">
                 <span class="truncate">{{ fleet.label || shortenAddress(fleet.fleet) }}</span>
@@ -185,13 +185,13 @@
           <span v-if="activePage === 'dashboard'">Dashboard</span>
           <span v-else-if="activePage === 'createFleet'">Create New Perimeter</span>
           <span v-else-if="activePage === 'fleetManagement'">
-            Fleet Management: {{ fleetLabel || shortenAddress(managedFleet) }}
+            Perimeter Management: {{ fleetLabel || shortenAddress(managedFleet) }}
           </span>
         </h1>
         
         <!-- Action Buttons -->
         <div class="flex items-center space-x-2">
-          <!-- Fleet Management Actions -->
+          <!-- Perimeter Management Actions -->
           <div v-if="activePage === 'fleetManagement'" class="flex items-center space-x-2">
             <button 
               @click="openAddUserModal(managedFleet)"
@@ -254,7 +254,7 @@
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(fleet.updatedAt) }}</td>
                       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button 
-                          @click="showFleetManagement(fleet.fleet)" 
+                          @click="showPerimeterManagement(fleet.fleet)" 
                           class="text-blue-600 hover:text-blue-900 mr-3">
                           Manage
                         </button>
@@ -295,7 +295,7 @@
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ formatDate(fleet.updatedAt) }}</td>
                       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <button 
-                          @click="showFleetManagement(fleet.fleet)" 
+                          @click="showPerimeterManagement(fleet.fleet)" 
                           class="text-blue-600 hover:text-blue-900">
                           Manage
                         </button>
@@ -344,7 +344,7 @@
           </form>
         </div>
         
-        <!-- Fleet Management View -->
+        <!-- Perimeter Management View -->
         <div v-else-if="activePage === 'fleetManagement'" class="space-y-6">
           <!-- Fleet Details Card -->
           <div class="bg-white rounded-lg shadow overflow-hidden">

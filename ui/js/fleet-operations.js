@@ -1,4 +1,4 @@
-// Fleet operations for the Fleet Manager application
+// Fleet operations for the Perimeter Manager application
 import * as wallet from './wallet.js';
 import fleetContractAbi from './perimeter-abi.js';
 

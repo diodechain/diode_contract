@@ -1,4 +1,4 @@
-# IoT Fleet Manager UI
+# IoT Perimeter Manager UI
 
 A single-file Vue.js application for managing IoT device fleets using the ZTNAPerimeterRegistry smart contract.
 
