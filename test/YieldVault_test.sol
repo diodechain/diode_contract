@@ -105,8 +105,9 @@ contract YieldVaultTest is Test {
         );
     }
     
-    function testFailWithdrawTooMuch() public {
+    function test_RevertWhen_WithdrawTooMuch() public {
         uint256 tooMuch = yieldVault.yieldReserve() + 1;
+        vm.expectRevert();
         yieldVault.withdrawReserve(tooMuch);
     }
     
@@ -197,7 +198,7 @@ contract YieldVaultTest is Test {
         assert(vestingContract3 != address(0));
     }
     
-    function testFailInsufficientYieldReserve() public {
+    function test_RevertWhen_InsufficientYieldReserve() public {
         // Calculate how much a user would need to vest to exceed the yield reserve
         uint256 reserveAmount = yieldVault.yieldReserve();
         uint256 maxUserAmount = (reserveAmount * 10000) / YIELD_RATE;
@@ -205,9 +206,11 @@ contract YieldVaultTest is Test {
         
         // Try to create a vesting contract with too much amount
         vm.startPrank(user1);
+        vm.expectRevert();
         diodeToken.mint(user1, tooMuchAmount); // Ensure user has enough tokens
         
         // This should fail due to insufficient yield reserve
+        vm.expectRevert();
         yieldVault.createVestingContract(tooMuchAmount, block.timestamp);
         vm.stopPrank();
     }
@@ -282,7 +285,7 @@ contract YieldVaultTest is Test {
         assert(expectedReleaseAmount > 0);
     }
     
-    function testFailRevokeVestingContract() public {
+    function test_RevertWhen_RevokeVestingContract() public {
         // User1 creates a vesting contract
         vm.startPrank(user1);
         uint256 amount = 10000 * 10**18;
@@ -292,6 +295,7 @@ contract YieldVaultTest is Test {
         TokenVesting vestingContract = TokenVesting(vestingContractAddr);
         
         // Try to revoke the vesting contract (should fail)
+        vm.expectRevert();
         vestingContract.revoke(IERC20(address(diodeToken)));
     }
 }
