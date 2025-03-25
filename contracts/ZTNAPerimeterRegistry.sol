@@ -102,7 +102,7 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     }
 
     function Version() external pure returns (uint256) {
-        return 109;
+        return 111;
     }
 
     function CreateUserWallet() external returns (address) {
@@ -123,7 +123,7 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     }
 
     function userWalletKey(address user) internal pure returns (address) {
-        return address(bytes20(keccak256(abi.encodePacked("userWallet", user))));
+        return address(bytes20(keccak256(abi.encodePacked("userWallet2", user))));
     }
 
     // Add a fleet to the registry
