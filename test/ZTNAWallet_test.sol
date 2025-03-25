@@ -27,15 +27,8 @@ contract ZTNAWalletTest is Test {
         );
 
         string memory siwe = "ZTNAWallet wants you to sign in with your Ethereum account:\n"
-"0x040be01bc181fa0851ba2db5dd98f539cff5d8f7\n"
-"\n"
-"\n"
-"URI: http://ZTNAWallet\n"
-"Version: 1\n"
-"Chain ID: 23295\n"
-"Nonce: eb75d767-b412-4db1-b5ae-64eb2180d8b5\n"
-"Issued At: 2025-03-21T12:47:35.774Z";
-
+            "0x040be01bc181fa0851ba2db5dd98f539cff5d8f7\n" "\n" "\n" "URI: http://ZTNAWallet\n" "Version: 1\n"
+            "Chain ID: 23295\n" "Nonce: eb75d767-b412-4db1-b5ae-64eb2180d8b5\n" "Issued At: 2025-03-21T12:47:35.774Z";
 
         bytes memory eip191msg =
             abi.encodePacked("\x19Ethereum Signed Message:\n", Strings.toString(bytes(siwe).length), siwe);
