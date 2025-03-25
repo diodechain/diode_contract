@@ -80,15 +80,15 @@ export function handleError(app, error) {
 // Add a safety timeout for isLoading
 export const setLoadingWithSafety = (isLoadingState) => {
   console.log(`🛡️ setLoadingWithSafety: Setting isLoading = ${isLoadingState}`);
-  window.isLoading = isLoadingState;
+  window.app.isLoading = isLoadingState;
   
   // If we're turning on loading, set a safety timeout
   if (isLoadingState) {
     console.log('🛡️ setLoadingWithSafety: Setting safety timeout for 30 seconds');
     setTimeout(() => {
-      if (window.isLoading) {
+      if (window.app.isLoading) {
         console.warn('🛡️ setLoadingWithSafety: Safety timeout triggered! Force resetting isLoading = false');
-        window.isLoading = false;
+        window.app.isLoading = false;
         showToastMessage('Loading timed out. Please try again.', 5000);
       }
     }, 30000); // 30 second timeout
@@ -117,3 +117,13 @@ export const isValidAddress = (address) => {
   // Basic validation - starts with 0x and has 42 characters
   return /^0x[a-fA-F0-9]{40}$/.test(address);
 }; 
+
+// Lock display of the UI until the user interacts with MetaMask
+export const lockUI = () => {
+  window.app.isLocked++;
+};
+
+// Unlock the UI
+export const unlockUI = () => {
+  window.app.isLocked--;
+};

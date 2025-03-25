@@ -3,6 +3,7 @@
 ## Oasis Sapphire Mainnet
 
 Version 105     0x39A97a9A46DF4daEFEcBf1D2c24288e801c306d1
+
 Proxy:          0xf90314E31D34C7ad82382f1a9dCB5Fc0FDA71ACe
 
 ## Oasis Sapphire Testnet

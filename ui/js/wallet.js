@@ -1,5 +1,5 @@
 import { wrapEthereumProvider } from 'https://cdn.jsdelivr.net/npm/@oasisprotocol/sapphire-paratime@2.1.0/+esm'
-import { showToastMessage } from './utils.js';
+import { showToastMessage, lockUI, unlockUI } from './utils.js';
 import { SiweMessage } from './siwe.js'
 import walletAbi from './wallet-abi.js';
 
@@ -37,45 +37,6 @@ export const initializeMetaMask = async () => {
   }
 }; 
 
-/**
- * Creates a mock Ethereum provider for development/testing
- * @returns {Object} Mock provider
- */
-function createMockProvider() {
-  const mockAccounts = ['0x1234567890123456789012345678901234567890'];
-  
-  return {
-    isMetaMask: true,
-    isMock: true,
-    request: async ({ method, params }) => {
-      console.log(`Mock provider received request: ${method}`, params);
-      
-      switch (method) {
-        case 'eth_requestAccounts':
-        case 'eth_accounts':
-          return mockAccounts;
-        case 'eth_chainId':
-          return '0x1'; // Mainnet
-        case 'net_version':
-          return '1'; // Mainnet
-        default:
-          console.warn(`Mock provider: Unhandled method ${method}`);
-          return null;
-      }
-    },
-    on: (event, handler) => {
-      console.log(`Mock provider: Registered handler for ${event}`);
-      // We don't actually trigger any events in the mock
-    },
-    removeListener: () => {
-      // No-op
-    }
-  };
-}
-
-// Wallet interaction functions
-import { showToast } from './utils.js';
-
 let web3;
 let account;
 let accounts;
@@ -90,7 +51,7 @@ async function initWeb3() {
   } else if (ethereum) {
     try {
       // Request account access
-      console.log("Requesting account access", ethereum);
+      console.log("Requesting account access");
       accounts = await ethereum.request({ method: 'eth_requestAccounts' });
       web3 = new Web3(ethereum);
       window.web3 = web3;
@@ -141,13 +102,13 @@ export async function connectWallet() {
     ethereum.on('accountsChanged', (accounts) => {
       if (accounts.length === 0) {
         // User disconnected wallet
-        window.isConnected = false;
-        window.account = null;
-        showToast(window.app, 'Wallet disconnected.');
+        window.app.isConnected = false;
+        window.app.account = null;
+        showToastMessage('Wallet disconnected.');
       } else if (accounts[0] !== window.account) {
         // User switched accounts
-        window.account = accounts[0];
-        showToast(window.app, 'Account changed to ' + accounts[0]);
+        window.app.account = accounts[0];
+        showToastMessage('Account changed to ' + accounts[0]);
         
         // Reload data with new account
         if (typeof window.loadUserData === 'function') {
@@ -158,14 +119,14 @@ export async function connectWallet() {
     
     // Handle chain changes
     ethereum.on('chainChanged', () => {
-      showToast(window.app, 'Network changed. Reloading...');
+      showToastMessage('Network changed. Reloading...');
       window.location.reload();
     });
     
     return { web3, account, ethereum };
   } catch (error) {
     console.error('Error connecting wallet:', error);
-    showToast(window.app, 'Failed to connect wallet: ' + error.message);
+    showToastMessage('Failed to connect wallet: ' + error.message);
     throw error;
   }
 }
@@ -186,7 +147,7 @@ export async function switchAccount() {
     }
   } catch (error) {
     console.error('Error switching account:', error);
-    showToast(window.app, 'Failed to switch account: ' + error.message);
+    showToastMessage('Failed to switch account: ' + error.message);
     throw error;
   }
 } 
@@ -309,15 +270,25 @@ export async function ensureUserWallet() {
    }
 
   if (userWallet == '0x0000000000000000000000000000000000000000') {
-    await registryContract.methods.CreateUserWallet().send({ from: account });
-    userWallet = await registryContract.methods.UserWallet(account).call();
-    console.log('User wallet:', userWallet);
-    if (userWallet == '0x0000000000000000000000000000000000000000') {
-      throw new Error('Failed to create user wallet');
+    try {
+      lockUI();
+      await registryContract.methods.CreateUserWallet().send({ from: account });
+      userWallet = await registryContract.methods.UserWallet(account).call();
+      console.log('User wallet:', userWallet);
+      if (userWallet == '0x0000000000000000000000000000000000000000') {
+        throw new Error('Failed to create user wallet');
+      }  
+    } catch (error) {
+      console.error('Error creating user wallet:', error);
+      showToastMessage('Failed to create user wallet: ' + error.message);
+      throw error;
+    } finally {
+      unlockUI();
     }
   }
 
-  console.log("Siwe version:", await call(walletAbi, userWallet, 'Version', []));
+  let walletContract = new web3.eth.Contract(walletAbi, userWallet);
+  console.log("Siwe version:", await walletContract.methods.Version().call());
 
   const domain = "ZTNAWallet"
   const siweMsg = new SiweMessage({
@@ -336,8 +307,8 @@ export async function ensureUserWallet() {
   const sigObj = splitSignature(sig);
   console.log('Signature:', sig, sigObj);
   console.log('Siwe message:', siweMsg);
-  console.log("Siwe test", await call(walletAbi, userWallet, 'login_test', [siweMsg, sigObj]));
-  siweToken = await call(walletAbi, userWallet, 'login', [siweMsg, sigObj]);
+  console.log("Siwe test", await walletContract.methods.login_test(siweMsg, sigObj).call());
+  siweToken = await walletContract.methods.login(siweMsg, sigObj).call();
   console.log('Auth token:', siweToken);
   localStorage.setItem(storageKey, siweToken);
   return {address: userWallet, token: siweToken};
@@ -356,6 +327,7 @@ function splitSignature(sig) {
 // Helper function for sending transactions
 export async function send(abi, address, method, args, successMessage) {
   try {
+    lockUI();
     const { account, ethereum } = await connectWallet();
     let web3 = new Web3(wrapEthereumProvider(ethereum));
     let contract = new web3.eth.Contract(abi, address);
@@ -383,6 +355,8 @@ export async function send(abi, address, method, args, successMessage) {
     console.error(`Error in ${method}:`, error);
     showToastMessage(`Failed to ${method}: ${error.message}`);
     throw error;
+  } finally {
+    unlockUI();
   }
 }
 
