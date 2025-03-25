@@ -13,7 +13,7 @@ import "./forge-std/Test.sol";
 
 /**
  * This test runs within the same chain (anvil) and thus simulates
- *     both sides Diode L1 and Moonbeam using the DiodeToken and the native token 
+ *     both sides Diode L1 and Moonbeam using the DiodeToken and the native token
  *     respectively.
  *
  *     This bridge tests is testing to bridge in/out from the same chain,
