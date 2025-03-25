@@ -19,7 +19,6 @@ const app = createApp({
     const account = ref('');
     const ethereum = ref(null);
     const web3 = ref(null);
-    const registryVersion = ref(null);
     const ownFleetCount = ref(0);
     const ownFleets = ref([]);
     const sharedFleets = ref([]);
@@ -27,6 +26,7 @@ const app = createApp({
     const fleetDetails = ref({});
     const fleetUsers = ref([]);
     const isLoading = ref(false);
+    const isLocked = ref(0);
     const isCreatingFleet = ref(false);
     const showingAddUserModal = ref(false);
     const targetFleetForUser = ref(null);
@@ -104,6 +104,11 @@ const app = createApp({
     const connectWallet = async () => {
       try {
         utils.setLoadingWithSafety(true);
+
+        if (!ethereum.value || !await wallet.getAccount()) {
+          return;
+        }
+  
         
         try {
           // Request accounts
@@ -125,9 +130,6 @@ const app = createApp({
           // Initialize Web3
           web3.value = new Web3(ethereum.value);
           
-          // Get registry version
-          registryVersion.value = await registryOperations.getRegistryVersion();
-          console.log('Registry Version:', registryVersion.value);
           // Load user's fleets
           await handleAccountsChanged(accounts);
           
@@ -361,11 +363,7 @@ const app = createApp({
     onMounted(async () => {
       try {
         ethereum.value = await wallet.initializeMetaMask();
-        
-        // Auto-connect if already connected
-        if (ethereum.value && await wallet.getAccount()) {
-          await connectWallet();
-        }
+        await connectWallet();
       } catch (error) {
         console.error('Error initializing app:', error);
       }
@@ -401,7 +399,6 @@ const app = createApp({
     return {
       isConnected,
       account,
-      registryVersion,
       ownFleetCount,
       ownFleets,
       sharedFleets,
@@ -409,6 +406,7 @@ const app = createApp({
       fleetDetails,
       fleetUsers,
       isLoading,
+      isLocked,
       isCreatingFleet,
       showingAddUserModal,
       newUserAddress,
