@@ -101,10 +101,6 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
         return owner;
     }
 
-    function Version() external pure returns (uint256) {
-        return 111;
-    }
-
     function CreateUserWallet() external returns (address) {
         address key = userWalletKey(msg.sender);
         address user = userWallets[key];
@@ -219,5 +215,9 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
 
     function GetSharedFleet(address sender, uint256 fleetIndex) external view returns (FleetMetadataView memory) {
         return _toFleetMetadataView(fleets[sharedFleets[sender][msg.sender].items[fleetIndex]]);
+    }
+
+    function Version() external pure returns (uint256) {
+        return 112;
     }
 }
