@@ -345,7 +345,7 @@ contract ZTNAPerimeterContractTest is Test {
         // Create a user
         bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
         Assert.equal(success, true, "User creation should succeed");
-
+        fleetContract.setUserAdmin(user1, true);
         // Switch to user1's context for both device creations
         vm.startPrank(user1);
 
@@ -372,6 +372,7 @@ contract ZTNAPerimeterContractTest is Test {
         // Create a user
         bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
         Assert.equal(success, true, "User creation should succeed");
+        fleetContract.setUserAdmin(user1, true);
 
         // Switch to user1's context
         vm.startPrank(user1);

@@ -158,12 +158,18 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         _;
     }
 
+    modifier onlyMember() {
+        require(users[msg.sender].active, "User does not exist");
+        _;
+    }
+
     modifier onlyAdmin() {
-        require(users[msg.sender].isAdmin, "Only admins can perform this action");
+        require(users[msg.sender].isAdmin || msg.sender == operator, "Only admins can perform this action");
         _;
     }
 
     modifier onlyDeviceOwner(address _deviceId) {
+        require(devices[_deviceId].active, "Device does not exist");
         require(
             devices[_deviceId].owner == msg.sender || users[msg.sender].isAdmin,
             "Only device owner or admin can perform this action"
@@ -247,6 +253,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
     function getUser(address _userAddress)
         external
         view
+        onlyMember
         returns (
             address user,
             string memory nickname,
@@ -269,11 +276,11 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         );
     }
 
-    function getUserGroups(address _userAddress) external view userExists(_userAddress) returns (address[] memory) {
+    function getUserGroups(address _userAddress) external view onlyMember userExists(_userAddress) returns (address[] memory) {
         return Set.Members(users[_userAddress].groups);
     }
 
-    function getAllUsers() external view returns (address[] memory) {
+    function getAllUsers() external view onlyMember returns (address[] memory) {
         return allUsers;
     }
 
@@ -370,6 +377,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
     function getUserGroup(address _groupId)
         external
         view
+        onlyMember
         userGroupExists(_groupId)
         returns (
             address id,
@@ -384,11 +392,11 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return (group.id, group.name, group.description, group.createdAt, group.createdBy, group.active);
     }
 
-    function getGroupUsers(address _groupId) external view userGroupExists(_groupId) returns (address[] memory) {
+    function getGroupUsers(address _groupId) external view userGroupExists(_groupId) onlyMember returns (address[] memory) {
         return Set.Members(groupUsers[_groupId]);
     }
 
-    function getAllUserGroups() external view returns (address[] memory) {
+    function getAllUserGroups() external view onlyMember returns (address[] memory) {
         return allUserGroups;
     }
 
@@ -399,7 +407,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         string memory _description,
         string memory _deviceType,
         string memory _location
-    ) external userExists(msg.sender) returns (address) {
+    ) external onlyAdmin returns (address) {
         require(_deviceId != address(0), "Invalid device address");
         require(!devices[_deviceId].active, "Device already exists");
 
@@ -428,7 +436,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         string memory _description,
         string memory _deviceType,
         string memory _location
-    ) external deviceExists(_deviceId) onlyDeviceOwner(_deviceId) returns (bool) {
+    ) external onlyDeviceOwner(_deviceId) returns (bool) {
         Device storage device = devices[_deviceId];
 
         device.name = _name;
@@ -440,19 +448,13 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return true;
     }
 
-    function updateDeviceLastSeen(address _deviceId) external deviceExists(_deviceId) returns (bool) {
-        require(
-            devices[_deviceId].owner == msg.sender || users[msg.sender].isAdmin || msg.sender == operator,
-            "Unauthorized"
-        );
-
+    function updateDeviceLastSeen(address _deviceId) external onlyDeviceOwner(_deviceId) returns (bool) {
         devices[_deviceId].lastSeen = block.timestamp;
         return true;
     }
 
     function transferDeviceOwnership(address _deviceId, address _newOwner)
         external
-        deviceExists(_deviceId)
         onlyDeviceOwner(_deviceId)
         userExists(_newOwner)
         returns (bool)
@@ -473,7 +475,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
 
     function removeDevice(address _deviceId)
         external
-        deviceExists(_deviceId)
         onlyDeviceOwner(_deviceId)
         returns (bool)
     {
@@ -506,6 +507,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
     function getDevice(address _deviceId)
         external
         view
+        onlyMember
         deviceExists(_deviceId)
         returns (
             address id,
@@ -533,11 +535,11 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         );
     }
 
-    function getUserDevices(address _userAddress) external view userExists(_userAddress) returns (address[] memory) {
+    function getUserDevices(address _userAddress) external view onlyMember userExists(_userAddress) returns (address[] memory) {
         return Set.Members(userDevices[_userAddress]);
     }
 
-    function getAllDevices() external view returns (address[] memory) {
+    function getAllDevices() external view onlyMember returns (address[] memory) {
         return allDevices;
     }
 
@@ -594,7 +596,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
 
     function addDeviceToTag(address _deviceId, address _tagId)
         external
-        deviceExists(_deviceId)
+        onlyDeviceOwner(_deviceId)
         tagExists(_tagId)
         returns (bool)
     {
@@ -642,15 +644,15 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return true;
     }
 
-    function getDeviceTags(address _deviceId) external view deviceExists(_deviceId) returns (address[] memory) {
+    function getDeviceTags(address _deviceId) external view onlyMember deviceExists(_deviceId) returns (address[] memory) {
         return Set.Members(devices[_deviceId].tags);
     }
 
-    function getTagDevices(address _tagId) external view tagExists(_tagId) returns (address[] memory) {
+    function getTagDevices(address _tagId) external view onlyMember tagExists(_tagId) returns (address[] memory) {
         return Set.Members(tagDevices[_tagId]);
     }
 
-    function isDeviceInTag(address _deviceId, address _tagId) external view returns (bool) {
+    function isDeviceInTag(address _deviceId, address _tagId) external view onlyMember returns (bool) {
         if (!devices[_deviceId].active || !tags[_tagId].active) {
             return false;
         }
@@ -665,12 +667,12 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return deviceHasTag && tagHasDevice;
     }
 
-    function isDeviceOwner(address _userAddress, address _deviceId) external view returns (bool) {
+    function isDeviceOwner(address _userAddress, address _deviceId) external view onlyMember returns (bool) {
         return devices[_deviceId].active && devices[_deviceId].owner == _userAddress;
     }
 
     // ======== Access Control ========
-    function isUserInGroup(address _userAddress, address _groupId) external view returns (bool) {
+    function isUserInGroup(address _userAddress, address _groupId) external view onlyMember returns (bool) {
         if (!users[_userAddress].active || !userGroups[_groupId].active) {
             return false;
         }
@@ -678,7 +680,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return Set.IsMember(users[_userAddress].groups, _groupId);
     }
 
-    function isUserAdmin(address _userAddress) external view returns (bool) {
+    function isUserAdmin(address _userAddress) external view onlyMember returns (bool) {
         return users[_userAddress].active && users[_userAddress].isAdmin;
     }
 
@@ -707,7 +709,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return true;
     }
 
-    function getTagProperty(address _tagId, string memory _key) external view returns (string memory) {
+    function getTagProperty(address _tagId, string memory _key) external view onlyMember returns (string memory) {
         return tagProperties[_tagId][_key];
     }
 
@@ -751,42 +753,14 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return deviceProperties[_deviceId][_key];
     }
 
-    // Check if a device or any of its tags has a property
-    function hasProperty(address _deviceId, string memory _key) external view deviceExists(_deviceId) returns (bool) {
-        // First check tag properties
-        address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
-        for (uint256 i = 0; i < deviceTagsList.length; i++) {
-            address tagId = deviceTagsList[i];
-
-            // Skip inactive tags
-            if (!tags[tagId].active) {
-                continue;
-            }
-
-            // Check if device is in this tag
-            if (Set.IsMember(devices[_deviceId].tags, tagId)) {
-                // Get the tag property
-                if (bytes(tagProperties[tagId][_key]).length > 0) {
-                    return true;
-                }
-            }
-        }
-
-        // Then check device properties
-        if (bytes(deviceProperties[_deviceId][_key]).length > 0) {
-            return true;
-        }
-
-        return false;
-    }
-
-    function getAllTags() external view returns (address[] memory) {
+    function getAllTags() external view onlyMember returns (address[] memory) {
         return allTags;
     }
 
     function getTag(address _tagId)
         external
         view
+        onlyMember
         tagExists(_tagId)
         returns (
             address id,
@@ -800,5 +774,9 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
     {
         Tag storage tag = tags[_tagId];
         return (tag.id, tag.name, tag.description, tag.color, tag.createdAt, tag.createdBy, tag.active);
+    }
+
+    function Version() external pure returns (uint256) {
+        return 800;
     }
 }
