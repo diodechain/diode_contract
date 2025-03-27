@@ -15,9 +15,18 @@ fi
 
 set -e
 OLD_VSN=`cast call $PROXY "Version()" --rpc-url $RPC | cast td`
+if [ "$OLD_VSN" == "" ]; then
+    echo "Failed to get current version"
+    exit 1
+fi
 echo "Current version $OLD_VSN"
+
 NEW_VSN=`cast call $1 "Version()" --rpc-url $RPC | cast td`
-echo "Deploying new version $NEW_VSN"
+if [ "$NEW_VSN" == "" ]; then
+    echo "Failed to get new version"
+    exit 1
+fi
+echo "New version $NEW_VSN"
 
 OLD_HASH=$(cast keccak $(cast code $PROXY --rpc-url $RPC))
 NEW_HASH=$(cast keccak $(cast code $1 --rpc-url $RPC))
