@@ -14,7 +14,7 @@ contract YieldVaultTest is Test {
     address user2;
     
     // Constants for testing
-    uint256 constant CLIFF_PERIOD = 30 days;
+    uint256 constant LOCK_PERIOD = 30 days;
     uint256 constant VESTING_PERIOD = 180 days;
     uint256 constant INITIAL_YIELD_RESERVE = 1000000 * 10**18; // 1 million tokens
     uint256 constant YIELD_RATE = 500; // 5%
@@ -38,9 +38,8 @@ contract YieldVaultTest is Test {
         // We'll transfer tokens separately to ensure they're available
         yieldVault = new YieldVault(
             address(diodeToken),
-            CLIFF_PERIOD,
+            LOCK_PERIOD,
             VESTING_PERIOD,
-            0,  // Start with zero reserve
             YIELD_RATE
         );
         
@@ -65,7 +64,7 @@ contract YieldVaultTest is Test {
     
     function testInitialState() public view {
         assertEq(address(yieldVault.token()), address(diodeToken), "Token address should match");
-        assertEq(yieldVault.cliffPeriod(), CLIFF_PERIOD, "Cliff period should match");
+        assertEq(yieldVault.lockPeriod(), LOCK_PERIOD, "Lock period should match");
         assertEq(yieldVault.vestingPeriod(), VESTING_PERIOD, "Vesting period should match");
         assertEq(yieldVault.yieldReserve(), INITIAL_YIELD_RESERVE, "Initial yield reserve should match");
         assertEq(yieldVault.yieldRate(), YIELD_RATE, "Yield rate should match");
@@ -120,8 +119,7 @@ contract YieldVaultTest is Test {
         uint256 initialReserve = yieldVault.yieldReserve();
         uint256 expectedYieldAmount = (amount * YIELD_RATE) / 10000; // 5% yield
         
-        uint256 startTime = block.timestamp;
-        address vestingContract = yieldVault.createVestingContract(amount, startTime);
+        address vestingContract = yieldVault.createVestingContract(amount);
         
         vm.stopPrank();
         
@@ -165,19 +163,19 @@ contract YieldVaultTest is Test {
         // User1 creates a vesting contract
         vm.startPrank(user1);
         uint256 amount1 = 10000 * 10**18;
-        address vestingContract1 = yieldVault.createVestingContract(amount1, block.timestamp);
+        address vestingContract1 = yieldVault.createVestingContract(amount1);
         vm.stopPrank();
         
         // User2 creates a vesting contract
         vm.startPrank(user2);
         uint256 amount2 = 20000 * 10**18;
-        address vestingContract2 = yieldVault.createVestingContract(amount2, block.timestamp);
+        address vestingContract2 = yieldVault.createVestingContract(amount2);
         vm.stopPrank();
         
         // User1 creates another vesting contract
         vm.startPrank(user1);
         uint256 amount3 = 5000 * 10**18;
-        address vestingContract3 = yieldVault.createVestingContract(amount3, block.timestamp);
+        address vestingContract3 = yieldVault.createVestingContract(amount3);
         vm.stopPrank();
         
         // Verify user contract counts
@@ -211,7 +209,7 @@ contract YieldVaultTest is Test {
         
         // This should fail due to insufficient yield reserve
         vm.expectRevert();
-        yieldVault.createVestingContract(tooMuchAmount, block.timestamp);
+        yieldVault.createVestingContract(tooMuchAmount);
         vm.stopPrank();
     }
     
@@ -219,25 +217,31 @@ contract YieldVaultTest is Test {
         // User1 creates a vesting contract
         vm.startPrank(user1);
         uint256 amount = 10000 * 10**18;
-        uint256 startTime = block.timestamp;
-        address vestingContractAddr = yieldVault.createVestingContract(amount, startTime);
+        address vestingContractAddr = yieldVault.createVestingContract(amount);
         vm.stopPrank();
         
         TokenVesting vestingContract = TokenVesting(vestingContractAddr);
         uint256 expectedYieldAmount = (amount * YIELD_RATE) / 10000;
         uint256 totalAmount = amount + expectedYieldAmount;
+        uint256 startTime = block.timestamp;
         
+        // The total matches the balance of the vesting contract
+        assertEq(diodeToken.balanceOf(vestingContractAddr), totalAmount, "Vesting contract should have total amount");
+
         // Verify the vesting contract is not revocable
         assertEq(vestingContract.revocable(), false, "Vesting contract should not be revocable");
         
-        // Fast forward past cliff period
-        vm.warp(startTime + CLIFF_PERIOD + 1);
+        // Fast forward past lock period
+        vm.warp(startTime + LOCK_PERIOD + 0);
+        assertEq(vestingContract.releasableAmount(IERC20(address(diodeToken))), 0, "Vesting contract should have no releasable amount");
         
-        // Calculate expected release amount (just past cliff)
+        vm.warp(startTime + LOCK_PERIOD + 1);
+        // Calculate expected release amount (just past lock)
         uint256 expectedReleaseAmount = (totalAmount * 1) / VESTING_PERIOD;
-        
+
         // User1 releases tokens
         vm.startPrank(user1);
+        assertEq(expectedReleaseAmount, vestingContract.releasableAmount(IERC20(address(diodeToken))), "Release amount should match");
         uint256 initialUser1Balance = diodeToken.balanceOf(user1);
         vestingContract.release(IERC20(address(diodeToken)));
         vm.stopPrank();
@@ -250,7 +254,7 @@ contract YieldVaultTest is Test {
         );
         
         // Fast forward to halfway through vesting period
-        vm.warp(startTime + CLIFF_PERIOD + VESTING_PERIOD / 2);
+        vm.warp(startTime + LOCK_PERIOD + VESTING_PERIOD / 2);
         
         // User1 releases more tokens
         vm.startPrank(user1);
@@ -266,7 +270,7 @@ contract YieldVaultTest is Test {
         );
         
         // Fast forward past vesting period
-        vm.warp(startTime + CLIFF_PERIOD + VESTING_PERIOD + 1);
+        vm.warp(startTime + LOCK_PERIOD + VESTING_PERIOD + 1);
         
         // User1 releases final tokens
         vm.startPrank(user1);
@@ -280,16 +284,13 @@ contract YieldVaultTest is Test {
             0,
             "Vesting contract should have 0 tokens after full release"
         );
-        
-        // Use the variable to avoid compiler warning
-        assert(expectedReleaseAmount > 0);
     }
     
     function test_RevertWhen_RevokeVestingContract() public {
         // User1 creates a vesting contract
         vm.startPrank(user1);
         uint256 amount = 10000 * 10**18;
-        address vestingContractAddr = yieldVault.createVestingContract(amount, block.timestamp);
+        address vestingContractAddr = yieldVault.createVestingContract(amount);
         vm.stopPrank();
         
         TokenVesting vestingContract = TokenVesting(vestingContractAddr);

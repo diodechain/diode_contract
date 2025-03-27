@@ -9,6 +9,10 @@ import "./deps/Initializable.sol";
 import "./Proxy.sol";
 import "./DiodeToken.sol";
 
+interface Vault {
+    function createVestingContractFor(address beneficiary, uint256 amount) external returns (address);
+}
+
 /**
  * BridgeIn contract
  * 
@@ -45,7 +49,7 @@ contract BridgeIn is Initializable {
     // This should always match block.chainid
     // but for testing it makes sense to override this
     uint256 public immutable in_chainid;
-
+    Vault public vault;
     constructor(
         uint256 _chainid,
         address _foundation,
@@ -96,6 +100,14 @@ contract BridgeIn is Initializable {
         in_threshold = _threshold;
     }
 
+    function setVault(address _vault) public {
+        require(
+            msg.sender == in_foundation,
+            "BridgeIn: only in_foundation can set vault"
+        );
+        vault = Vault(_vault);
+    }
+
     function bridgeIn(
         uint256 sourceChain,
         InTransactionMsg[] memory msgs
@@ -132,7 +144,16 @@ contract BridgeIn is Initializable {
                 })
             );
             diode.mint(address(this), msgs[i].amount);
-            diode.transfer(msgs[i].destination, msgs[i].amount);
+
+            if (address(vault) != address(0)) {
+                diode.approve(address(vault), msgs[i].amount);
+                address vestingContract = vault.createVestingContractFor(msgs[i].destination, msgs[i].amount);
+                if (vestingContract == address(0)) {
+                    diode.transfer(msgs[i].destination, msgs[i].amount);
+                }
+            } else {
+                diode.transfer(msgs[i].destination, msgs[i].amount);
+            }
         }
 
         uint256 _trustScore = calcTrustScore(historyHash);
@@ -187,5 +208,9 @@ contract BridgeIn is Initializable {
     function addInWitness(bytes32 hashv, uint8 v, bytes32 r, bytes32 s) public {
         address destination = ecrecover(hashv, v, r, s);
         in_witnesses[hashv][destination] = InSig({r: r, s: s, v: v});
+    }
+
+    function version() public pure returns (uint256) {
+        return 3;
     }
 }

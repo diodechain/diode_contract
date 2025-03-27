@@ -10,6 +10,8 @@
 # ./scripts/deploy_moonbeam.sh contracts/Drive.sol:Drive --constructor-args 0x8a093e3A83F63A00FFFC4729aa55482845a49294
 # ./scripts/deploy_moonbeam.sh contracts/FleetContractUpgradeable.sol:FleetContractUpgradeable --constructor-args 0xD78653669fd3df4dF8F3141Ffa53462121d117a4
 
+# ./scripts/deploy_moonbeam.sh contracts/YieldVault.sol:YieldVault --constructor-args 0xb9f1fa217c9a86915b4368e4ee9f079d6e5644a9 31536000 31536000 1500
+
 set -x
 export RPC=https://moonbeam.unitedbloc.com:3000
 # export RPC=https://moonbeam.api.onfinality.io/rpc?apikey=7bf1dbfe-3539-4c1d-a3ba-5ad33a4b089a

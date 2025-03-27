@@ -18,31 +18,31 @@ contract YieldVault is Ownable {
 
     // Tokens are locked for cliff period and then after the cliff period
     // they are vested linearly over the vesting period
-    uint256 public immutable cliffPeriod;
+    uint256 public immutable lockPeriod;
     uint256 public immutable vestingPeriod;
     
     // Yield rate as percentage (e.g., 500 = 5%)
     uint256 public immutable yieldRate;
 
-    constructor(address _token, uint256 _cliffPeriod, uint256 _vestingPeriod, uint256 _yieldReserve, uint256 _yieldRate) {
+    constructor(address _token, uint256 _lockPeriod, uint256 _vestingPeriod, uint256 _yieldRate) {
         token = IERC20(_token);
-        cliffPeriod = _cliffPeriod;
+        lockPeriod = _lockPeriod;
         vestingPeriod = _vestingPeriod;
-        yieldReserve = _yieldReserve;
         yieldRate = _yieldRate;
     }
 
-    // Amount of tokens available for yield distribution
-    uint256 public yieldReserve;
+
+    function yieldReserve() public view returns (uint256) {
+        return token.balanceOf(address(this));
+    }
 
     /**
      * @dev Allows owner to deposit additional tokens into the yield reserve
      * @param amount Amount of tokens to add to reserve
      */
-    function deployReserve(uint256 amount) external onlyOwner {
+    function deployReserve(uint256 amount) external {
         require(amount > 0, "Amount must be greater than 0");
         token.safeTransferFrom(msg.sender, address(this), amount);
-        yieldReserve = yieldReserve.add(amount);
     }
 
     /**
@@ -51,17 +51,8 @@ contract YieldVault is Ownable {
      */
     function withdrawReserve(uint256 amount) external onlyOwner {
         require(amount > 0, "Amount must be greater than 0");
-        require(amount <= yieldReserve, "Insufficient reserve balance");
-        yieldReserve = yieldReserve.sub(amount);
+        require(amount <= yieldReserve(), "Insufficient reserve balance");
         token.safeTransfer(msg.sender, amount);
-    }
-
-    /**
-     * @dev Returns the current token balance of this contract
-     * @return Current balance of tokens held by this contract
-     */
-    function balance() external view returns (uint256) {
-        return token.balanceOf(address(this));
     }
 
     // Mapping from user address to their vesting contracts
@@ -76,44 +67,62 @@ contract YieldVault is Ownable {
     /**
      * @dev Creates a new token vesting contract for the caller
      * @param amount Amount of tokens the user wants to vest
-     * @param startTime The time (as Unix time) at which point vesting starts
      * @return The address of the newly created vesting contract
      */
-    function createVestingContract(uint256 amount, uint256 startTime) external returns (address) {
-        require(amount > 0, "Amount must be greater than 0");
-        
-        // Calculate yield amount based on yield rate
+    function createVestingContract(uint256 amount) external returns (address) {
+        (address vestingContract, string memory message) = createVestingContractFor(msg.sender, amount);
+        if (vestingContract == address(0)) {
+            revert(message);
+        }
+        return vestingContract;
+    }
+    
+    /**
+     * @dev Creates a new token vesting contract for the caller
+     * @param amount Amount of tokens the user wants to vest
+     * @return The address of the newly created vesting contract
+     */
+    function createVestingContractFor(address beneficiary, uint256 amount) public returns (address, string memory) {
+        if (beneficiary == address(0)) {
+            return (address(0), "Beneficiary is zero address");
+        }
+
+        if (amount == 0) {
+            return (address(0), "Amount must be greater than 0");
+        }
+
+        // Calculate yield amount based on yield rate BEFORE transferring the user funds in
         uint256 yieldAmount = amount.mul(yieldRate).div(10000);
-        require(yieldAmount <= yieldReserve, "Insufficient yield reserve");
+        if (yieldAmount > yieldReserve()) {
+            return (address(0), "Insufficient yield reserve");
+        }
         
         // Transfer tokens from user to this contract
         token.safeTransferFrom(msg.sender, address(this), amount);
+
+        uint256 startTime = block.timestamp + lockPeriod;
         
         // Create new vesting contract (always non-revocable)
         TokenVesting vestingContract = new TokenVesting(
-            msg.sender,
+            beneficiary,
             startTime,
-            cliffPeriod,
+            0,
             vestingPeriod,
             false // Always non-revocable
         );
-        
-        // Update yield reserve
-        yieldReserve = yieldReserve.sub(yieldAmount);
         
         // Transfer total tokens (user amount + yield) to vesting contract
         uint256 totalAmount = amount.add(yieldAmount);
         token.safeTransfer(address(vestingContract), totalAmount);
         
         // Store vesting contract in user's list
-        userVestingContracts[msg.sender].push(address(vestingContract));
+        userVestingContracts[beneficiary].push(address(vestingContract));
         
         // Store vesting contract in global list
         allVestingContracts.push(address(vestingContract));
         
-        emit VestingContractCreated(msg.sender, address(vestingContract), amount, yieldAmount);
-        
-        return address(vestingContract);
+        emit VestingContractCreated(beneficiary, address(vestingContract), amount, yieldAmount);
+        return (address(vestingContract), "");
     }
     
     /**
