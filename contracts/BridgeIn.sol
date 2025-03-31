@@ -105,7 +105,13 @@ contract BridgeIn is Initializable {
             msg.sender == in_foundation,
             "BridgeIn: only in_foundation can set vault"
         );
+        if (address(vault) != address(0)) {
+            diode.approve(address(vault), 0);
+        }
         vault = Vault(_vault);
+        if (address(vault) != address(0)) {
+            diode.approve(address(vault), type(uint256).max);
+        }
     }
 
     function bridgeIn(
@@ -146,7 +152,6 @@ contract BridgeIn is Initializable {
             diode.mint(address(this), msgs[i].amount);
 
             if (address(vault) != address(0)) {
-                diode.approve(address(vault), msgs[i].amount);
                 address vestingContract = vault.createVestingContractFor(msgs[i].destination, msgs[i].amount);
                 if (vestingContract == address(0)) {
                     diode.transfer(msgs[i].destination, msgs[i].amount);

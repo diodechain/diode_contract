@@ -13,16 +13,17 @@ import "./TokenVesting.sol";
 contract YieldVault is Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
-
     IERC20 public immutable token;
 
-    // Tokens are locked for cliff period and then after the cliff period
-    // they are vested linearly over the vesting period
+    // Tokens are locked by delaying the start time
+    // there is no cliff period
     uint256 public immutable lockPeriod;
-    uint256 public immutable vestingPeriod;
     
+    // they are vested linearly over the vesting period
+    uint256 public vestingPeriod;
+
     // Yield rate as percentage (e.g., 500 = 5%)
-    uint256 public immutable yieldRate;
+    uint256 public yieldRate;
 
     constructor(address _token, uint256 _lockPeriod, uint256 _vestingPeriod, uint256 _yieldRate) {
         token = IERC20(_token);
@@ -31,6 +32,13 @@ contract YieldVault is Ownable {
         yieldRate = _yieldRate;
     }
 
+    function setYieldRate(uint256 _yieldRate) external onlyOwner {
+        yieldRate = _yieldRate;
+    }
+
+    function setVestingPeriod(uint256 _vestingPeriod) external onlyOwner {
+        vestingPeriod = _vestingPeriod;
+    }
 
     function yieldReserve() public view returns (uint256) {
         return token.balanceOf(address(this));
