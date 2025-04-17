@@ -6,6 +6,7 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./Group.sol";
+import "./deps/SetReverseLocation.sol";
 
 /**
  * DriveMember and Identity Smart Contract
@@ -27,13 +28,21 @@ import "./Group.sol";
  */
 contract DriveMember is Group {
     using Set for Set.Data;
+    using SetReverseLocation for SetReverseLocation.Data;
     bool protected;
     address drive;
-    address[] additional_drives;
+    SetReverseLocation.Data additional_drives;
+    Set.Data whitelist;
     mapping(uint256 => bool) public nonces;
 
     modifier onlyMember() override {
         requireMember(msg.sender);
+        _;
+    }
+
+    modifier onlyReader() {
+        require(msg.sender == address(this) || msg.sender == owner() || members.IsMember(msg.sender) || additional_drives.IsMember(msg.sender) || whitelist.IsMember(msg.sender), "Read access not allowed");
+        
         _;
     }
 
@@ -84,7 +93,7 @@ contract DriveMember is Group {
         selfdestruct(msg.sender);
     }
 
-    function Drive() public view returns (address) {
+    function Drive() public view onlyReader returns (address) {
         return drive;
     }
 
@@ -94,15 +103,27 @@ contract DriveMember is Group {
     }
 
     function AddDrive(address _drive) external onlyMember {
-        for (uint32 i = 0; i < additional_drives.length; i++) {
-            if (additional_drives[i] == _drive) return;
-        }
-        additional_drives.push(_drive);
+        additional_drives.Add(_drive);
         update_change_tracker();
     }
 
-    function Drives() external view returns (address[] memory) {
-        return additional_drives;
+    function RemoveDrive(address _drive) external onlyMember {
+        additional_drives.Remove(_drive);
+        update_change_tracker();
+    }
+
+    function AddReader(address _reader) external onlyMember {
+        whitelist.Add(_reader);
+        update_change_tracker();
+    }
+
+    function RemoveReader(address _reader) external onlyMember {
+        whitelist.Remove(_reader);
+        update_change_tracker();
+    }
+
+    function Drives() external view onlyReader returns (address[] memory) {
+        return additional_drives.Members();
     }
 
     function SubmitTransaction(
@@ -192,10 +213,7 @@ contract DriveMember is Group {
         bytes32 digest = TransactionDigest(nonce, deadline, dst, data);
         address signer = ecrecover(digest, v, r, s);
         require(signer != address(0), "Invalid signature");
-        require(
-            owner() == signer || members.IsMember(signer),
-            "Invalid signer"
-        );
+        requireMember(signer);
         require(
             external_call(dst, data.length, data),
             "General Transaction failed"
