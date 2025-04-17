@@ -1,8 +1,12 @@
 #!/bin/bash
 
 # Examples:
+# ./scripts/deploy_oasis.sh contracts/Proxy8.sol:Proxy8 --constructor-args 0x58aaa43434e147F4EE076fae8804abA1bf1d802b 0xDA92764BB12E91010D132BcDd8e4a0270EE25fc9
 # ./scripts/deploy_oasis.sh contracts/Proxy8.sol:Proxy8 --constructor-args 0x988C891e92678e06bf0e7F01c9327208EE294a5c 0x7102533B13b950c964efd346Ee15041E3e55413f
 # ./scripts/deploy_oasis.sh contracts/ZTNAPerimeterRegistry.sol:ZTNAPerimeterRegistry
+
+# ./scripts/deploy_oasis.sh contracts/MultiSigWallet.sol:MultiSigWallet --constructor-args ["0xA81c1450dd147cf99238072469C50d3b1b1f2C73","0xa432BaD7a40Be97875d5cba7822bBe47E6A5E1Dd","0x81dd8aFf2BcCc1002c4289C5bcBeF4110241A8E1","0x5420D71f9f78E6B50D555B6428BF3E154935880e","0x7102533B13b950c964efd346Ee15041E3e55413f"], 1
+
 export RPC=https://sapphire.oasis.io
 # export RPC=https://testnet.sapphire.oasis.io
 
