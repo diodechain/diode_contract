@@ -47,6 +47,7 @@ contract ZTNAPerimeterContractTest is Test {
         Assert.equal(email, "user1@example.com", "User email should match");
         Assert.equal(avatarURI, "avatar1.png", "User avatar URI should match");
         Assert.equal(isAdmin, false, "User should not be admin by default");
+        Assert.equal(createdAt, block.timestamp, "Created at should be updated");
         Assert.equal(active, true, "User should be active");
     }
 
@@ -244,6 +245,8 @@ contract ZTNAPerimeterContractTest is Test {
         Assert.equal(deviceType, "sensor", "Device type should match");
         Assert.equal(location, "Room 1", "Device location should match");
         Assert.equal(owner, address(this), "Device owner should be the contract");
+        Assert.equal(createdAt, block.timestamp, "Created at should be updated");
+        Assert.equal(lastSeen, block.timestamp, "Last seen should be updated");
         Assert.equal(active, true, "Device should be active");
     }
 
@@ -279,6 +282,8 @@ contract ZTNAPerimeterContractTest is Test {
         Assert.equal(deviceType, "actuator", "Device type should be updated");
         Assert.equal(location, "Room 2", "Device location should be updated");
         Assert.equal(owner, address(this), "Device owner should remain the same");
+        Assert.equal(createdAt, block.timestamp, "Created at should be updated");
+        Assert.equal(lastSeen, block.timestamp, "Last seen should be updated");
         Assert.equal(active, true, "Device should remain active");
     }
 
@@ -295,19 +300,29 @@ contract ZTNAPerimeterContractTest is Test {
 
         // Get the device details
         (
-            address id,
-            address owner,
-            string memory name,
-            string memory description,
-            string memory deviceType,
-            string memory location,
-            uint256 createdAt,
+            address _id,
+            address _owner,
+            string memory _name,
+            string memory _description,
+            string memory _deviceType,
+            string memory _location,
+            uint256 _createdAt,
             uint256 lastSeen,
-            bool active
+            bool _active
         ) = fleetContract.getDevice(deviceId);
 
+        _id;
+        _owner;
+        _name;
+        _description;
+        _deviceType;
+        _location;
+        _createdAt;
+        _active;
+
+
         // Verify last seen is updated (should be close to block.timestamp)
-        Assert.equal(lastSeen > 0, true, "Last seen should be updated");
+        Assert.equal(lastSeen, block.timestamp, "Last seen should be updated");
     }
 
     function testTransferDeviceOwnership() public {
@@ -602,8 +617,8 @@ contract ZTNAPerimeterContractTest is Test {
             string memory description,
             string memory deviceType,
             string memory location,
-            uint256 createdAt,
-            uint256 lastSeen,
+            uint256 _createdAt,
+            uint256 _lastSeen,
             bool active
         ) = fleetContract.getDevice(deviceId);
 
@@ -613,6 +628,8 @@ contract ZTNAPerimeterContractTest is Test {
         Assert.equal(description, "A test device", "Device description should match");
         Assert.equal(deviceType, "sensor", "Device type should match");
         Assert.equal(location, "Room 1", "Device location should match");
+        Assert.greaterThan(_createdAt, uint256(0), "Created at should be greater than 0");
+        Assert.greaterThan(_lastSeen, uint256(0), "Last seen should be greater than 0");
         Assert.equal(active, true, "Device should be active");
     }
 
@@ -887,13 +904,13 @@ contract ZTNAPerimeterContractTest is Test {
         vm.stopPrank();
     }
 
-    function testPropertyRemovalBehavior() public {
+    function testPropertyRemovalBehavior() public pure {
         // This test is now covered by the updated testPropertyInheritance
         Assert.equal(true, true, "Skipping this test since it's covered elsewhere");
     }
 
     // Create a single simplified test that directly tests the functionality
-    function testGetPropertyValue() public {
+    function testGetPropertyValue() public pure {
         // This test is now covered by the updated testPropertyInheritance
         Assert.equal(true, true, "Skipping this test since it's covered elsewhere");
     }
@@ -985,7 +1002,7 @@ contract ZTNAPerimeterContractTest is Test {
         Assert.equal(deviceTags.length, 1, "Device should have exactly one tag");
 
         // Print the tag IDs for comparison
-        address retrievedTagId = deviceTags[0];
+        // address retrievedTagId = deviceTags[0];
 
         // Skip tag ID comparison
         // Assert.equal(retrievedTagId, tagId, "Retrieved tag ID should match the original tag ID");
@@ -995,7 +1012,7 @@ contract ZTNAPerimeterContractTest is Test {
         Assert.equal(tagDevices.length, 1, "Tag should have exactly one device");
 
         // Verify the device ID matches
-        address retrievedDeviceId = tagDevices[0];
+        // address retrievedDeviceId = tagDevices[0];
         // Skip device ID comparison
         // Assert.equal(retrievedDeviceId, deviceId, "Retrieved device ID should match the original device ID");
     }
@@ -1244,8 +1261,8 @@ contract ZTNAPerimeterContractTest is Test {
             string memory description,
             string memory deviceType,
             string memory location,
-            uint256 createdAt,
-            uint256 lastSeen,
+            uint256 _createdAt,
+            uint256 _lastSeen,
             bool active
         ) = fleetContract.getDevice(deviceId);
 
@@ -1256,6 +1273,8 @@ contract ZTNAPerimeterContractTest is Test {
         Assert.equal(deviceType, "sensor", "Device type should match");
         Assert.equal(location, "Room 1", "Device location should match");
         Assert.equal(owner, address(this), "Device owner should be the contract");
+        Assert.greaterThan(_createdAt, uint256(0), "Created at should be greater than 0");
+        Assert.greaterThan(_lastSeen, uint256(0), "Last seen should be greater than 0");
         Assert.equal(active, true, "Device should be active");
     }
 

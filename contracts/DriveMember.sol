@@ -60,8 +60,6 @@ contract DriveMember is Group {
         } else {
             require(owner() == _member || members.IsMember(_member), "Only members can call this");
         }
-
-        _;
     }
 
     constructor() {
