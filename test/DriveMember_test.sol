@@ -42,34 +42,34 @@ contract DriveMemberTest {
     function testStorageLocation() public {
         // Create a new DriveMember instance for testing storage
         DriveMember storageTestMember = new DriveMember();
-        
+
         // Add a drive to test with
         address testDrive = address(0x1234567890123456789012345678901234567890);
         storageTestMember.AddDrive(testDrive);
-        
+
         // Test using the Drives() accessor method
         address[] memory drives = storageTestMember.Drives();
         Assert.equal(drives.length, 1, "Should have 1 drive in the array");
         Assert.equal(drives[0], testDrive, "Drive address should match the added drive");
-        
+
         // Test using the low-level storage access
         // The additional_drives array is stored at slot 55 in the DriveMember contract
         uint256 driveCount = storageTestMember.list_size(55);
         Assert.equal(driveCount, 1, "Should have 1 drive in storage");
-        
+
         // Get the drive address from storage
         address storedDrive = address(uint160(storageTestMember.list_at(55, 0)));
         Assert.equal(storedDrive, testDrive, "Drive address in storage should match");
-        
+
         // Add another drive to test multiple entries
         address testDrive2 = address(0x2345678901234567890123456789012345678901);
         storageTestMember.AddDrive(testDrive2);
-        
+
         // Verify with Drives() method
         drives = storageTestMember.Drives();
         Assert.equal(drives.length, 2, "Should have 2 drives in the array");
         Assert.equal(drives[1], testDrive2, "Second drive address should match");
-        
+
         // Verify with storage access
         driveCount = storageTestMember.list_size(55);
         Assert.equal(driveCount, 2, "Should have 2 drives in storage");

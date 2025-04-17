@@ -276,7 +276,13 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         );
     }
 
-    function getUserGroups(address _userAddress) external view onlyMember userExists(_userAddress) returns (address[] memory) {
+    function getUserGroups(address _userAddress)
+        external
+        view
+        onlyMember
+        userExists(_userAddress)
+        returns (address[] memory)
+    {
         return Set.Members(users[_userAddress].groups);
     }
 
@@ -392,7 +398,13 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return (group.id, group.name, group.description, group.createdAt, group.createdBy, group.active);
     }
 
-    function getGroupUsers(address _groupId) external view userGroupExists(_groupId) onlyMember returns (address[] memory) {
+    function getGroupUsers(address _groupId)
+        external
+        view
+        userGroupExists(_groupId)
+        onlyMember
+        returns (address[] memory)
+    {
         return Set.Members(groupUsers[_groupId]);
     }
 
@@ -473,11 +485,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return true;
     }
 
-    function removeDevice(address _deviceId)
-        external
-        onlyDeviceOwner(_deviceId)
-        returns (bool)
-    {
+    function removeDevice(address _deviceId) external onlyDeviceOwner(_deviceId) returns (bool) {
         // Remove device from all tags
         address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
         for (uint256 i = 0; i < deviceTagsList.length; i++) {
@@ -535,7 +543,13 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         );
     }
 
-    function getUserDevices(address _userAddress) external view onlyMember userExists(_userAddress) returns (address[] memory) {
+    function getUserDevices(address _userAddress)
+        external
+        view
+        onlyMember
+        userExists(_userAddress)
+        returns (address[] memory)
+    {
         return Set.Members(userDevices[_userAddress]);
     }
 
@@ -644,7 +658,13 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return true;
     }
 
-    function getDeviceTags(address _deviceId) external view onlyMember deviceExists(_deviceId) returns (address[] memory) {
+    function getDeviceTags(address _deviceId)
+        external
+        view
+        onlyMember
+        deviceExists(_deviceId)
+        returns (address[] memory)
+    {
         return Set.Members(devices[_deviceId].tags);
     }
 

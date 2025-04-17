@@ -104,10 +104,7 @@ contract BridgeTest is Test {
         bytes32 hashv = bridge.txsAt(block.chainid, 0).historyHash;
 
         BridgeIn.InTransactionMsg[] memory msgs = new BridgeIn.InTransactionMsg[](1);
-        msgs[0] = BridgeIn.InTransactionMsg({
-            destination: destination,
-            amount: amount
-        });
+        msgs[0] = BridgeIn.InTransactionMsg({destination: destination, amount: amount});
 
         assertEq(bridge.hashTransactions(block.chainid, msgs), hashv, "hashv=hashTxs()");
 
@@ -132,7 +129,7 @@ contract BridgeTest is Test {
 
         address[] memory vestingContracts = YieldVault(vault).getUserVestingContracts(destination);
         assertEq(vestingContracts.length, 1, "vestingContracts.length=1");
-        assertEq(token.balanceOf(vestingContracts[0]), amount + (amount/10), "balance=amount+yield");
+        assertEq(token.balanceOf(vestingContracts[0]), amount + (amount / 10), "balance=amount+yield");
         assertEq(TokenVesting(vestingContracts[0]).beneficiary(), destination, "beneficiary=destination");
     }
 }

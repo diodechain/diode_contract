@@ -29,6 +29,7 @@ import "./deps/SetReverseLocation.sol";
 contract DriveMember is Group {
     using Set for Set.Data;
     using SetReverseLocation for SetReverseLocation.Data;
+
     bool protected;
     address drive;
     SetReverseLocation.Data additional_drives;
@@ -41,8 +42,12 @@ contract DriveMember is Group {
     }
 
     modifier onlyReader() {
-        require(msg.sender == address(this) || msg.sender == owner() || members.IsMember(msg.sender) || additional_drives.IsMember(msg.sender) || whitelist.IsMember(msg.sender), "Read access not allowed");
-        
+        require(
+            msg.sender == address(this) || msg.sender == owner() || members.IsMember(msg.sender)
+                || additional_drives.IsMember(msg.sender) || whitelist.IsMember(msg.sender),
+            "Read access not allowed"
+        );
+
         _;
     }
 
@@ -51,15 +56,9 @@ contract DriveMember is Group {
         if (_member == address(this)) return;
 
         if (protected) {
-            require(
-                owner() == _member,
-                "Only the owner can call this in protected mode"
-            );
+            require(owner() == _member, "Only the owner can call this in protected mode");
         } else {
-            require(
-                owner() == _member || members.IsMember(_member),
-                "Only members can call this"
-            );
+            require(owner() == _member || members.IsMember(_member), "Only members can call this");
         }
 
         _;
@@ -126,21 +125,12 @@ contract DriveMember is Group {
         return additional_drives.Members();
     }
 
-    function SubmitTransaction(
-        address dst,
-        bytes memory data
-    ) public onlyMember {
-        require(
-            external_call(dst, data.length, data),
-            "General Transaction failed"
-        );
+    function SubmitTransaction(address dst, bytes memory data) public onlyMember {
+        require(external_call(dst, data.length, data), "General Transaction failed");
     }
 
     function SubmitDriveTransaction(bytes memory data) public onlyMember {
-        require(
-            external_call(drive, data.length, data),
-            "Drive Transaction failed"
-        );
+        require(external_call(drive, data.length, data), "Drive Transaction failed");
     }
 
     function DOMAIN_SEPARATOR() public view returns (bytes32) {
@@ -149,23 +139,19 @@ contract DriveMember is Group {
             chainId := chainid()
         }
 
-        return
-            keccak256(
-                abi.encode(
-                    // keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
-                    0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f,
-                    keccak256("DriveMember"),
-                    keccak256("115"),
-                    chainId,
-                    address(this)
-                )
-            );
+        return keccak256(
+            abi.encode(
+                // keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
+                0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f,
+                keccak256("DriveMember"),
+                keccak256("115"),
+                chainId,
+                address(this)
+            )
+        );
     }
 
-    function toTypedDataHash(
-        bytes32 domainSeparator,
-        bytes32 structHash
-    ) internal pure returns (bytes32 data) {
+    function toTypedDataHash(bytes32 domainSeparator, bytes32 structHash) internal pure returns (bytes32 data) {
         assembly {
             let ptr := mload(0x40)
             mstore(ptr, "\x19\x01")
@@ -175,27 +161,23 @@ contract DriveMember is Group {
         }
     }
 
-    function TransactionDigest(
-        uint256 nonce,
-        uint256 deadline,
-        address dst,
-        bytes memory data
-    ) public view returns (bytes32) {
-        return
-            toTypedDataHash(
-                DOMAIN_SEPARATOR(),
-                keccak256(
-                    abi.encode(
-                        keccak256(
-                            "Transaction(uint256 nonce,uint256 deadline,address dst,bytes data)"
-                        ),
-                        nonce,
-                        deadline,
-                        dst,
-                        keccak256(data)
-                    )
+    function TransactionDigest(uint256 nonce, uint256 deadline, address dst, bytes memory data)
+        public
+        view
+        returns (bytes32)
+    {
+        return toTypedDataHash(
+            DOMAIN_SEPARATOR(),
+            keccak256(
+                abi.encode(
+                    keccak256("Transaction(uint256 nonce,uint256 deadline,address dst,bytes data)"),
+                    nonce,
+                    deadline,
+                    dst,
+                    keccak256(data)
                 )
-            );
+            )
+        );
     }
 
     function SubmitMetaTransaction(
@@ -214,9 +196,6 @@ contract DriveMember is Group {
         address signer = ecrecover(digest, v, r, s);
         require(signer != address(0), "Invalid signature");
         requireMember(signer);
-        require(
-            external_call(dst, data.length, data),
-            "General Transaction failed"
-        );
+        require(external_call(dst, data.length, data), "General Transaction failed");
     }
 }

@@ -50,6 +50,7 @@ contract BridgeIn is Initializable {
     // but for testing it makes sense to override this
     uint256 public immutable in_chainid;
     Vault public vault;
+
     constructor(uint256 _chainid, address _foundation, address[] memory _validators, uint256 _threshold) {
         in_chainid = _chainid;
         in_foundation = _foundation;
@@ -84,10 +85,7 @@ contract BridgeIn is Initializable {
     }
 
     function setVault(address _vault) public {
-        require(
-            msg.sender == in_foundation,
-            "BridgeIn: only in_foundation can set vault"
-        );
+        require(msg.sender == in_foundation, "BridgeIn: only in_foundation can set vault");
         if (address(vault) != address(0)) {
             diode.approve(address(vault), 0);
         }
