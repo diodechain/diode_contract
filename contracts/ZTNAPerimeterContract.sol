@@ -796,7 +796,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return (tag.id, tag.name, tag.description, tag.color, tag.createdAt, tag.createdBy, tag.active);
     }
 
-    function Version() external pure returns (uint256) {
+    function Version() external pure override returns (uint256) {
         return 800;
     }
 }

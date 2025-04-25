@@ -84,6 +84,11 @@ contract FleetContractUpgradeable is IFleetContract {
         accountant = _owner;
     }
 
+    function initialize(address _operator, address payable _accountant) public virtual initializer {
+        operator = _operator;
+        accountant = _accountant;
+    }
+
     function Accountant() external view override returns (address) {
         return accountant;
     }
@@ -98,6 +103,10 @@ contract FleetContractUpgradeable is IFleetContract {
 
     function DeviceAllowlist(address _client) public view override returns (bool) {
         return allowlist[_client];
+    }
+
+    function Version() external pure virtual returns (uint256) {
+        return 301;
     }
 
     /**
