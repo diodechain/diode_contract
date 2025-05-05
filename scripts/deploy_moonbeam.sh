@@ -15,6 +15,8 @@
 # BERRY TEST: ./scripts/deploy_moonbeam.sh contracts/YieldVault.sol:YieldVault --constructor-args 0xb9f1fa217c9a86915b4368e4ee9f079d6e5644a9 31536000 31536000 1500
 # ./scripts/deploy_moonbeam.sh contracts/YieldVault.sol:YieldVault --constructor-args 0x434116a99619f2B465A137199C38c1Aab0353913 31536000 31536000 1500
 
+# ./scripts/deploy_moonbeam.sh contracts/MultiSigWallet.sol:MultiSigWallet --constructor-args ["0xeaa6Ae2143Df7310f6e5F3b26dAFACC19A5163Fd","0xa6A357a1DED8ECEf56091DB77b4563914BE7b101","0x5D8B285e90B0F074609cDf42025BdA145D8A45Ff","0x41F6204E92AE9cA4079E68f3733a5152446A316f"] 3
+
 set -x
 # export RPC=https://moonbeam.unitedbloc.com:3000
 export RPC=https://moonbeam.api.onfinality.io/rpc?apikey=7bf1dbfe-3539-4c1d-a3ba-5ad33a4b089a
