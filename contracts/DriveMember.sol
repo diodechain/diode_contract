@@ -34,7 +34,7 @@ contract DriveMember is Group {
     address drive;
     SetReverseLocation.Data additional_drives;
     Set.Data whitelist;
-    mapping(uint256 => bool) public nonces;
+    mapping(address => uint256) nonces;
 
     modifier onlyMember() override {
         requireMember(msg.sender);
@@ -68,7 +68,7 @@ contract DriveMember is Group {
     }
 
     function Version() external pure virtual returns (int256) {
-        return 115;
+        return 116;
     }
 
     function Protect(bool _protect) external onlyMember {
@@ -142,7 +142,7 @@ contract DriveMember is Group {
                 // keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
                 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f,
                 keccak256("DriveMember"),
-                keccak256("115"),
+                keccak256("116"),
                 chainId,
                 address(this)
             )
@@ -188,12 +188,16 @@ contract DriveMember is Group {
         bytes32 s
     ) public {
         require(block.timestamp < deadline, "Transaction expired");
-        require(nonces[nonce] == false, "Invalid nonce");
-        nonces[nonce] = true;
         bytes32 digest = TransactionDigest(nonce, deadline, dst, data);
         address signer = ecrecover(digest, v, r, s);
         require(signer != address(0), "Invalid signature");
         requireMember(signer);
+        require(nonces[signer] == nonce, "Invalid nonce");
+        nonces[signer]++;
         require(external_call(dst, data.length, data), "General Transaction failed");
+    }
+
+    function Nonce(address sender) public view onlyReader returns (uint256) {
+        return nonces[sender];
     }
 }
