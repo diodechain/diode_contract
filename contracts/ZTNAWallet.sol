@@ -41,7 +41,7 @@ contract ZTNAWallet is SiweAuth {
 
         assembly {
             let d := add(data, 32) // First 32 bytes are the padded length of data, so exclude that
-            let result := call(sub(gas(), 34710), destination, value, d, dataLength, 0x0, 0)
+            let result := call(gas(), destination, value, d, dataLength, 0x0, 0)
             returndatacopy(0x0, 0x0, returndatasize())
             switch result
             case 0 { revert(0, 0) }
