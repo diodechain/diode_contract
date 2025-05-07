@@ -24,7 +24,7 @@ contract BNS is IBNS, ChangeTracker {
     bytes32[] public namesIndex;
 
     function Version() external pure override returns (int256) {
-        return 317;
+        return 318;
     }
 
     /**
@@ -38,6 +38,21 @@ contract BNS is IBNS, ChangeTracker {
         }
 
         return current.destinations[block.number % current.destinations.length];
+    }
+
+    /**
+     * Resolve `_name` and return one of the registered destinations.
+     * @param _name the name to be resolved.
+     */
+    function ResolveAll(string calldata _name) external view override returns (address[] memory) {
+        BNSEntry memory current = resolveEntry(_name);
+        if (current.destinations.length == 0) {
+            address[] memory destinations = new address[](1);
+            destinations[0] = current.destination;
+            return destinations;
+        }
+
+        return current.destinations;
     }
 
     /**

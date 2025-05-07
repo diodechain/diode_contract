@@ -28,6 +28,12 @@ interface IBNS {
     function Resolve(string calldata _name) external view returns (address);
 
     /**
+     * Resolve `_name` and return all registered destinations.
+     * @param _name the name to be resolved.
+     */
+    function ResolveAll(string calldata _name) external view returns (address[] memory);
+
+    /**
      * Resolve `_name` and return one of the full BNSEntry.
      * @param _name the name to be resolved.
      */
