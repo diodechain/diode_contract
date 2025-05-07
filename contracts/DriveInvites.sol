@@ -2,7 +2,7 @@
 // Diode Contracts
 // Copyright 2021-2024 Diode
 // Licensed under the Diode License, Version 1.0
-pragma solidity ^0.7.6;
+pragma solidity >=0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./deps/Set.sol";
@@ -36,7 +36,7 @@ contract DriveInvites is ChangeTracker {
     // To be called by drive contract (msg.sender)
     function Invite(address driveId, address whom) public {
         require(driveId != address(0), "driveId can't be zero");
-        require(factory() != IDriveFactory(0), "factory() can't be zero");
+        require(factory() != IDriveFactory(address(0)), "factory() can't be zero");
         // IDrive drive = factory().Create2Address(bytes32(uint256(driveId)));
         // require(drive != IDrive(0), "drive can't be zero");
         // require(drive.Role(msg.sender) >= RoleType.Admin, "Only Admins can invite");
@@ -46,7 +46,7 @@ contract DriveInvites is ChangeTracker {
 
     // To be called by drive contract (msg.sender)
     function Uninvite(address driveId, address whom) public {
-        IDrive drive = factory().Create2Address(bytes32(uint256(driveId)));
+        IDrive drive = factory().Create2Address(bytes32(uint256(uint160(driveId))));
         require(drive.Role(msg.sender) >= RoleType.Admin, "Only Admins can manage invites");
         invites[whom].Remove(driveId);
         update_change_tracker();

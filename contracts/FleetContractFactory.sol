@@ -27,7 +27,8 @@ contract FleetContractFactory is Ownable {
     }
 
     function CreateFleetContract(address _operator, address payable _accountant) public returns (address) {
-        FleetContractUpgradeable fleetContract = FleetContractUpgradeable(address(new Proxy8(fleetContractImplementation, msg.sender)));
+        FleetContractUpgradeable fleetContract =
+            FleetContractUpgradeable(address(new Proxy8(fleetContractImplementation, msg.sender)));
         fleetContract.initialize(_operator, _accountant);
         creatorToFleetContract[msg.sender].push(address(fleetContract));
         operatorToFleetContract[_operator].push(address(fleetContract));

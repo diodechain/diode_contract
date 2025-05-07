@@ -68,7 +68,7 @@ contract DriveMember is Group {
     }
 
     function Version() external pure virtual returns (int256) {
-        return 116;
+        return 117;
     }
 
     function Protect(bool _protect) external onlyMember {
@@ -127,6 +127,20 @@ contract DriveMember is Group {
         require(external_call(dst, data.length, data), "General Transaction failed");
     }
 
+    function SubmitCall(address destination, bytes memory data) public payable onlyMember {
+        uint256 dataLength = data.length;
+        uint256 value = msg.value;
+
+        assembly {
+            let d := add(data, 32) // First 32 bytes are the padded length of data, so exclude that
+            let result := call(gas(), destination, value, d, dataLength, 0x0, 0)
+            returndatacopy(0x0, 0x0, returndatasize())
+            switch result
+            case 0 { revert(0, 0) }
+            default { return(0, returndatasize()) }
+        }
+    }
+
     function SubmitDriveTransaction(bytes memory data) public onlyMember {
         require(external_call(drive, data.length, data), "Drive Transaction failed");
     }
@@ -142,6 +156,7 @@ contract DriveMember is Group {
                 // keccak256('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')
                 0x8b73c3c69bb8fe3d512ecc4cf759cc79239f7b179b0ffacaa9a75d522b39400f,
                 keccak256("DriveMember"),
+                // Unchanged from v116 to keep compatibility through proxy upgrades.
                 keccak256("116"),
                 chainId,
                 address(this)
