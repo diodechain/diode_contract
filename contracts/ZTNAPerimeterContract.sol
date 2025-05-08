@@ -196,6 +196,10 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         require(_userAddress != address(0), "Invalid user address");
         require(!users[_userAddress].active, "User already exists");
 
+        if (users[_userAddress].user == address(0)) {
+            allUsers.push(_userAddress);
+        }
+
         // Initialize the user struct fields individually
         users[_userAddress].user = _userAddress;
         users[_userAddress].nickname = _nickname;
@@ -206,7 +210,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         users[_userAddress].active = true;
         // Note: groups is already initialized as an empty Set.Data
 
-        allUsers.push(_userAddress);
         emit UserCreated(_userAddress, _nickname);
         return true;
     }
@@ -797,6 +800,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
     }
 
     function Version() external pure override returns (uint256) {
-        return 800;
+        return 801;
     }
 }
