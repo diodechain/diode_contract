@@ -48,7 +48,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function Version() external pure virtual override returns (int256) {
-        return 139;
+        return 140;
     }
 
     function AddReader(address _member) external override onlyAdmin {
