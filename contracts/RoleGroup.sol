@@ -53,6 +53,21 @@ contract RoleGroup is Group {
         return role(_member);
     }
 
+    struct MemberInfo {
+        address member;
+        uint256 role;
+    }
+
+    function MemberRoles() external view virtual returns (MemberInfo[] memory) {
+        address[] memory members = this.Members();
+        MemberInfo[] memory memberInfos = new MemberInfo[](members.length);
+        for (uint256 i = 0; i < members.length; i++) {
+            memberInfos[i] = MemberInfo(members[i], role(members[i]));
+        }
+        
+        return memberInfos;
+    }
+
     function AddMember(address _member) external virtual onlyAdmin {
         _add(_member, RoleType.Member);
     }

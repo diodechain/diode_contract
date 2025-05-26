@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: DIODE
 pragma solidity ^0.7.6;
+pragma experimental ABIEncoderV2;
 
 import "./Assert.sol";
 import "./CallForwarder.sol";
@@ -64,5 +65,10 @@ contract DriveFactoryTest {
         address[] memory members = drive.Members();
         Assert.equal(members.length, 1, "Members() should return one member");
         Assert.equal(members[0], number1, "Members() should return [number1]");
+
+        Drive.MemberInfo[] memory memberInfos = drive.MemberRoles();
+        Assert.equal(memberInfos.length, 1, "MemberRoles() should return one member");
+        Assert.equal(memberInfos[0].member, number1, "MemberRoles() should return [number1]");
+        Assert.equal(memberInfos[0].role, RoleType.Admin, "MemberRoles() should return [RoleType.Admin]");
     }
 }
