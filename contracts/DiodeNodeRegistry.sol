@@ -50,7 +50,7 @@ contract DiodeNodeRegistry is Initializable {
         require(msg.sender == _nodeAddress, "Only the node itself can register");
 
         Node storage node = nodes[_nodeAddress];
-        require(_stake + node.stake > minimumStake, "Node must have at least minimum stake");
+        require(_stake + node.stake >= minimumStake, "Node must have at least minimum stake");
 
         if (_stake > 0) {
             Token.safeTransferFrom(msg.sender, address(this), _stake);
