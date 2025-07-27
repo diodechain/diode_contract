@@ -54,7 +54,7 @@ contract DiodeNodeRegistry is Initializable {
 
         if (_stake > 0) {
             Token.safeTransferFrom(msg.sender, address(this), _stake);
-            node.stake = _stake;
+            node.stake = node.stake.add(_stake);
         }
 
         node.accountant = _accountant;
@@ -81,6 +81,6 @@ contract DiodeNodeRegistry is Initializable {
     }
 
     function version() public pure returns (uint256) {
-        return 100;
+        return 101;
     }
 }
