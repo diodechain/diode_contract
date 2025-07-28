@@ -71,9 +71,6 @@ contract DiodeNodeRegistry is Initializable {
 
         Token.safeTransfer(node.accountant, node.stake);
         node.stake = 0;
-        node.accountant = address(0);
-        node.nodeAddress = address(0);
-        nodesSet.Remove(_nodeAddress);
     }
 
     function getNodes() public view returns (address[] memory) {
@@ -81,6 +78,6 @@ contract DiodeNodeRegistry is Initializable {
     }
 
     function version() public pure returns (uint256) {
-        return 101;
+        return 102;
     }
 }
