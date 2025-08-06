@@ -30,15 +30,33 @@ contract DiodeRegistryLight is Initializable {
     IERC20 public immutable Token;
 
     /**
-     * Accounting Epochs run in two phases:
+     * The reward system works like a 3-step assembly line 🏭
      *
-     * EPOCH 0        | EPOCH 1       | EPOCH 2 ...
-     * ============================================
-     * 1. Collecting  |               |
-     * 2. Submitting  | 1. Collecting |
-     *    Payout      | 2. Submitting |  1. Collecting
-     *                |    Payout     |  2. Submitting
-     *                                |     Payout
+     * Each "batch" of rewards goes through these steps:
+     * 1. 📊 COLLECT: Nodes count traffic for 30 days (off-chain)
+     * 2. 📤 SUBMIT: Nodes send their counts to the smart contract
+     * 3. 💰 PAYOUT: Contract calculates and pays rewards
+     *
+     * The key insight: PAYOUT is triggered BY the first SUBMIT of the new epoch!
+     *
+     *           EPOCH N     | EPOCH N+1   | EPOCH N+2   | EPOCH N+3
+     *           =========================================================
+     * Batch A:  📊 COLLECT  | 📤 SUBMIT   | 💰 PAYOUT ← | ✅ (done)
+     *           (count A)   | (send A)    | (pay A)     |
+     *                       |             | triggered   |
+     * Batch B:  -           | 📊 COLLECT  | 📤 SUBMIT   | 💰 PAYOUT ←
+     *                       | (count B)   | (send B)    | (pay B)
+     *                       |             |             | triggered
+     * Batch C:  -           | -           | 📊 COLLECT  | 📤 SUBMIT
+     *                       |             | (count C)   | (send C)
+     *
+     * ⚡ When epoch changes, the FIRST SubmitTicket() call:
+     *    1. Detects new epoch → calls doEndEpoch()
+     *    2. Triggers EndEpochForFleet() → pays out previous epoch
+     *    3. Then processes the new ticket → starts submitting current epoch
+     *
+     * Think of it like: "Hey, new month started! Let me pay last month's 
+     * rewards first, then I'll process your new ticket."
      *
      * For accounting the activity from devices we maintain a three
      * level tree of iterable maps:
