@@ -179,6 +179,7 @@ DIODENODEREGISTRY:
     0x1f86c81bFa588dbc774a121af66FAf8F0D2506D4 DiodeNodeRegistry v100
     0x8af6F5bfb5D02c6E084d787FB4338BaE9f9861E7 DiodeNodeRegistry v101
     0x231f6b3a7921c29db522187422e4ba7354d49c1e DiodeNodeRegistry v102
+    0xf41Ff13966cD1c38dED4705fEeCF7b106Ee62e0e DiodeNodeRegistry v104
 ```
 
 # Contract Addresses on Moonbase Alpha (Testnet)

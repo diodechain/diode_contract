@@ -15,7 +15,7 @@ contract ChangeTracker {
         }
     }
 
-    function change_tracker() external view returns (uint256) {
+    function change_tracker() public view returns (uint256) {
         uint256 last_change;
         assembly {
             last_change := sload(CHANGE_SLOT)

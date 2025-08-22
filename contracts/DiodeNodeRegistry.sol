@@ -11,6 +11,7 @@ import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
 import "./deps/Initializable.sol";
 import "./deps/Set.sol";
+import "./ChangeTracker.sol";
 
 /**
  * DiodeNodeRegistry
@@ -18,7 +19,7 @@ import "./deps/Set.sol";
  * Registry for Diode Nodes which stake tokens.
  *
  */
-contract DiodeNodeRegistry is Initializable {
+contract DiodeNodeRegistry is Initializable, ChangeTracker {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
     using Set for Set.Data;
@@ -46,6 +47,11 @@ contract DiodeNodeRegistry is Initializable {
         minimumStake = 0 ether;
     }
 
+    function initialize_change_tracker() public {
+        require(change_tracker() == 0, "Change tracker already initialized");
+        update_change_tracker();
+    }
+
     function registerNode(address _nodeAddress, address _accountant, uint256 _stake) public {
         require(msg.sender == _nodeAddress, "Only the node itself can register");
 
@@ -60,6 +66,7 @@ contract DiodeNodeRegistry is Initializable {
         node.accountant = _accountant;
         node.nodeAddress = _nodeAddress;
         nodesSet.Add(_nodeAddress);
+        update_change_tracker();
     }
 
     function unstakeNode(address _nodeAddress) public {
@@ -71,13 +78,34 @@ contract DiodeNodeRegistry is Initializable {
 
         Token.safeTransfer(node.accountant, node.stake);
         node.stake = 0;
+        update_change_tracker();
     }
 
     function getNodes() public view returns (address[] memory) {
         return nodesSet.Members();
     }
 
+    function getNodesAbove(uint256 stake) public view returns (address[] memory) {
+        address[] memory allNodes = nodesSet.Members();
+        address[] memory nodesAboveStake = new address[](allNodes.length);
+        uint256 index = 0;
+        for (uint256 i = 0; i < allNodes.length; i++) {
+            address node = allNodes[i];
+            if (nodes[node].stake >= stake) {
+                nodesAboveStake[index] = node;
+                index++;
+            }
+        }
+
+        // Use inline assembly to resize the array to only return filled elements
+        assembly {
+            mstore(nodesAboveStake, index)
+        }
+
+        return nodesAboveStake;
+    }
+
     function version() public pure returns (uint256) {
-        return 102;
+        return 104;
     }
 }
