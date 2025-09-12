@@ -55,7 +55,7 @@ contract DiodeRegistryLight is Initializable {
      *    2. Triggers EndEpochForFleet() → pays out previous epoch
      *    3. Then processes the new ticket → starts submitting current epoch
      *
-     * Think of it like: "Hey, new month started! Let me pay last month's 
+     * Think of it like: "Hey, new month started! Let me pay last month's
      * rewards first, then I'll process your new ticket."
      *
      * For accounting the activity from devices we maintain a three

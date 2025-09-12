@@ -320,7 +320,6 @@ contract ZTNAPerimeterContractTest is Test {
         _createdAt;
         _active;
 
-
         // Verify last seen is updated (should be close to block.timestamp)
         Assert.equal(lastSeen, block.timestamp, "Last seen should be updated");
     }

@@ -48,7 +48,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function Version() external pure virtual override returns (int256) {
-        return 140;
+        return 142;
     }
 
     // deprecated: use AddMember/2 instead
@@ -231,7 +231,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     function register() internal {
         uint256 size = members.Size();
         if (size > 0 && size != bns_members && bns() != IBNS(0)) {
-            bns().RegisterMultiple(Name(), members.Members());
+            bns().Register(Name(), address(this));
             bns_members = size;
         }
     }

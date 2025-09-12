@@ -64,7 +64,24 @@ contract RoleGroup is Group {
         for (uint256 i = 0; i < members.length; i++) {
             memberInfos[i] = MemberInfo(members[i], role(members[i]));
         }
-        
+
+        return memberInfos;
+    }
+
+    function MemberWithRole(uint256 _role) external view virtual returns (MemberInfo[] memory) {
+        address[] memory members = this.Members();
+        MemberInfo[] memory memberInfos = new MemberInfo[](members.length);
+        uint256 index = 0;
+        for (uint256 i = 0; i < members.length; i++) {
+            if (role(members[i]) == _role) {
+                memberInfos[index] = MemberInfo(members[i], role(members[i]));
+                index++;
+            }
+        }
+        // Use inline assembly to resize the array to only return filled elements
+        assembly {
+            mstore(memberInfos, index)
+        }
         return memberInfos;
     }
 

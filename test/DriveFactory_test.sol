@@ -23,6 +23,7 @@ contract DriveFactoryTest {
     Drive version1;
     Drive version2;
     address number1;
+    address number2;
     DriveFactory factory;
 
     constructor() {
@@ -31,6 +32,7 @@ contract DriveFactoryTest {
         factory = new DriveFactory();
 
         number1 = address(new Dummy());
+        number2 = address(new Dummy());
     }
 
     function testCreate2() public {
@@ -46,7 +48,7 @@ contract DriveFactoryTest {
         drive.AddMember(number1, RoleType.Admin);
 
         // Factory created contract should work normally
-        Assert.equal(drive.Version(), 140, "Version() should be equal 140");
+        Assert.equal(drive.Version(), 142, "Version() should be equal 142");
         acceptanceTest(drive);
 
         // Upgrade
@@ -70,5 +72,22 @@ contract DriveFactoryTest {
         Assert.equal(memberInfos.length, 1, "MemberRoles() should return one member");
         Assert.equal(memberInfos[0].member, number1, "MemberRoles() should return [number1]");
         Assert.equal(memberInfos[0].role, RoleType.Admin, "MemberRoles() should return [RoleType.Admin]");
+    }
+
+    function testMemberWithRole() public {
+        Drive drive = new Drive(address(bns));
+
+        drive.AddMember(number1, RoleType.Admin);
+        drive.AddMember(number2, RoleType.Member);
+
+        Drive.MemberInfo[] memory memberInfos = drive.MemberWithRole(RoleType.Admin);
+        Assert.equal(memberInfos.length, 1, "MemberWithRole() should return one member");
+        Assert.equal(memberInfos[0].member, number1, "MemberWithRole() should return [number1]");
+        Assert.equal(memberInfos[0].role, RoleType.Admin, "MemberWithRole() should return [RoleType.Admin]");
+
+        memberInfos = drive.MemberWithRole(RoleType.Member);
+        Assert.equal(memberInfos.length, 1, "MemberWithRole() should return one member");
+        Assert.equal(memberInfos[0].member, number2, "MemberWithRole() should return [number2]");
+        Assert.equal(memberInfos[0].role, RoleType.Member, "MemberWithRole() should return [RoleType.Member]");
     }
 }

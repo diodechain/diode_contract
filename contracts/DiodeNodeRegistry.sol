@@ -70,7 +70,10 @@ contract DiodeNodeRegistry is Initializable, ChangeTracker {
     }
 
     function unstakeNode(address _nodeAddress) public {
-        require(msg.sender == _nodeAddress || msg.sender == nodes[_nodeAddress].accountant, "Only the node itself or its accountant can unstake");
+        require(
+            msg.sender == _nodeAddress || msg.sender == nodes[_nodeAddress].accountant,
+            "Only the node itself or its accountant can unstake"
+        );
 
         Node storage node = nodes[_nodeAddress];
         require(node.stake > 0, "Node must have a stake");
