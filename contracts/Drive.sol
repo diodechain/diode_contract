@@ -51,10 +51,12 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         return 140;
     }
 
+    // deprecated: use AddMember/2 instead
     function AddReader(address _member) external override onlyAdmin {
         _add(_member, RoleType.Reader);
     }
 
+    // deprecated: use AddMember/2 instead
     function AddBackup(address _member) external override onlyAdmin {
         _add(_member, RoleType.BackupBot);
     }
@@ -192,7 +194,13 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         _add(_member, RoleType.Member);
     }
 
-    function AddMember(address _member, uint256 _role) external override(IDrive, RoleGroup) onlyOwner {
+    function AddMember(address _member, uint256 _role) external override(IDrive, RoleGroup) {
+        if (_role == RoleType.Reader || _role == RoleType.BackupBot || _role == RoleType.Member) {
+            require(role(msg.sender) >= RoleType.Admin, "Only Admins and Owners can call this");
+        } else {
+            require(role(msg.sender) >= RoleType.Owner, "Only Owners can call this");
+        }
+
         _add(_member, _role);
     }
 
