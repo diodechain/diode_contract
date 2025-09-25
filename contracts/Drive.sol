@@ -231,23 +231,11 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         return super.MemberRoles();
     }
 
-    function MemberWithRole(uint256 _role)
-        public
-        view
-        override(RoleGroup)
-        onlyReader
-        returns (MemberInfo[] memory)
-    {
+    function MemberWithRole(uint256 _role) public view override(RoleGroup) onlyReader returns (MemberInfo[] memory) {
         return super.MemberWithRole(_role);
     }
 
-    function MemberValue(address _member, uint256 _key)
-        public
-        view
-        override(Group)
-        onlyReader
-        returns (uint256)
-    {
+    function MemberValue(address _member, uint256 _key) public view override(Group) onlyReader returns (uint256) {
         return super.MemberValue(_member, _key);
     }
 
@@ -255,13 +243,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         return super.DataValue(class, _key);
     }
 
-    function RoleValue(uint256 _role, uint256 _key)
-        public
-        view
-        override(RoleGroup)
-        onlyReader
-        returns (uint256)
-    {
+    function RoleValue(uint256 _role, uint256 _key) public view override(RoleGroup) onlyReader returns (uint256) {
         return super.RoleValue(_role, _key);
     }
 
