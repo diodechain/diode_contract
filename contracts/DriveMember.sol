@@ -109,18 +109,30 @@ contract DriveMember is Group {
         update_change_tracker();
     }
 
-    function AddReader(address _reader) external onlyMember {
+    function Whitelist() external view onlyReader returns (address[] memory) {
+        return whitelist.Members();
+    }
+
+    function AddWhitelist(address _reader) external onlyMember {
         whitelist.Add(_reader);
         update_change_tracker();
     }
 
-    function RemoveReader(address _reader) external onlyMember {
+    function RemoveWhitelist(address _reader) external onlyMember {
         whitelist.Remove(_reader);
         update_change_tracker();
     }
 
     function Drives() external view onlyReader returns (address[] memory) {
         return additional_drives.Members();
+    }
+
+    function Members() public override view onlyReader returns (address[] memory) {
+        return members.Members();
+    }
+
+    function IsMember(address _member) public override view onlyReader returns (bool) {
+        return members.IsMember(_member);
     }
 
     function SubmitTransaction(address dst, bytes memory data) public onlyMember {

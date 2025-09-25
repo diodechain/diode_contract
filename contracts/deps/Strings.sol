@@ -15,7 +15,8 @@ library Strings {
 
     bytes16 private constant HEX_DIGITS = "0123456789abcdef";
     uint8 private constant ADDRESS_LENGTH = 20;
-    uint256 private constant SPECIAL_CHARS_LOOKUP = (1 << 0x08) // backspace
+    uint256 private constant SPECIAL_CHARS_LOOKUP =
+        (1 << 0x08) // backspace
         | (1 << 0x09) // tab
         | (1 << 0x0a) // newline
         | (1 << 0x0c) // form feed

@@ -477,11 +477,7 @@ abstract contract StdAssertions {
         vm.assertApproxEqAbs(left, right, maxDelta);
     }
 
-    function assertApproxEqAbs(uint256 left, uint256 right, uint256 maxDelta, string memory err)
-        internal
-        pure
-        virtual
-    {
+    function assertApproxEqAbs(uint256 left, uint256 right, uint256 maxDelta, string memory err) internal pure virtual {
         vm.assertApproxEqAbs(left, right, maxDelta, err);
     }
 
@@ -531,7 +527,11 @@ abstract contract StdAssertions {
         uint256 left,
         uint256 right,
         uint256 maxPercentDelta // An 18 decimal fixed point number, where 1e18 == 100%
-    ) internal pure virtual {
+    )
+        internal
+        pure
+        virtual
+    {
         vm.assertApproxEqRel(left, right, maxPercentDelta);
     }
 
@@ -540,7 +540,11 @@ abstract contract StdAssertions {
         uint256 right,
         uint256 maxPercentDelta, // An 18 decimal fixed point number, where 1e18 == 100%
         string memory err
-    ) internal pure virtual {
+    )
+        internal
+        pure
+        virtual
+    {
         vm.assertApproxEqRel(left, right, maxPercentDelta, err);
     }
 
@@ -549,7 +553,11 @@ abstract contract StdAssertions {
         uint256 right,
         uint256 maxPercentDelta, // An 18 decimal fixed point number, where 1e18 == 100%
         uint256 decimals
-    ) internal pure virtual {
+    )
+        internal
+        pure
+        virtual
+    {
         vm.assertApproxEqRelDecimal(left, right, maxPercentDelta, decimals);
     }
 
@@ -572,7 +580,11 @@ abstract contract StdAssertions {
         int256 right,
         uint256 maxPercentDelta, // An 18 decimal fixed point number, where 1e18 == 100%
         string memory err
-    ) internal pure virtual {
+    )
+        internal
+        pure
+        virtual
+    {
         vm.assertApproxEqRel(left, right, maxPercentDelta, err);
     }
 
@@ -581,7 +593,11 @@ abstract contract StdAssertions {
         int256 right,
         uint256 maxPercentDelta, // An 18 decimal fixed point number, where 1e18 == 100%
         uint256 decimals
-    ) internal pure virtual {
+    )
+        internal
+        pure
+        virtual
+    {
         vm.assertApproxEqRelDecimal(left, right, maxPercentDelta, decimals);
     }
 

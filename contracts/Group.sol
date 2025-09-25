@@ -35,11 +35,11 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
         super.initialize(arg_owner);
     }
 
-    function IsMember(address _member) external view returns (bool) {
+    function IsMember(address _member) public view virtual returns (bool) {
         return _member == owner() || members.IsMember(_member);
     }
 
-    function Members() external view virtual returns (address[] memory) {
+    function Members() public view virtual returns (address[] memory) {
         return members.Members();
     }
 
@@ -48,7 +48,7 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
         setDataValue(uint256(msg.sender), key, value);
     }
 
-    function MemberValue(address member, uint256 key) public view returns (uint256) {
+    function MemberValue(address member, uint256 key) public view virtual returns (uint256) {
         return dataValue(uint256(member), key);
     }
 
@@ -57,7 +57,7 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
         setDataValue(RoleType.Owner, key, value);
     }
 
-    function OwnerValue(uint256 key) public view returns (uint256) {
+    function OwnerValue(uint256 key) public view virtual returns (uint256) {
         return dataValue(RoleType.Owner, key);
     }
 
@@ -70,7 +70,7 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
         return hash_at(DATA_SLOT, uint256(keccak256(abi.encodePacked(class, key))));
     }
 
-    function DataValue(uint256 class, uint256 key) external view returns (uint256) {
+    function DataValue(uint256 class, uint256 key) public view virtual returns (uint256) {
         return hash_at(DATA_SLOT, uint256(keccak256(abi.encodePacked(class, key))));
     }
 
@@ -81,16 +81,15 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
         assembly {
             let x := mload(0x40) // "Allocate" memory for output (0x40 is where "free memory" pointer is stored by convention)
             let d := add(_data, 32) // First 32 bytes are the padded length of data, so exclude that
-            result :=
-                call(
-                    gas(),
-                    destination,
-                    0, // value is always zero
-                    d,
-                    _dataLength, // Size of the input (in bytes) - this is what fixes the padding problem
-                    x,
-                    0 // Output is ignored, therefore the output size is zero
-                )
+            result := call(
+                gas(),
+                destination,
+                0, // value is always zero
+                d,
+                _dataLength, // Size of the input (in bytes) - this is what fixes the padding problem
+                x,
+                0 // Output is ignored, therefore the output size is zero
+            )
         }
         return result;
     }

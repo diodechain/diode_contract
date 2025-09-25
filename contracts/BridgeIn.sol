@@ -107,7 +107,8 @@ contract BridgeIn is Initializable {
                 : in_txs[sourceChain][len - 1].historyHash;
 
             historyHash = keccak256(abi.encodePacked(msgs[i].destination, msgs[i].amount, prev));
-            in_txs[sourceChain].push(
+            in_txs[sourceChain]
+            .push(
                 InTransaction({
                     destination: msgs[i].destination,
                     amount: msgs[i].amount,

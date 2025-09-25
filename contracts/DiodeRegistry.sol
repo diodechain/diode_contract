@@ -116,7 +116,7 @@ contract DiodeRegistry is DiodeStake {
     // ============= MODIFIERS ===============
     modifier onlyMiner() {
         /*TEST_IF
-    /* 1. ganache bug https://github.com/trufflesuite/ganache-core/issues/201 */
+        /* 1. ganache bug https://github.com/trufflesuite/ganache-core/issues/201 */
         /* 2. during diode tests we run against coinbase independent contracts */
         if (
             msg.sender != block.coinbase // normal rule
@@ -135,7 +135,7 @@ contract DiodeRegistry is DiodeStake {
     modifier lastEpoch(uint256 blockHeight) {
         if (blockHeight >= block.number) revert("Ticket from the future?");
         /*TEST_IF
-    /*TEST_ELSE*/
+        /*TEST_ELSE*/
         if (blockHeight.div(BlocksPerEpoch) != currentEpoch - 1) revert("Wrong epoch");
         /*TEST_END*/
         _;

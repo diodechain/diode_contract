@@ -29,6 +29,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
+    Set.Data whitelist;
 
     struct JoinCode {
         address secret;
@@ -40,6 +41,16 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
 
     Set.Data join_code_set;
     mapping(address => JoinCode) join_code_data;
+
+    modifier onlyReader() {
+        require(
+            msg.sender == address(this) || msg.sender == owner() || members.IsMember(msg.sender)
+                || whitelist.IsMember(msg.sender),
+            "Read access not allowed"
+        );
+
+        _;
+    }
 
     constructor(address _bns) {
         BNS = _bns;
@@ -139,7 +150,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         _add(msg.sender, RoleType.Member);
     }
 
-    function Name() public override returns (string memory) {
+    function Name() public override onlyReader returns (string memory) {
         if (bns_name.length == 0) {
             bns_name = abi.encodePacked("drive-", encode(uint160(address(this))));
         }
@@ -171,15 +182,15 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         update_change_tracker();
     }
 
-    function Chat(address initial_key) external view returns (address) {
+    function Chat(address initial_key) external view onlyReader returns (address) {
         return chat_contracts[initial_key];
     }
 
-    function Chats() external view virtual returns (address[] memory) {
+    function Chats() external view virtual onlyReader returns (address[] memory) {
         return chats.Members();
     }
 
-    function resolve(bytes32 ref) external view override returns (address) {
+    function resolve(bytes32 ref) external view override onlyReader returns (address) {
         if (ref == CHAT_REF) {
             return address(CHAT_IMPL);
         }
@@ -212,12 +223,70 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         remove(_member);
     }
 
-    function Members() external view override(IDrive, Group) returns (address[] memory) {
+    function Members() public view override(IDrive, Group) onlyReader returns (address[] memory) {
         return members.Members();
     }
 
-    function Role(address _member) external view override(IDrive, RoleGroup) returns (uint256) {
+    function MemberRoles() public view override(RoleGroup) onlyReader returns (MemberInfo[] memory) {
+        return super.MemberRoles();
+    }
+
+    function MemberWithRole(uint256 _role)
+        public
+        view
+        override(RoleGroup)
+        onlyReader
+        returns (MemberInfo[] memory)
+    {
+        return super.MemberWithRole(_role);
+    }
+
+    function MemberValue(address _member, uint256 _key)
+        public
+        view
+        override(Group)
+        onlyReader
+        returns (uint256)
+    {
+        return super.MemberValue(_member, _key);
+    }
+
+    function DataValue(uint256 class, uint256 _key) public view override(Group) onlyReader returns (uint256) {
+        return super.DataValue(class, _key);
+    }
+
+    function RoleValue(uint256 _role, uint256 _key)
+        public
+        view
+        override(RoleGroup)
+        onlyReader
+        returns (uint256)
+    {
+        return super.RoleValue(_role, _key);
+    }
+
+    function OwnerValue(uint256 _key) public view override(Group) onlyReader returns (uint256) {
+        return super.OwnerValue(_key);
+    }
+
+    function IsMember(address _member) public view override(Group) onlyReader returns (bool) {
+        return super.IsMember(_member);
+    }
+
+    function Role(address _member) external view override(IDrive, RoleGroup) onlyReader returns (uint256) {
         return role(_member);
+    }
+
+    function Whitelist() external view onlyReader returns (address[] memory) {
+        return whitelist.Members();
+    }
+
+    function AddWhitelist(address _member) external onlyAdmin {
+        whitelist.Add(_member);
+    }
+
+    function RemoveWhitelist(address _member) external onlyAdmin {
+        whitelist.Remove(_member);
     }
 
     // ######## ######## ######## ######## ######## ######## ######## ######## ########

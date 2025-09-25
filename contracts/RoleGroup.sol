@@ -32,6 +32,10 @@ contract RoleGroup is Group {
         setDataValue(_role, _key, _value);
     }
 
+    function RoleValue(uint256 _role, uint256 _key) public view virtual returns (uint256) {
+        return dataValue(_role, _key);
+    }
+
     function _add(address _member, uint256 _role) internal virtual {
         members.Add(_member);
         roles[_member] = _role;
@@ -58,7 +62,7 @@ contract RoleGroup is Group {
         uint256 role;
     }
 
-    function MemberRoles() external view virtual returns (MemberInfo[] memory) {
+    function MemberRoles() public view virtual returns (MemberInfo[] memory) {
         address[] memory members = this.Members();
         MemberInfo[] memory memberInfos = new MemberInfo[](members.length);
         for (uint256 i = 0; i < members.length; i++) {
@@ -68,7 +72,7 @@ contract RoleGroup is Group {
         return memberInfos;
     }
 
-    function MemberWithRole(uint256 _role) external view virtual returns (MemberInfo[] memory) {
+    function MemberWithRole(uint256 _role) public view virtual returns (MemberInfo[] memory) {
         address[] memory members = this.Members();
         MemberInfo[] memory memberInfos = new MemberInfo[](members.length);
         uint256 index = 0;
