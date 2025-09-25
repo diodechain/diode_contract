@@ -43,8 +43,8 @@ contract DriveMember is Group {
 
     modifier onlyReader() {
         require(
-            msg.sender == address(this) || msg.sender == owner() || members.IsMember(msg.sender)
-                || additional_drives.IsMember(msg.sender) || whitelist.IsMember(msg.sender),
+            msg.sender == address(this) || super.IsMember(msg.sender) || additional_drives.IsMember(msg.sender)
+                || whitelist.IsMember(msg.sender),
             "Read access not allowed"
         );
 
@@ -58,7 +58,7 @@ contract DriveMember is Group {
         if (protected) {
             require(owner() == _member, "Only the owner can call this in protected mode");
         } else {
-            require(owner() == _member || members.IsMember(_member), "Only members can call this");
+            require(IsMember(_member), "Only members can call this");
         }
     }
 
@@ -128,11 +128,11 @@ contract DriveMember is Group {
     }
 
     function Members() public view override onlyReader returns (address[] memory) {
-        return members.Members();
+        return super.Members();
     }
 
     function IsMember(address _member) public view override onlyReader returns (bool) {
-        return members.IsMember(_member);
+        return super.IsMember(_member);
     }
 
     function SubmitTransaction(address dst, bytes memory data) public onlyMember {

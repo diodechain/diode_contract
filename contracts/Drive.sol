@@ -44,8 +44,8 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
 
     modifier onlyReader() {
         require(
-            msg.sender == address(this) || msg.sender == owner() || members.IsMember(msg.sender)
-                || whitelist.IsMember(msg.sender),
+            msg.sender == address(this) || super.IsMember(msg.sender) || whitelist.IsMember(msg.sender)
+                || chats.IsMember(msg.sender),
             "Read access not allowed"
         );
 
@@ -83,7 +83,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
             _size := extcodesize(_sender)
         }
         require(_size == 0, "Can only swap from plain addresses");
-        require(members.IsMember(msg.sender) || owner() == msg.sender, "Can only swap from members addresses");
+        require(IsMember(msg.sender), "Can only swap from members addresses");
 
         uint256 _role = role(msg.sender);
         if (owner() == msg.sender) {
@@ -165,8 +165,8 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     function AddChat(address owner, address initial_key) external onlyMember {
         require(chat_contracts[initial_key] == address(0), "Chat already exists");
         ChatGroup chat = ChatGroup(address(new ManagedProxy(this, CHAT_REF)));
-        chat.initialize(payable(owner), address(this), initial_key);
         chats.Add(address(chat));
+        chat.initialize(payable(owner), address(this), initial_key);
         chat_contracts[initial_key] = address(chat);
         update_change_tracker();
     }
@@ -224,7 +224,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function Members() public view override(IDrive, Group) onlyReader returns (address[] memory) {
-        return members.Members();
+        return super.Members();
     }
 
     function MemberRoles() public view override(RoleGroup) onlyReader returns (MemberInfo[] memory) {
