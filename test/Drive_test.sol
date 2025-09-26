@@ -127,10 +127,6 @@ contract DriveTest {
         Assert.equal(chats.length, 1, "There should be exactly one chat");
         Assert.equal(chats[0], address(chat), "chat == chats[0]");
 
-        drive.RemoveChat(address(chat));
-        address[] memory chats2 = drive.Chats();
-        Assert.equal(chats2.length, 0, "Chat should be removed now");
-
         Assert.equal(chat.owner(), address(this), "Chat owner should be (this)");
         chat.AddMember(number1);
         chat.transferOwnership(payable(number1));
@@ -139,6 +135,10 @@ contract DriveTest {
         drive.RemoveMember(number1);
         chat.ElectNewOwner(payable(address(this)));
         Assert.equal(chat.owner(), address(this), "Chat owner be reset to (this)");
+
+        drive.RemoveChat(address(chat));
+        address[] memory chats2 = drive.Chats();
+        Assert.equal(chats2.length, 0, "Chat should be removed now");
     }
 
     function testSlotPos() public {

@@ -177,8 +177,8 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
             role(msg.sender) >= RoleType.Admin || ChatGroup(chat).Role(msg.sender) >= RoleType.Owner,
             "Only admins can remove chats"
         );
-        chats.Remove(chat);
         chat_contracts[ChatGroup(chat).Key(0)] = address(0);
+        chats.Remove(chat);
         update_change_tracker();
     }
 
