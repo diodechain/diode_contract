@@ -59,7 +59,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function Version() external pure virtual override returns (int256) {
-        return 142;
+        return 143;
     }
 
     // deprecated: use AddMember/2 instead
