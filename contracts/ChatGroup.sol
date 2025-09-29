@@ -41,4 +41,8 @@ contract ChatGroup is RoleGroup {
     function Key(uint256 index) external view returns (address) {
         return address(list_at(GROUP_KEYS, index));
     }
+
+    function Keys() external view returns (address[] memory) {
+        return list_all_address(GROUP_KEYS);
+    }
 }
