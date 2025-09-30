@@ -84,8 +84,7 @@ contract BridgeOut is Initializable {
             ? keccak256(abi.encodePacked(chainid, "diode_bridge_genesis", destinationChain))
             : txs[destinationChain][len - 1].historyHash;
         bytes32 historyHash = keccak256(abi.encodePacked(destination, amount, prev));
-        txs[destinationChain]
-        .push(
+        txs[destinationChain].push(
             Transaction({
                 sender: msg.sender,
                 destination: destination,

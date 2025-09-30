@@ -26,6 +26,11 @@ import "./deps/SetReverseLocation.sol";
  * Implement fallback recovery options, such as social recovery or a PIN/PUK style cold storage backup master to
  * recover from cases when the "master key" got stolen.
  */
+interface IDriveFactory {
+    function Create2Address(bytes32 _salt) external view returns (address);
+    function Upgrade(bytes32 _salt, address _target) external;
+}
+
 contract DriveMember is Group {
     using Set for Set.Data;
     using SetReverseLocation for SetReverseLocation.Data;
@@ -42,13 +47,16 @@ contract DriveMember is Group {
     }
 
     modifier onlyReader() {
+        requireReader(msg.sender);
+        _;
+    }
+
+    function requireReader(address _member) internal view {
         require(
-            msg.sender == address(this) || super.IsMember(msg.sender) || additional_drives.IsMember(msg.sender)
-                || whitelist.IsMember(msg.sender),
+            _member == address(this) || super.IsMember(_member) || additional_drives.IsMember(_member)
+                || whitelist.IsMember(_member),
             "Read access not allowed"
         );
-
-        _;
     }
 
     function requireMember(address _member) internal view {
@@ -58,7 +66,7 @@ contract DriveMember is Group {
         if (protected) {
             require(owner() == _member, "Only the owner can call this in protected mode");
         } else {
-            require(IsMember(_member), "Only members can call this");
+            require(super.IsMember(_member), "Only members can call this");
         }
     }
 
@@ -68,7 +76,7 @@ contract DriveMember is Group {
     }
 
     function Version() external pure virtual returns (int256) {
-        return 118;
+        return 120;
     }
 
     function Protect(bool _protect) external onlyMember {
@@ -226,5 +234,39 @@ contract DriveMember is Group {
 
     function Nonce(address sender) public view onlyReader returns (uint256) {
         return nonces[sender];
+    }
+
+    function FactoryUpgrade(
+        bytes32 _salt,
+        address _target,
+        uint8 v,
+        uint256 nonce,
+        uint256 deadline,
+        bytes32 r,
+        bytes32 s
+    ) public {
+        IDriveFactory dst = IDriveFactory(proxy_owner());
+        require(dst != IDriveFactory(0), "Invalid factory");
+        require(dst.Create2Address(_salt) == address(this), "Invalid salt");
+        bytes32 digest = TransactionDigest(nonce, deadline, address(dst), abi.encode(_target));
+        address signer = ecrecover(digest, v, r, s);
+        require(signer != address(0), "Invalid signature");
+        require(nonces[signer] == nonce, "Invalid nonce");
+        nonces[signer]++;
+
+        require(signer == owner(), "Invalid signer");
+        OwnableInitializable.transferOwnership(payable(address(this)));
+        dst.Upgrade(_salt, _target);
+        OwnableInitializable.transferOwnership(payable(signer));
+    }
+
+    bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
+
+    function proxy_owner() internal view returns (address) {
+        address owner;
+        assembly {
+            owner := sload(OWNER_SLOT)
+        }
+        return owner;
     }
 }

@@ -26,12 +26,11 @@ contract YieldVaultTest is Test {
         user2 = address(0x2);
 
         // Create DiodeToken with required parameters
-        diodeToken =
-            new DiodeToken(
-                owner, // foundation
-                address(0), // bridge (not needed for test)
-                true // transferable
-            );
+        diodeToken = new DiodeToken(
+            owner, // foundation
+            address(0), // bridge (not needed for test)
+            true // transferable
+        );
 
         // Mint tokens to owner for the initial yield reserve
         diodeToken.mint(owner, INITIAL_YIELD_RESERVE);

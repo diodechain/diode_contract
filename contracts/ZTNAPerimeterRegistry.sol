@@ -164,7 +164,10 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     // Convert internal FleetMetadata to external FleetMetadataView
     function _toFleetMetadataView(FleetMetadata storage metadata) internal view returns (FleetMetadataView memory) {
         return FleetMetadataView({
-            owner: metadata.owner, fleet: metadata.fleet, createdAt: metadata.createdAt, updatedAt: metadata.updatedAt
+            owner: metadata.owner,
+            fleet: metadata.fleet,
+            createdAt: metadata.createdAt,
+            updatedAt: metadata.updatedAt
         });
     }
 

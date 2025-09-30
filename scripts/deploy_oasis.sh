@@ -33,4 +33,4 @@ fi
 
 
 set -x
-forge create --legacy --evm-version paris --optimize --optimizer-runs 200 --rpc-url $RPC --private-key $(cat diode_glmr.key) $ARGS
+forge create --legacy --evm-version paris --optimize --optimizer-runs 200 --rpc-url $RPC --private-key $(cat diode_glmr.key) --verify --verifier sourcify $ARGS

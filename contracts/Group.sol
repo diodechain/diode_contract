@@ -81,15 +81,16 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
         assembly {
             let x := mload(0x40) // "Allocate" memory for output (0x40 is where "free memory" pointer is stored by convention)
             let d := add(_data, 32) // First 32 bytes are the padded length of data, so exclude that
-            result := call(
-                gas(),
-                destination,
-                0, // value is always zero
-                d,
-                _dataLength, // Size of the input (in bytes) - this is what fixes the padding problem
-                x,
-                0 // Output is ignored, therefore the output size is zero
-            )
+            result :=
+                call(
+                    gas(),
+                    destination,
+                    0, // value is always zero
+                    d,
+                    _dataLength, // Size of the input (in bytes) - this is what fixes the padding problem
+                    x,
+                    0 // Output is ignored, therefore the output size is zero
+                )
         }
         return result;
     }

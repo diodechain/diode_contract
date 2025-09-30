@@ -250,8 +250,9 @@ contract BNSTest is Test {
     }
 
     function _registerReverse(address target, string memory name) internal returns (bool) {
-        (bool success,) = address(instance)
-        .call{gas: gasleft()}(abi.encodeWithSignature("RegisterReverse(address,string)", target, name));
+        (bool success,) = address(instance).call{gas: gasleft()}(
+            abi.encodeWithSignature("RegisterReverse(address,string)", target, name)
+        );
         return success;
     }
 
@@ -262,8 +263,9 @@ contract BNSTest is Test {
     }
 
     function _registerReverse2(address target, string memory name) internal returns (bool) {
-        (bool success,) = address(instanceVia)
-        .call{gas: gasleft()}(abi.encodeWithSignature("RegisterReverse(address,string)", target, name));
+        (bool success,) = address(instanceVia).call{gas: gasleft()}(
+            abi.encodeWithSignature("RegisterReverse(address,string)", target, name)
+        );
         return success;
     }
 }

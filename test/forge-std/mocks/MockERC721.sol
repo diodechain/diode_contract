@@ -130,7 +130,12 @@ contract MockERC721 is IERC721Metadata {
         );
     }
 
-    function safeTransferFrom(address from, address to, uint256 id, bytes memory data) public payable virtual override {
+    function safeTransferFrom(address from, address to, uint256 id, bytes memory data)
+        public
+        payable
+        virtual
+        override
+    {
         transferFrom(from, to, id);
 
         require(
