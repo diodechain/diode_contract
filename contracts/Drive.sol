@@ -31,7 +31,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     mapping(address => address) chat_contracts;
     Set.Data whitelist;
 
-    struct JoinCode {
+    struct JoinCodeStruct {
         address secret;
         uint256 nonce;
         uint256 expiry_time;
@@ -40,7 +40,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     Set.Data join_code_set;
-    mapping(address => JoinCode) join_code_data;
+    mapping(address => JoinCodeStruct) join_code_data;
 
     modifier onlyReader() {
         require(
@@ -59,7 +59,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function Version() external pure virtual override returns (int256) {
-        return 143;
+        return 144;
     }
 
     // deprecated: use AddMember/2 instead
@@ -103,8 +103,24 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         update_change_tracker();
     }
 
+    function Password() external view returns (address) {
+        return password_address;
+    }
+
     function Nonce() external view override returns (uint256) {
         return password_nonce;
+    }
+
+    function JoinCodes() external view onlyReader returns (address[] memory) {
+        return join_code_set.Members();
+    }
+
+    function JoinCode(address _secret) external view returns (JoinCodeStruct memory) {
+        if (_secret == password_address) {
+            return JoinCodeStruct(password_address, password_nonce, 0, 0, RoleType.Member);
+        } else {
+            return join_code_data[_secret];
+        }
     }
 
     function AddJoinCode(address _secret, uint256 _expiry_time, uint256 _expiry_count, uint256 _target_role) external {
@@ -113,7 +129,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         require(_target_role < _role, "Can only create invites to lower roles");
         require(join_code_set.IsMember(_secret) == false, "Join code already exists");
         join_code_set.Add(_secret);
-        join_code_data[_secret] = JoinCode(_secret, 0, _expiry_time, _expiry_count, _target_role);
+        join_code_data[_secret] = JoinCodeStruct(_secret, 0, _expiry_time, _expiry_count, _target_role);
         update_change_tracker();
     }
 
@@ -124,7 +140,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         require(_role >= RoleType.Admin, "Only Admins can call this");
         require(_target_role < _role, "Can only update invites to lower roles");
         require(join_code_set.IsMember(_secret), "Join code does not exist");
-        JoinCode storage jc = join_code_data[_secret];
+        JoinCodeStruct storage jc = join_code_data[_secret];
         require(jc.target_role < _role, "Can only update invites with lower roles");
         jc.expiry_time = _expiry_time;
         jc.expiry_count = _expiry_count;
@@ -134,7 +150,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
 
     function Join(address _secret, uint8 v, bytes32 r, bytes32 s) external {
         require(join_code_set.IsMember(_secret), "Join code does not exist");
-        JoinCode storage jc = join_code_data[_secret];
+        JoinCodeStruct storage jc = join_code_data[_secret];
         require(block.timestamp < jc.expiry_time, "Join code time expired");
         require(jc.expiry_count > 0, "Join code count expired");
         require(jc.target_role > 0, "Target role undefined");

@@ -68,7 +68,7 @@ contract DriveMember is Group {
     }
 
     function Version() external pure virtual returns (int256) {
-        return 117;
+        return 118;
     }
 
     function Protect(bool _protect) external onlyMember {
