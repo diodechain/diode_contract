@@ -21,9 +21,12 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
     uint256 constant DATA_SLOT = uint256(keccak256("DATA_SLOT"));
 
     modifier onlyMember() virtual {
-        require(owner() == msg.sender || members.IsMember(msg.sender), "Only members can call this");
-
+        requireMember(msg.sender);
         _;
+    }
+
+    function requireMember(address _member) internal view virtual {
+        require(owner() == _member || members.IsMember(_member), "Only members can call this");
     }
 
     constructor() {
@@ -43,8 +46,7 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
         return members.Members();
     }
 
-    function SetMemberValue(uint256 key, uint256 value) public {
-        require(owner() == msg.sender || members.IsMember(msg.sender), "Only members can set member values");
+    function SetMemberValue(uint256 key, uint256 value) public onlyMember {
         setDataValue(uint256(msg.sender), key, value);
     }
 

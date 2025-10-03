@@ -16,9 +16,12 @@ contract RoleGroup is Group {
     mapping(address => uint256) roles;
 
     modifier onlyAdmin() {
-        require(role(msg.sender) >= RoleType.Admin, "Only Admins and Owners can call this");
-
+        requireAdmin(msg.sender);
         _;
+    }
+
+    function requireAdmin(address _member) internal view virtual {
+        require(role(_member) >= RoleType.Admin, "Only Admins and Owners can call this");
     }
 
     function transferOwnership(address payable newOwner) public override onlyOwner {

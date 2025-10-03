@@ -7,7 +7,7 @@ pragma experimental ABIEncoderV2;
 
 import "./IBNS.sol";
 import "./IDrive.sol";
-import "./RoleGroup.sol";
+import "./ProtectedRoleGroup.sol";
 import "./Roles.sol";
 import "./ChatGroup.sol";
 import "./ManagedProxy.sol";
@@ -16,7 +16,7 @@ import "./IProxyResolver.sol";
 /**
  * Drive Smart Contract
  */
-contract Drive is IDrive, RoleGroup, IProxyResolver {
+contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     using Set for Set.Data;
 
     address password_address;
@@ -42,16 +42,6 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     Set.Data join_code_set;
     mapping(address => JoinCodeStruct) join_code_data;
 
-    modifier onlyReader() {
-        require(
-            msg.sender == address(this) || super.IsMember(msg.sender) || whitelist.IsMember(msg.sender)
-                || chats.IsMember(msg.sender),
-            "Read access not allowed"
-        );
-
-        _;
-    }
-
     constructor(address _bns) {
         BNS = _bns;
         initialize(msg.sender);
@@ -59,7 +49,7 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     }
 
     function Version() external pure virtual override returns (int256) {
-        return 144;
+        return 145;
     }
 
     // deprecated: use AddMember/2 instead
@@ -239,42 +229,6 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
         remove(_member);
     }
 
-    function Members() public view override(IDrive, Group) onlyReader returns (address[] memory) {
-        return super.Members();
-    }
-
-    function MemberRoles() public view override(RoleGroup) onlyReader returns (MemberInfo[] memory) {
-        return super.MemberRoles();
-    }
-
-    function MemberWithRole(uint256 _role) public view override(RoleGroup) onlyReader returns (MemberInfo[] memory) {
-        return super.MemberWithRole(_role);
-    }
-
-    function MemberValue(address _member, uint256 _key) public view override(Group) onlyReader returns (uint256) {
-        return super.MemberValue(_member, _key);
-    }
-
-    function DataValue(uint256 class, uint256 _key) public view override(Group) onlyReader returns (uint256) {
-        return super.DataValue(class, _key);
-    }
-
-    function RoleValue(uint256 _role, uint256 _key) public view override(RoleGroup) onlyReader returns (uint256) {
-        return super.RoleValue(_role, _key);
-    }
-
-    function OwnerValue(uint256 _key) public view override(Group) onlyReader returns (uint256) {
-        return super.OwnerValue(_key);
-    }
-
-    function IsMember(address _member) public view override(Group) onlyReader returns (bool) {
-        return super.IsMember(_member);
-    }
-
-    function Role(address _member) external view override(IDrive, RoleGroup) onlyReader returns (uint256) {
-        return role(_member);
-    }
-
     function Whitelist() external view onlyReader returns (address[] memory) {
         return whitelist.Members();
     }
@@ -290,6 +244,14 @@ contract Drive is IDrive, RoleGroup, IProxyResolver {
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
     // ######## ######## ########   Internal only functions  ######## ######## ########
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
+
+    function requireReader(address _member) internal view virtual override {
+        require(
+            _member == address(this) || super.IsMember(_member) || whitelist.IsMember(_member)
+                || chats.IsMember(_member),
+            "Read access not allowed"
+        );
+    }
 
     function bns() internal view virtual returns (IBNS) {
         return IBNS(BNS);

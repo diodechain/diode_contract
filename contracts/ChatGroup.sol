@@ -5,18 +5,22 @@
 pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
-import "./RoleGroup.sol";
+import "./ProtectedRoleGroup.sol";
 
 /**
  * Chat Smart Contract
  */
-contract ChatGroup is RoleGroup {
+contract ChatGroup is ProtectedRoleGroup {
     using Set for Set.Data;
     // List of group keys, only the most recent key should be
     // used for encryption
 
     uint256 constant GROUP_KEYS = uint256(keccak256("GROUP_KEYS"));
     uint256 constant ZONE = uint256(keccak256("ZONE"));
+
+    function requireReader(address _member) internal view virtual {
+        require(_member == zone() || role(_member) >= RoleType.None, "Read access not allowed");
+    }
 
     function initialize(address payable owner, address _zone, address initial_key) public initializer {
         set_at(ZONE, uint256(_zone));
@@ -30,19 +34,23 @@ contract ChatGroup is RoleGroup {
         moveOwnership(newOwner);
     }
 
-    function zone() internal view returns (ChatGroup) {
-        return ChatGroup(address(at(ZONE)));
+    function Zone() external view onlyReader returns (RoleGroup) {
+        return zone();
+    }
+
+    function zone() internal view returns (RoleGroup) {
+        return RoleGroup(address(at(ZONE)));
     }
 
     function AddKey(address key) external onlyAdmin {
         list_push(GROUP_KEYS, uint256(key));
     }
 
-    function Key(uint256 index) external view returns (address) {
+    function Key(uint256 index) external view onlyReader returns (address) {
         return address(list_at(GROUP_KEYS, index));
     }
 
-    function Keys() external view returns (address[] memory) {
+    function Keys() external view onlyReader returns (address[] memory) {
         return list_all_address(GROUP_KEYS);
     }
 }
