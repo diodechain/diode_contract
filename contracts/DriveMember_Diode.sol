@@ -59,7 +59,7 @@ contract DriveMember is Group {
         );
     }
 
-    function requireMember(address _member) internal view {
+    function requireMember(address _member) internal view override {
         // MetaTransaction calls AddDrive/SetDrive on itself
         if (_member == address(this)) return;
 

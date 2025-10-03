@@ -18,8 +18,8 @@ contract ChatGroup is ProtectedRoleGroup {
     uint256 constant GROUP_KEYS = uint256(keccak256("GROUP_KEYS"));
     uint256 constant ZONE = uint256(keccak256("ZONE"));
 
-    function requireReader(address _member) internal view virtual {
-        require(_member == zone() || role(_member) >= RoleType.None, "Read access not allowed");
+    function requireReader(address _member) internal view virtual override {
+        require(_member == address(zone()) || role(_member) >= RoleType.None, "Read access not allowed");
     }
 
     function initialize(address payable owner, address _zone, address initial_key) public initializer {

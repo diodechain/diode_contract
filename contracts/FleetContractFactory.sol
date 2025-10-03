@@ -14,7 +14,7 @@ contract FleetContractFactory is Ownable {
     mapping(address => address[]) accountantToFleetContract;
     address fleetContractImplementation;
 
-    constructor(address _fleetContractImplementation) Ownable() {
+    constructor(address _fleetContractImplementation) {
         fleetContractImplementation = _fleetContractImplementation;
     }
 
