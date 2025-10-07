@@ -29,13 +29,13 @@ contract BridgeOutNative is Initializable {
 
     // This should always match block.chainid
     // but for testing it makes sense to override this
-    uint256 public immutable chainid;
+    uint256 public immutable CHAINID;
     mapping(uint256 => bool) public enabledChains;
-    address immutable foundation;
+    address immutable FOUNDATION;
 
     constructor(uint256 _chainid, address _foundation) {
-        chainid = _chainid;
-        foundation = _foundation;
+        CHAINID = _chainid;
+        FOUNDATION = _foundation;
         initialize();
     }
 
@@ -44,7 +44,7 @@ contract BridgeOutNative is Initializable {
     }
 
     function setEnabledChain(uint256 chain, bool enabled) public {
-        require(msg.sender == foundation, "BridgeOutNative: only foundation can set enabled chain");
+        require(msg.sender == FOUNDATION, "BridgeOutNative: only foundation can set enabled chain");
         enabledChains[chain] = enabled;
     }
 
@@ -73,7 +73,7 @@ contract BridgeOutNative is Initializable {
         require(msg.value >= 10000000000000000, "BridgeOut: value must be at least 0.01 $DIODE");
         uint256 len = txs[destinationChain].length;
         bytes32 prev = len == 0
-            ? keccak256(abi.encodePacked(chainid, "diode_bridge_genesis", destinationChain))
+            ? keccak256(abi.encodePacked(CHAINID, "diode_bridge_genesis", destinationChain))
             : txs[destinationChain][len - 1].historyHash;
         bytes32 historyHash = keccak256(abi.encodePacked(destination, msg.value, prev));
         txs[destinationChain].push(

@@ -45,22 +45,22 @@ contract BridgeIn is Initializable {
     address[] public in_validators;
     uint256 public in_threshold;
     DiodeToken public diode;
-    address public immutable in_foundation;
+    address public immutable IN_FOUNDATION;
     // This should always match block.chainid
     // but for testing it makes sense to override this
-    uint256 public immutable in_chainid;
+    uint256 public immutable IN_CHAINID;
     Vault public vault;
 
     constructor(uint256 _chainid, address _foundation, address[] memory _validators, uint256 _threshold) {
-        in_chainid = _chainid;
-        in_foundation = _foundation;
+        IN_CHAINID = _chainid;
+        IN_FOUNDATION = _foundation;
         initialize(_validators, _threshold);
     }
 
     function initialize(address[] memory _validators, uint256 _threshold) public virtual initializer {
-        address _diode = address(new DiodeToken(in_foundation, address(this), false));
-        diode = DiodeToken(address(new Proxy(_diode, in_foundation)));
-        diode.initialize(in_foundation, address(this), false);
+        address _diode = address(new DiodeToken(IN_FOUNDATION, address(this), false));
+        diode = DiodeToken(address(new Proxy(_diode, IN_FOUNDATION)));
+        diode.initialize(IN_FOUNDATION, address(this), false);
         in_validators = _validators;
         in_threshold = _threshold;
     }
@@ -74,18 +74,18 @@ contract BridgeIn is Initializable {
     }
 
     function setValidators(address[] memory _validators) public {
-        require(msg.sender == in_foundation, "BridgeIn: only in_foundation can set validators");
+        require(msg.sender == IN_FOUNDATION, "BridgeIn: only in_foundation can set validators");
         in_validators = _validators;
     }
 
     function setThreshold(uint256 _threshold) public {
-        require(msg.sender == in_foundation, "BridgeIn: only in_foundation can set threshold");
+        require(msg.sender == IN_FOUNDATION, "BridgeIn: only in_foundation can set threshold");
         require(_threshold > 0, "BridgeIn: threshold must be larger than 0");
         in_threshold = _threshold;
     }
 
     function setVault(address _vault) public {
-        require(msg.sender == in_foundation, "BridgeIn: only in_foundation can set vault");
+        require(msg.sender == IN_FOUNDATION, "BridgeIn: only in_foundation can set vault");
         if (address(vault) != address(0)) {
             diode.approve(address(vault), 0);
         }
@@ -103,7 +103,7 @@ contract BridgeIn is Initializable {
         for (uint256 i = 0; i < msgs.length; i++) {
             uint256 len = in_txs[sourceChain].length;
             bytes32 prev = len == 0
-                ? keccak256(abi.encodePacked(sourceChain, "diode_bridge_genesis", in_chainid))
+                ? keccak256(abi.encodePacked(sourceChain, "diode_bridge_genesis", IN_CHAINID))
                 : in_txs[sourceChain][len - 1].historyHash;
 
             historyHash = keccak256(abi.encodePacked(msgs[i].destination, msgs[i].amount, prev));
@@ -135,7 +135,7 @@ contract BridgeIn is Initializable {
     function hashTransactions(uint256 sourceChain, InTransactionMsg[] memory msgs) public view returns (bytes32) {
         uint256 len = in_txs[sourceChain].length;
         bytes32 tmpHistoryHash = len == 0
-            ? keccak256(abi.encodePacked(sourceChain, "diode_bridge_genesis", in_chainid))
+            ? keccak256(abi.encodePacked(sourceChain, "diode_bridge_genesis", IN_CHAINID))
             : in_txs[sourceChain][len - 1].historyHash;
 
         for (uint256 i = 0; i < msgs.length; i++) {

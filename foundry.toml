@@ -2,3 +2,10 @@
 #evm_version = "constantinople"
 optimizer = true
 optimizer_runs = 200
+
+[lint]
+level = "warn"
+exclude_lints = ["asm-keccak256", "mixed-case-variable", "mixed-case-function", "unaliased-plain-import", "incorrect-shift", "pascal-case-struct", "erc20-unchecked-transfer", "screaming-snake-case-const"]
+# Note: To exclude test/forge-std/**, run: forge lint contracts test/*.sol
+
+ 
