@@ -7,16 +7,16 @@ pragma solidity >=0.7.6;
 import "./IProxyResolver.sol";
 
 contract ManagedProxy {
-    bytes32 immutable REF;
-    IProxyResolver immutable RESOLVER;
+    bytes32 immutable ref;
+    IProxyResolver immutable resolver;
 
     constructor(IProxyResolver _resolver, bytes32 _ref) {
-        REF = _ref;
-        RESOLVER = _resolver;
+        ref = _ref;
+        resolver = _resolver;
     }
 
     fallback() external payable {
-        address target = RESOLVER.resolve(REF);
+        address target = resolver.resolve(ref);
         assembly {
             calldatacopy(0x0, 0x0, calldatasize())
             let result := delegatecall(gas(), target, 0x0, calldatasize(), 0x0, 0)

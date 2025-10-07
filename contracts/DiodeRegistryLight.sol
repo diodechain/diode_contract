@@ -25,9 +25,9 @@ contract DiodeRegistryLight is Initializable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
-    uint64 public constant SECONDS_PER_EPOCH = 2_592_000;
-    address public immutable FOUNDATION;
-    IERC20 public immutable TOKEN;
+    uint64 public constant SecondsPerEpoch = 2_592_000;
+    address public immutable Foundation;
+    IERC20 public immutable Token;
 
     /**
      * The reward system works like a 3-step assembly line 🏭
@@ -120,13 +120,13 @@ contract DiodeRegistryLight is Initializable {
     }
 
     modifier onlyFoundation() {
-        require(msg.sender == FOUNDATION, "Foundation only");
+        require(msg.sender == Foundation, "Foundation only");
         _;
     }
 
     constructor(address _foundation, IERC20 _token) {
-        FOUNDATION = _foundation;
-        TOKEN = _token;
+        Foundation = _foundation;
+        Token = _token;
         initialize();
     }
 
@@ -149,7 +149,7 @@ contract DiodeRegistryLight is Initializable {
             fleetArray.push(_fleet);
         }
 
-        TOKEN.safeTransferFrom(msg.sender, address(this), amount);
+        Token.safeTransferFrom(msg.sender, address(this), amount);
         fleet.currentBalance += amount;
     }
 
@@ -163,18 +163,18 @@ contract DiodeRegistryLight is Initializable {
     function ContractWithdraw(IFleetContract _fleet) public {
         require(_fleet.Accountant() == msg.sender, "Only the fleet accountant can do this");
         FleetStats storage fleet = fleetStats[address(_fleet)];
-        TOKEN.safeTransfer(msg.sender, fleet.withdrawableBalance);
+        Token.safeTransfer(msg.sender, fleet.withdrawableBalance);
         fleet.withdrawableBalance = 0;
     }
 
     function FoundationWithdraw() public {
-        TOKEN.safeTransfer(FOUNDATION, foundationWithdrawableBalance);
+        Token.safeTransfer(Foundation, foundationWithdrawableBalance);
         foundationWithdrawableBalance = 0;
     }
 
     function RelayWithdraw(address nodeAddress) public {
         require(relayRewards[nodeAddress].reward > 0, "No rewards to withdraw");
-        TOKEN.safeTransfer(nodeAddress, relayRewards[nodeAddress].reward);
+        Token.safeTransfer(nodeAddress, relayRewards[nodeAddress].reward);
         relayRewards[nodeAddress].reward = 0;
     }
 
@@ -192,7 +192,7 @@ contract DiodeRegistryLight is Initializable {
 
     // One Epoch should be roughly one month
     function Epoch() public view returns (uint256) {
-        return block.timestamp.div(SECONDS_PER_EPOCH);
+        return block.timestamp.div(SecondsPerEpoch);
     }
 
     function EndEpoch() public {

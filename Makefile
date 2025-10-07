@@ -9,10 +9,6 @@ compile:
 test:
 	forge test -vvv
 
-.PHONY: lint
-lint:
-	forge lint contracts test/*.sol
-
 .PHONY: clean
 clean:
 	-rm -rf out

@@ -24,8 +24,8 @@ contract DiodeNodeRegistry is Initializable, ChangeTracker {
     using SafeERC20 for IERC20;
     using Set for Set.Data;
 
-    address public immutable FOUNDATION;
-    IERC20 public immutable TOKEN;
+    address public immutable Foundation;
+    IERC20 public immutable Token;
     uint256 public minimumStake;
 
     struct Node {
@@ -38,12 +38,12 @@ contract DiodeNodeRegistry is Initializable, ChangeTracker {
     Set.Data nodesSet;
 
     constructor(address _foundation, address _token) initializer {
-        FOUNDATION = _foundation;
-        TOKEN = IERC20(_token);
+        Foundation = _foundation;
+        Token = IERC20(_token);
     }
 
     function initialize() public initializer {
-        require(msg.sender == FOUNDATION, "Only the foundation can initialize");
+        require(msg.sender == Foundation, "Only the foundation can initialize");
         minimumStake = 0 ether;
     }
 
@@ -59,7 +59,7 @@ contract DiodeNodeRegistry is Initializable, ChangeTracker {
         require(_stake + node.stake >= minimumStake, "Node must have at least minimum stake");
 
         if (_stake > 0) {
-            TOKEN.safeTransferFrom(msg.sender, address(this), _stake);
+            Token.safeTransferFrom(msg.sender, address(this), _stake);
             node.stake = node.stake.add(_stake);
         }
 
@@ -79,7 +79,7 @@ contract DiodeNodeRegistry is Initializable, ChangeTracker {
         require(node.stake > 0, "Node must have a stake");
         require(node.accountant != address(0), "Node must have an accountant");
 
-        TOKEN.safeTransfer(node.accountant, node.stake);
+        Token.safeTransfer(node.accountant, node.stake);
         node.stake = 0;
         update_change_tracker();
     }

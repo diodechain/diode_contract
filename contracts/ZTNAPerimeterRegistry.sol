@@ -57,19 +57,19 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
 
     mapping(address => address) private userWallets;
 
-    address private immutable PERIMETER_IMPLEMENTATION;
-    address private immutable USER_IMPLEMENTATION;
+    address private immutable perimeterImplementation;
+    address private immutable userImplementation;
 
     constructor() {
-        PERIMETER_IMPLEMENTATION = address(new ZTNAPerimeterContract());
-        USER_IMPLEMENTATION = address(new ZTNAWallet());
+        perimeterImplementation = address(new ZTNAPerimeterContract());
+        userImplementation = address(new ZTNAWallet());
     }
 
     // function Validate() external view returns (string memory) {
     //     if (perimeterImplementation == address(0)) {
     //         return "Perimeter implementation not set";
     //     }
-    //     if (USER_IMPLEMENTATION == address(0)) {
+    //     if (userImplementation == address(0)) {
     //         return "User implementation not set";
     //     }
     //     return "Contract is valid";
@@ -86,9 +86,9 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
 
     function resolve(bytes32 what) external view returns (address) {
         if (what == "ZTNAPerimeterRegistry") {
-            return address(PERIMETER_IMPLEMENTATION);
+            return address(perimeterImplementation);
         } else if (what == "ZTNAWallet") {
-            return address(USER_IMPLEMENTATION);
+            return address(userImplementation);
         }
         return address(0);
     }

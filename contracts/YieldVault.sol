@@ -14,11 +14,11 @@ contract YieldVault is Ownable {
     using SafeERC20 for IERC20;
     using SafeMath for uint256;
 
-    IERC20 public immutable TOKEN;
+    IERC20 public immutable token;
 
     // Tokens are locked by delaying the start time
     // there is no cliff period
-    uint256 public immutable LOCK_PERIOD;
+    uint256 public immutable lockPeriod;
 
     // they are vested linearly over the vesting period
     uint256 public vestingPeriod;
@@ -27,8 +27,8 @@ contract YieldVault is Ownable {
     uint256 public yieldRate;
 
     constructor(address _token, uint256 _lockPeriod, uint256 _vestingPeriod, uint256 _yieldRate) {
-        TOKEN = IERC20(_token);
-        LOCK_PERIOD = _lockPeriod;
+        token = IERC20(_token);
+        lockPeriod = _lockPeriod;
         vestingPeriod = _vestingPeriod;
         yieldRate = _yieldRate;
     }
@@ -42,7 +42,7 @@ contract YieldVault is Ownable {
     }
 
     function yieldReserve() public view returns (uint256) {
-        return TOKEN.balanceOf(address(this));
+        return token.balanceOf(address(this));
     }
 
     /**
@@ -51,7 +51,7 @@ contract YieldVault is Ownable {
      */
     function deployReserve(uint256 amount) external {
         require(amount > 0, "Amount must be greater than 0");
-        TOKEN.safeTransferFrom(msg.sender, address(this), amount);
+        token.safeTransferFrom(msg.sender, address(this), amount);
     }
 
     /**
@@ -61,7 +61,7 @@ contract YieldVault is Ownable {
     function withdrawReserve(uint256 amount) external onlyOwner {
         require(amount > 0, "Amount must be greater than 0");
         require(amount <= yieldReserve(), "Insufficient reserve balance");
-        TOKEN.safeTransfer(msg.sender, amount);
+        token.safeTransfer(msg.sender, amount);
     }
 
     // Mapping from user address to their vesting contracts
@@ -107,9 +107,9 @@ contract YieldVault is Ownable {
         }
 
         // Transfer tokens from user to this contract
-        TOKEN.safeTransferFrom(msg.sender, address(this), amount);
+        token.safeTransferFrom(msg.sender, address(this), amount);
 
-        uint256 startTime = block.timestamp + LOCK_PERIOD;
+        uint256 startTime = block.timestamp + lockPeriod;
 
         // Create new vesting contract (always non-revocable)
         TokenVesting vestingContract = new TokenVesting(
@@ -122,7 +122,7 @@ contract YieldVault is Ownable {
 
         // Transfer total tokens (user amount + yield) to vesting contract
         uint256 totalAmount = amount.add(yieldAmount);
-        TOKEN.safeTransfer(address(vestingContract), totalAmount);
+        token.safeTransfer(address(vestingContract), totalAmount);
 
         // Store vesting contract in user's list
         userVestingContracts[beneficiary].push(address(vestingContract));
