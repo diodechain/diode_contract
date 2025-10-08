@@ -113,6 +113,21 @@ interface IBNS {
     function GetProperties(string calldata _name) external view returns (string[] memory);
 
     /**
+     * FindPropertyKV finds a property in the domain in key=value (KV) format and returns the value.
+     * @param _name the name of the domain.
+     * @param _prefix the prefix of the property to be found.
+     */
+    function FindPropertyKV(string calldata _name, string calldata _prefix) external view returns (string memory);
+
+    /**
+     * SetPropertyKV sets a property in the domain in key=value (KV) format.
+     * @param _name the name of the domain.
+     * @param _prefix the prefix of the property to be set.
+     * @param _value the value of the property to be set.
+     */
+    function SetPropertyKV(string calldata _name, string calldata _prefix, string calldata _value) external;
+
+    /**
      * RegisterReverse sets at reverse lookup entry from `_address` to `_name`.
      * This requires an existing forward lookup from `_name` to `_address`.
      *

@@ -195,10 +195,22 @@ contract BNSTest is Test {
         Assert.equal(prop1, instance.GetProperty(name, 1), "should match set-1 value");
 
         // Getting prop array (does not seem to work in solidity tests)
-        // string[] memory props = instance.GetProperties(name);
-        // Assert.equal(props[0], prop0, "[0] should match 0 prop");
-        // Assert.equal(props[1], prop1, "[1] should match 1 prop");
-        // Assert.equal(props.length, 2, "we should only have two props");
+        string[] memory props = instance.GetProperties(name);
+        Assert.equal(props[0], prop0, "[0] should match 0 prop");
+        Assert.equal(props[1], prop1, "[1] should match 1 prop");
+        Assert.equal(props.length, 2, "we should only have two props");
+
+        // Setting a prop
+        instance.SetPropertyKV(name, "author", "John Doe");
+        Assert.equal("John Doe", instance.FindPropertyKV(name, "author"), "should match John Doe");
+        instance.SetPropertyKV(name, "author", "Dominic Letz");
+        Assert.equal("Dominic Letz", instance.FindPropertyKV(name, "author"), "should match Dominic Letz");
+
+        // Getting prop array (does not seem to work in solidity tests)
+        props = instance.GetProperties(name);
+        Assert.equal(props[0], prop0, "[0] should match 0 prop");
+        Assert.equal(props[1], prop1, "[1] should match 1 prop");
+        Assert.equal(props.length, 2, "we should only have two props");
 
         // Deleting a prop
         Assert.equal(instance.GetPropertyLength(name), 2, "we should have two props");

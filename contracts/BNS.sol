@@ -24,7 +24,7 @@ contract BNS is IBNS, ChangeTracker {
     bytes32[] public namesIndex;
 
     function Version() external pure override returns (int256) {
-        return 318;
+        return 320;
     }
 
     /**
@@ -181,6 +181,45 @@ contract BNS is IBNS, ChangeTracker {
      */
     function GetProperties(string calldata _name) external view override returns (string[] memory) {
         return resolveEntry(_name).properties;
+    }
+
+    function FindPropertyKV(string calldata _name, string calldata _prefix)
+        external
+        view
+        override
+        returns (string memory)
+    {
+        int256 index = findPropertyIndex(_name, _prefix);
+        if (index == -1) {
+            return "";
+        }
+        string memory property = resolveEntry(_name).properties[uint256(index)];
+        bytes memory propertyBytes = bytes(property);
+
+        for (uint256 i = 0; i < propertyBytes.length; i++) {
+            if (propertyBytes[i] == "=") {
+                // Extract substring after '='
+                bytes memory result = new bytes(propertyBytes.length - i - 1);
+                for (uint256 j = 0; j < result.length; j++) {
+                    result[j] = propertyBytes[i + 1 + j];
+                }
+                return string(result);
+            }
+        }
+        return "";
+    }
+
+    function SetPropertyKV(string calldata _name, string calldata _prefix, string calldata _value) external override {
+        int256 index = findPropertyIndex(_name, _prefix);
+        BNSEntry storage current = names[convert(_name)];
+        requireOnlyOwner(current);
+        string memory property = string(abi.encodePacked(_prefix, "=", _value));
+        if (index == -1) {
+            current.properties.push(property);
+        } else {
+            current.properties[uint256(index)] = property;
+        }
+        update_change_tracker();
     }
 
     /**
@@ -341,5 +380,32 @@ contract BNS is IBNS, ChangeTracker {
 
         BNSEntry memory empty;
         return empty;
+    }
+
+    function findPropertyIndex(string calldata _name, string calldata _prefix) internal view returns (int256) {
+        BNSEntry memory current = resolveEntry(_name);
+        bytes memory prefixBytes = bytes(abi.encodePacked(_prefix, "="));
+
+        for (uint256 i = 0; i < current.properties.length; i++) {
+            bytes memory propertyBytes = bytes(current.properties[i]);
+
+            // Check if property is at least as long as prefix
+            if (propertyBytes.length >= prefixBytes.length) {
+                bool matches = true;
+
+                // Compare prefix bytes
+                for (uint256 j = 0; j < prefixBytes.length; j++) {
+                    if (propertyBytes[j] != prefixBytes[j]) {
+                        matches = false;
+                        break;
+                    }
+                }
+
+                if (matches) {
+                    return int256(i);
+                }
+            }
+        }
+        return -1;
     }
 }
