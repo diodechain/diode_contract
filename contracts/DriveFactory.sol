@@ -24,7 +24,7 @@ contract DriveFactory {
     function Create(address payable _owner, bytes32 _salt, address _target) public returns (address) {
         address payable addr;
         // These are the first two arguments of Proxy(_target, _owner)
-        bytes memory code = abi.encodePacked(type(Proxy).creationCode, abi.encode(address(0), address(this)));
+        bytes memory code = abi.encodePacked(ProxyCode(), abi.encode(address(0), address(this)));
         assembly {
             addr := create2(0, add(code, 0x20), mload(code), _salt)
             if iszero(extcodesize(addr)) { revert(0, 0) }
@@ -33,6 +33,10 @@ contract DriveFactory {
         Proxy(addr)._proxy_set_target(_target);
         IInitializable(addr).initialize(_owner);
         return addr;
+    }
+
+    function ProxyCode() public pure returns (bytes memory) {
+        return type(Proxy).creationCode;
     }
 
     function Upgrade(bytes32 _salt, address _target) public {
@@ -48,5 +52,9 @@ contract DriveFactory {
         bytes32 rawAddress = keccak256(abi.encodePacked(bytes1(0xff), address(this), _salt, contractCodeHash));
 
         return address(bytes20(rawAddress << 96));
+    }
+
+    function Version() public pure returns (int256) {
+        return 4;
     }
 }
