@@ -14,6 +14,7 @@ set -xe
 # ./scripts/deploy_oasis.sh --use 0.7.6 --broadcast contracts/DriveMember.sol:DriveMember
 
 export RPC=https://sapphire.oasis.io
+export RPC=https://oasis-sapphire-mainnet.core.chainstack.com/d0b6f5fedb063c7002c88a6fbb0e2b31
 # export RPC=https://testnet.sapphire.oasis.io
 
 # Parse arguments to check if --use flag is already provided

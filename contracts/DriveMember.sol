@@ -76,7 +76,7 @@ contract DriveMember is Group {
     }
 
     function Version() external pure virtual returns (int256) {
-        return 120;
+        return 121;
     }
 
     function Protect(bool _protect) external onlyMember {
@@ -135,7 +135,13 @@ contract DriveMember is Group {
         return additional_drives.Members();
     }
 
-    function Members() public view override onlyReader returns (address[] memory) {
+    function Members() public view override returns (address[] memory) {
+        // This function has relaxed access control to allow reading members from new Zones before
+        // they are added as additional drives. In the future, this ordering problem
+        // 1 -> Invite
+        // 2 -> Fetch Drive Members
+        // 3 -> Add Drive
+        // Has to be resolved.
         return super.Members();
     }
 
