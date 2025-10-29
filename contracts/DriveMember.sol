@@ -53,7 +53,7 @@ contract DriveMember is Group {
 
     function requireReader(address _member) internal view {
         require(
-            _member == address(this) || super.IsMember(_member) || additional_drives.IsMember(_member)
+            _member == address(this) || IsMember(_member) || additional_drives.IsMember(_member)
                 || whitelist.IsMember(_member),
             "Read access not allowed"
         );
@@ -66,7 +66,7 @@ contract DriveMember is Group {
         if (protected) {
             require(owner() == _member, "Only the owner can call this in protected mode");
         } else {
-            require(super.IsMember(_member), "Only members can call this");
+            require(IsMember(_member), "Only members can call this");
         }
     }
 
@@ -145,8 +145,8 @@ contract DriveMember is Group {
         return super.Members();
     }
 
-    function IsMember(address _member) public view override onlyReader returns (bool) {
-        return super.IsMember(_member);
+    function IsMember(address _member) public view override returns (bool) {
+        return owner() == _member || super.IsMember(_member);
     }
 
     function SubmitTransaction(address dst, bytes memory data) public onlyMember {
@@ -261,9 +261,9 @@ contract DriveMember is Group {
         nonces[signer]++;
 
         require(signer == owner(), "Invalid signer");
-        OwnableInitializable.transferOwnership(payable(address(this)));
+        OwnableInitializable.moveOwnership(payable(address(this)));
         dst.Upgrade(_salt, _target);
-        OwnableInitializable.transferOwnership(payable(signer));
+        OwnableInitializable.moveOwnership(payable(signer));
     }
 
     bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: DIODE
 pragma solidity ^0.7.6;
+pragma experimental ABIEncoderV2;
 
 import "./Assert.sol";
 import "./CallForwarder.sol";
@@ -7,10 +8,48 @@ import "../contracts/DriveMember.sol";
 import "../contracts/BNS.sol";
 import "../contracts/DriveFactory.sol";
 import "../contracts/Drive.sol";
+import "./forge-std/Test.sol";
 
 contract Dummy {}
 
-contract DriveMemberTest {
+// Simple contract to receive and track meta transaction calls
+contract MetaTransactionReceiver {
+    bool public called;
+    address public caller;
+    bytes public data;
+    uint256 public value;
+
+    function testCall() public {
+        called = true;
+        caller = msg.sender;
+    }
+
+    function testCallWithData(bytes memory _data) public {
+        called = true;
+        caller = msg.sender;
+        data = _data;
+    }
+
+    function testCallWithValue() public payable {
+        called = true;
+        caller = msg.sender;
+        value = msg.value;
+    }
+}
+
+// New implementation contract for testing upgrades
+contract DriveMemberV2 {
+    function Version() external pure returns (int256) {
+        return 122; // Different version number
+    }
+
+    // Include a minimal interface to be compatible
+    function initialize(address payable arg_owner) public {}
+    function owner() public view returns (address payable) {}
+    function IsMember(address _member) public view returns (bool) {}
+}
+
+contract DriveMemberTest is Test {
     BNS bns;
     Drive drive_impl;
     DriveMember member_impl;
@@ -32,11 +71,86 @@ contract DriveMemberTest {
         Assert.notEqual(raw_member, address(0), "raw_member should not be 0");
 
         DriveMember member = DriveMember(raw_member);
+        Assert.equal(member.owner(), address(this), "owner should be the deployer");
         Assert.equal(member.IsMember(address(this)), true, "this should be considered a member");
 
         Assert.equal(member.IsMember(number1), false, "number1 should not yet be a member");
         member.AddMember(number1);
         Assert.equal(member.IsMember(number1), true, "number1 should now be a member");
+    }
+
+    function testSubmitMetaTransaction() public {
+        bytes32 salt = hex"0011001100110011001100110011001100110011001100110011001100110011";
+
+        address raw_member = factory.Create(payable(address(this)), salt, address(member_impl));
+        DriveMember member = DriveMember(raw_member);
+
+        // Create a signer with a known private key
+        uint256 signerKey = 0x1234567890123456789012345678901234567890123456789012345678901234;
+        address signer = vm.addr(signerKey);
+
+        // Add the signer as a member
+        member.AddMember(signer);
+        Assert.equal(member.IsMember(signer), true, "signer should be a member");
+
+        // Create a receiver contract to test the meta transaction
+        MetaTransactionReceiver receiver = new MetaTransactionReceiver();
+        Assert.equal(receiver.called(), false, "receiver should not be called yet");
+
+        // Get the current nonce for the signer
+        uint256 nonce = member.Nonce(signer);
+        Assert.equal(nonce, 0, "nonce should start at 0");
+
+        // Set a deadline in the future
+        uint256 deadline = block.timestamp + 1 hours;
+
+        // Prepare the call data to call testCall() on the receiver
+        bytes memory callData = abi.encodeWithSignature("testCall()");
+
+        // Compute the transaction digest
+        bytes32 digest = member.TransactionDigest(nonce, deadline, address(receiver), callData);
+
+        // Sign the digest
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerKey, digest);
+
+        // Submit the meta transaction
+        member.SubmitMetaTransaction(nonce, deadline, address(receiver), callData, v, r, s);
+
+        // Verify the transaction was executed
+        Assert.equal(receiver.called(), true, "receiver should have been called");
+        Assert.equal(receiver.caller(), address(member), "caller should be the DriveMember contract");
+
+        // Verify the nonce was incremented
+        uint256 newNonce = member.Nonce(signer);
+        Assert.equal(newNonce, nonce + 1, "nonce should have been incremented");
+    }
+
+    function testFactoryUpgrade() public {
+        uint256 ownerKey = 0x1111111111111111111111111111111111111111111111111111111111111111;
+        address owner = vm.addr(ownerKey);
+
+        bytes32 salt = hex"0022002200220022002200220022002200220022002200220022002200220022";
+        address raw_member = factory.Create(payable(owner), salt, address(member_impl));
+        DriveMember member = DriveMember(raw_member);
+
+        Assert.equal(member.owner(), owner, "owner should be the deployer");
+        Assert.equal(member.Version(), 121, "initial version should be 121");
+
+        DriveMemberV2 newImpl = new DriveMemberV2();
+
+        // Use vm.prank to call Nonce as the owner (required for onlyReader modifier)
+        vm.prank(owner);
+        uint256 nonce = member.Nonce(owner);
+        Assert.equal(nonce, 0, "nonce should start at 0");
+
+        uint256 deadline = block.timestamp + 1 hours;
+        bytes memory data = abi.encode(address(newImpl));
+        bytes32 digest = member.TransactionDigest(nonce, deadline, address(factory), data);
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerKey, digest);
+        member.FactoryUpgrade(salt, address(newImpl), v, nonce, deadline, r, s);
+
+        Assert.equal(member.Version(), 122, "version should be upgraded to 122");
     }
 
     /**

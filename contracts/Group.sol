@@ -26,7 +26,7 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
     }
 
     function requireMember(address _member) internal view virtual {
-        require(owner() == _member || members.IsMember(_member), "Only members can call this");
+        require(IsMember(_member), "Only members can call this");
     }
 
     constructor() {
