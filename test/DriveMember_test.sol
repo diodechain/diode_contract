@@ -40,7 +40,7 @@ contract MetaTransactionReceiver {
 // New implementation contract for testing upgrades
 contract DriveMemberV2 {
     function Version() external pure returns (int256) {
-        return 122; // Different version number
+        return 200; // Different version number
     }
 
     // Include a minimal interface to be compatible
@@ -134,7 +134,7 @@ contract DriveMemberTest is Test {
         DriveMember member = DriveMember(raw_member);
 
         Assert.equal(member.owner(), owner, "owner should be the deployer");
-        Assert.equal(member.Version(), 121, "initial version should be 121");
+        Assert.equal(member.Version(), 122, "initial version should be 122");
 
         DriveMemberV2 newImpl = new DriveMemberV2();
 
@@ -150,7 +150,7 @@ contract DriveMemberTest is Test {
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(ownerKey, digest);
         member.FactoryUpgrade(salt, address(newImpl), v, nonce, deadline, r, s);
 
-        Assert.equal(member.Version(), 122, "version should be upgraded to 122");
+        Assert.equal(member.Version(), 200, "version should be upgraded to 200");
     }
 
     /**
