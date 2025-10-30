@@ -48,7 +48,7 @@ contract DriveFactoryTest {
         drive.AddMember(number1, RoleType.Admin);
 
         // Factory created contract should work normally
-        Assert.equal(drive.Version(), 143, "Version() should be equal 143");
+        Assert.equal(drive.Version(), 144, "Version() should be equal 144");
         acceptanceTest(drive);
 
         // Upgrade
