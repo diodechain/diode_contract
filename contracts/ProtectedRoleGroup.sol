@@ -42,11 +42,19 @@ contract ProtectedRoleGroup is RoleGroup {
         return role(_member);
     }
 
+    function Members() public view virtual override onlyReader returns (address[] memory) {
+        return super.Members();
+    }
+
     function MemberRoles() public view override onlyReader returns (MemberInfo[] memory) {
         return super.MemberRoles();
     }
 
     function MemberWithRole(uint256 _role) public view override onlyReader returns (MemberInfo[] memory) {
         return super.MemberWithRole(_role);
+    }
+
+    function IsMember(address _member) public view override onlyReader returns (bool) {
+        return super.IsMember(_member);
     }
 }

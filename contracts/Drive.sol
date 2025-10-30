@@ -49,7 +49,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     }
 
     function Version() external pure virtual override returns (int256) {
-        return 143;
+        return 144;
     }
 
     // deprecated: use AddMember/2 instead
@@ -246,20 +246,17 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
 
     function requireReader(address _member) internal view virtual override {
-        require(
-            _member == address(this) || super.IsMember(_member) || whitelist.IsMember(_member)
-                || chats.IsMember(_member),
-            "Read access not allowed"
-        );
+        if (_member == address(this) || whitelist.IsMember(_member) || chats.IsMember(_member)) return;
+        super.requireReader(_member);
     }
 
     // Resolve interface collision: both Group and IDrive declare Members and Role as public/external.
     // We provide explicit overrides and expose them with the same visibility as IDrive.
-    function Members() public view override(Group, IDrive) returns (address[] memory) {
+    function Members() public view override(ProtectedRoleGroup, IDrive) onlyReader returns (address[] memory) {
         return super.Members();
     }
 
-    function Role(address _member) public view override(IDrive, ProtectedRoleGroup) onlyReader returns (uint256) {
+    function Role(address _member) public view override(ProtectedRoleGroup, IDrive) onlyReader returns (uint256) {
         return role(_member);
     }
 
