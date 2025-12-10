@@ -929,7 +929,7 @@ contract ZTNAPerimeterContractTest is Test {
 
         // Get property value after setting tag property
         string memory inheritedValue = fleetContract.getPropertyValue(deviceId, deviceKey);
-        Assert.equal(inheritedValue, deviceValue, "Property value should match device value");
+        Assert.equal(inheritedValue, "device_value tag_value", "Property value should combine device and tag values");
 
         vm.stopPrank();
     }
@@ -1000,7 +1000,9 @@ contract ZTNAPerimeterContractTest is Test {
 
         // Now check property inheritance
         string memory inheritedValue = fleetContract.getPropertyValue(deviceId, testKey);
-        Assert.equal(inheritedValue, deviceValue, "Property value should be from device after association");
+        Assert.equal(
+            inheritedValue, "device_debug_value tag_debug_value", "Property value should combine device and tag values"
+        );
 
         vm.stopPrank();
     }
@@ -1089,15 +1091,11 @@ contract ZTNAPerimeterContractTest is Test {
         bool isInTag = fleetContract.isDeviceInTag(deviceId, tagId);
         Assert.equal(isInTag, true, "Device should be in tag");
 
-        // Get property value after adding to tag - should be device value (since device properties take precedence)
+        // Get property value after adding to tag - should combine device and tag
         string memory propertyValue = fleetContract.getPropertyValue(deviceId, testKey);
 
-        // Compare with direct device property access
-        string memory directDeviceValue = fleetContract.getDeviceProperty(deviceId, testKey);
-
-        // These should be equal
-        Assert.equal(propertyValue, directDeviceValue, "Property value should match direct device value");
-        Assert.equal(propertyValue, deviceValue, "Property value should be from device");
+        // Combined value should have device and then tag value
+        Assert.equal(propertyValue, "device_conversion_value tag_conversion_value", "Property value should combine device and tag values");
     }
 
     function testPropertyValueDirect() public {
@@ -1206,9 +1204,9 @@ contract ZTNAPerimeterContractTest is Test {
         bool isInTag = fleetContract.isDeviceInTag(deviceId, tagId);
         Assert.equal(isInTag, true, "Device should be in tag");
 
-        // Check property value after adding device to tag - should be device value
+        // Check property value after adding device to tag - should combine device and tag
         string memory afterValue = fleetContract.getPropertyValue(deviceId, testKey);
-        Assert.equal(afterValue, deviceValue, "Property value should match device value after association");
+        Assert.equal(afterValue, "device_value tag_value", "Property value should combine device and tag values");
 
         vm.stopPrank();
     }
