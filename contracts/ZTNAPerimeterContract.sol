@@ -750,19 +750,29 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
 
         // Then check tag properties
         address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
+        string memory combinedTagValue = "";
+
         if (deviceTagsList.length > 0) {
             for (uint256 i = 0; i < deviceTagsList.length; i++) {
                 address tagId = deviceTagsList[i];
 
                 // Get the tag property
                 string memory tagValue = tagProperties[tagId][_key];
+
                 if (bytes(tagValue).length > 0) {
-                    return tagValue;
+                    if (bytes(combinedTagValue).length == 0) {
+                        combinedTagValue = tagValue;
+                    } else {
+                        combinedTagValue = string(abi.encodePacked(combinedTagValue, " ", tagValue));
+                    }
                 }
             }
         }
 
-        // If no property found, return an empty string
+        if (bytes(combinedTagValue).length > 0) {
+            return combinedTagValue;
+        }
+
         return "";
     }
 

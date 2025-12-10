@@ -845,6 +845,37 @@ contract ZTNAPerimeterContractTest is Test {
         Assert.equal(updateFrequency, "daily", "update_frequency property should match");
     }
 
+    function testPropertyValueCombinedFromMultipleTags() public {
+        beforeEach();
+
+        // Key to use for properties
+        string memory testKey = "combined_key";
+
+        // Create a device without a direct property for testKey
+        address deviceId =
+            fleetContract.createDevice(address(0x100), "Combined Device", "A device", "sensor", "Room 1");
+
+        // Create multiple tags
+        address tag1 = fleetContract.createTag("Tag One", "First tag", "#FF0000");
+        address tag2 = fleetContract.createTag("Tag Two", "Second tag", "#00FF00");
+
+        // Add device to tags in a known order
+        fleetContract.addDeviceToTag(deviceId, tag1);
+        fleetContract.addDeviceToTag(deviceId, tag2);
+
+        // Set properties on each tag with the same key
+        fleetContract.setTagProperty(tag1, testKey, "value1");
+        fleetContract.setTagProperty(tag2, testKey, "value2");
+
+        // Sanity check: device has no direct property for this key
+        string memory directDeviceValue = fleetContract.getDeviceProperty(deviceId, testKey);
+        Assert.equal(directDeviceValue, "", "Device property for combined_key should be empty");
+
+        // getPropertyValue should combine the tag values in the order of tag association
+        string memory combinedValue = fleetContract.getPropertyValue(deviceId, testKey);
+        Assert.equal(combinedValue, "value1 value2", "Property value should combine tag values");
+    }
+
     // ======== Property Inheritance Tests ========
     function testPropertyInheritance() public {
         beforeEach();
