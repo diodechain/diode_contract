@@ -807,6 +807,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
     }
 
     function Version() external pure override returns (uint256) {
-        return 801;
+        return 802;
     }
 }
