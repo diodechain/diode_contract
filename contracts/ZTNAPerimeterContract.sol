@@ -744,26 +744,33 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
     {
         // First check device properties
         string memory deviceValue = deviceProperties[_deviceId][_key];
+
+        address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
+        string memory combinedValue = "";
+
+        // Start with device property if it exists
         if (bytes(deviceValue).length > 0) {
-            return deviceValue;
+            combinedValue = deviceValue;
         }
 
-        // Then check tag properties
-        address[] memory deviceTagsList = Set.Members(devices[_deviceId].tags);
         if (deviceTagsList.length > 0) {
             for (uint256 i = 0; i < deviceTagsList.length; i++) {
                 address tagId = deviceTagsList[i];
 
                 // Get the tag property
                 string memory tagValue = tagProperties[tagId][_key];
+
                 if (bytes(tagValue).length > 0) {
-                    return tagValue;
+                    if (bytes(combinedValue).length == 0) {
+                        combinedValue = tagValue;
+                    } else {
+                        combinedValue = string(abi.encodePacked(combinedValue, " ", tagValue));
+                    }
                 }
             }
         }
 
-        // If no property found, return an empty string
-        return "";
+        return combinedValue;
     }
 
     function getPropertyValueDirect(address _deviceId, string memory _key)
@@ -800,6 +807,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
     }
 
     function Version() external pure override returns (uint256) {
-        return 801;
+        return 802;
     }
 }
