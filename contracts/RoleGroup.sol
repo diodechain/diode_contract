@@ -56,6 +56,15 @@ contract RoleGroup is Group {
         return roles[_member];
     }
 
+    function devices(address _member) internal view returns (address[] memory) {
+        Group device_group = Group(_member);
+        try device_group.Members() returns (address[] memory _devices) {
+            return _devices;
+        } catch {
+            return new address[](0);
+        }
+    }
+
     function Role(address _member) external view virtual returns (uint256) {
         return role(_member);
     }
@@ -65,6 +74,12 @@ contract RoleGroup is Group {
         uint256 role;
     }
 
+    struct MemberInfoExtended {
+        address member;
+        uint256 role;
+        address[] devices;
+    }
+
     function MemberRoles() public view virtual returns (MemberInfo[] memory) {
         address[] memory members = this.Members();
         MemberInfo[] memory memberInfos = new MemberInfo[](members.length);
@@ -72,6 +87,23 @@ contract RoleGroup is Group {
             memberInfos[i] = MemberInfo(members[i], role(members[i]));
         }
 
+        return memberInfos;
+    }
+
+    function MembersExtended() public view virtual returns (MemberInfoExtended[] memory) {
+        address[] memory members = this.Members();
+        MemberInfoExtended[] memory memberInfos = new MemberInfoExtended[](members.length);
+        for (uint256 i = 0; i < members.length; i++) {
+            memberInfos[i] = MemberInfoExtended(members[i], role(members[i]), devices(members[i]));
+        }
+        return memberInfos;
+    }
+
+    function MembersExtended(address[] memory _members) public view virtual returns (MemberInfoExtended[] memory) {
+        MemberInfoExtended[] memory memberInfos = new MemberInfoExtended[](_members.length);
+        for (uint256 i = 0; i < _members.length; i++) {
+            memberInfos[i] = MemberInfoExtended(_members[i], role(_members[i]), devices(_members[i]));
+        }
         return memberInfos;
     }
 

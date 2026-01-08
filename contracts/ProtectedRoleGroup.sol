@@ -50,6 +50,14 @@ contract ProtectedRoleGroup is RoleGroup {
         return super.MemberRoles();
     }
 
+    function MembersExtended() public view override onlyReader returns (MemberInfoExtended[] memory) {
+        return super.MembersExtended();
+    }
+
+    function MembersExtended(address[] memory _members) public view override onlyReader returns (MemberInfoExtended[] memory) {
+        return super.MembersExtended(_members);
+    }
+
     function MemberWithRole(uint256 _role) public view override onlyReader returns (MemberInfo[] memory) {
         return super.MemberWithRole(_role);
     }
