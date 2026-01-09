@@ -20,6 +20,11 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
     Set.Data members;
     uint256 constant DATA_SLOT = uint256(keccak256("DATA_SLOT"));
 
+    struct DataKey {
+        uint256 class;
+        uint256 key;
+    }
+
     modifier onlyMember() virtual {
         requireMember(msg.sender);
         _;
@@ -74,6 +79,14 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
 
     function DataValue(uint256 class, uint256 key) public view virtual returns (uint256) {
         return hash_at(DATA_SLOT, uint256(keccak256(abi.encodePacked(class, key))));
+    }
+
+    function DataValues(DataKey[] memory _keys) public view virtual returns (uint256[] memory) {
+        uint256[] memory values = new uint256[](_keys.length);
+        for (uint256 i = 0; i < _keys.length; i++) {
+            values[i] = DataValue(_keys[i].class, _keys[i].key);
+        }
+        return values;
     }
 
     // call has been separated into its own function in order to take advantage

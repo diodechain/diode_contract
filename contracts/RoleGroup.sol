@@ -39,6 +39,14 @@ contract RoleGroup is Group {
         return dataValue(_role, _key);
     }
 
+    function RoleValues(DataKey[] memory _keys) public view virtual returns (uint256[] memory) {
+        uint256[] memory values = new uint256[](_keys.length);
+        for (uint256 i = 0; i < _keys.length; i++) {
+            values[i] = RoleValue(_keys[i].class, _keys[i].key);
+        }
+        return values;
+    }
+
     function _add(address _member, uint256 _role) internal virtual {
         members.Add(_member);
         roles[_member] = _role;

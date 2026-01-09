@@ -34,8 +34,16 @@ contract ProtectedRoleGroup is RoleGroup {
         return super.DataValue(_class, _key);
     }
 
+    function DataValues(DataKey[] memory _keys) public view virtual override onlyReader returns (uint256[] memory) {
+        return super.DataValues(_keys);
+    }
+
     function RoleValue(uint256 _role, uint256 _key) public view virtual override onlyReader returns (uint256) {
         return super.RoleValue(_role, _key);
+    }
+
+    function RoleValues(DataKey[] memory _keys) public view virtual override onlyReader returns (uint256[] memory) {
+        return super.RoleValues(_keys);
     }
 
     function Role(address _member) external view virtual override onlyReader returns (uint256) {

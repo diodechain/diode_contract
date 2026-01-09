@@ -25,6 +25,13 @@ contract GroupTest {
         group.SetMemberValue(1, 36);
         Assert.equal(36, group.MemberValue(address(this), 1), "MemberValue should be 36");
         Assert.equal(36, group.DataValue(uint256(address(this)), 1), "DataValue should be 36");
+
+        Group.DataKey[] memory keys = new Group.DataKey[](2);
+        keys[0] = Group.DataKey({class: RoleType.Owner, key: 1});
+        keys[1] = Group.DataKey({class: uint256(address(this)), key: 1});
+        uint256[] memory values = group.DataValues(keys);
+        Assert.equal(values[0], 15, "values[0] should be 15");
+        Assert.equal(values[1], 36, "values[1] should be 36");
     }
 
     // function testMember() public {
