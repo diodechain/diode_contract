@@ -19,7 +19,7 @@ contract ProtectedRoleGroup is RoleGroup {
     }
 
     function requireReader(address _member) internal view virtual {
-        require(role(_member) >= RoleType.None, "Read access not allowed");
+        require(_member == address(this) || role(_member) >= RoleType.None, "Read access not allowed");
     }
 
     function OwnerValue(uint256 _key) public view virtual override onlyReader returns (uint256) {

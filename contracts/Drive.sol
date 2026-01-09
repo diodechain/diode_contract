@@ -26,7 +26,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     address private immutable BNS;
     address private immutable CHAT_IMPL = address(new ChatGroup());
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
-    int256 constant VERSION = 148;
+    int256 constant VERSION = 149;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
