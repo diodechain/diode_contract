@@ -98,13 +98,14 @@ contract DriveTest {
     }
 
     function testDomain() public {
+        drive.Migrate();
         string memory name = drive.Name();
         Assert.greaterThan(bytes(name).length, uint256(0), "name should be longer than 0");
-        address[] memory members = drive.Members();
         address[] memory results = bns.ResolveEntry(name).destinations;
-        for (uint256 i = 0; i < members.length; i++) {
-            Assert.equal(results[i], members[i], "name should resolve to drive members");
-        }
+        Assert.equal(results.length, 1, "results should have one destination");
+        Assert.equal(results[0], address(drive), "results[0] should be drive");
+        Assert.equal(bns.ResolveEntry(name).destination, address(drive), "name should resolve to drive");
+        Assert.equal(bns.ResolveEntry(name).owner, address(drive), "name should be owned by drive");
     }
 
     function testTransfer() public {
