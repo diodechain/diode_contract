@@ -145,4 +145,21 @@ contract DriveTest {
         TestDrive test = new TestDrive();
         Assert.equal(test.name_slot(), 57, "name_slot should be at 57");
     }
+
+    function testStatusAggregateV1() public {
+        drive.AddMember(number1, RoleType.Admin);
+        drive.AddMember(number2);
+        drive.AddChat(address(this), number2);
+        drive.AddJoinCode(address(number1), block.timestamp + 1000, 1000, RoleType.Member);
+        Drive.StatusAggregateV1Struct memory status = drive.StatusAggregateV1(100);
+        Assert.equal(status.members.length, 2, "Members should return two members");
+        Assert.equal(status.chats.length, 1, "Chats should return one chat");
+        Assert.equal(status.join_codes.length, 1, "Join codes should return one join code");
+
+        status = drive.StatusAggregateV1(1);
+        Assert.equal(status.members.length, 1, "Members should return one member");
+        Assert.equal(status.members[0], number1, "Members should return [number1]");
+        Assert.equal(status.chats.length, 1, "Chats should return one chat");
+        Assert.equal(status.join_codes.length, 1, "Join codes should return one join code");
+    }
 }

@@ -26,6 +26,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     address private immutable BNS;
     address private immutable CHAT_IMPL = address(new ChatGroup());
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
+    int256 constant VERSION = 146;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
@@ -49,7 +50,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     }
 
     function Version() external pure virtual override returns (int256) {
-        return 145;
+        return VERSION;
     }
 
     // deprecated: use AddMember/2 instead
@@ -113,6 +114,14 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         }
     }
 
+    function JoinCodes(address[] memory _secrets) external view returns (JoinCodeStruct[] memory) {
+        JoinCodeStruct[] memory jcs = new JoinCodeStruct[](_secrets.length);
+        for (uint256 i = 0; i < _secrets.length; i++) {
+            jcs[i] = join_code_data[_secrets[i]];
+        }
+        return jcs;
+    }
+
     function AddJoinCode(address _secret, uint256 _expiry_time, uint256 _expiry_count, uint256 _target_role) external {
         uint256 _role = role(msg.sender);
         require(_role >= RoleType.Admin, "Only Admins can call this");
@@ -158,7 +167,14 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
 
     function Name() public override onlyReader returns (string memory) {
         if (bns_name.length == 0) {
-            bns_name = abi.encodePacked("drive-", encode(uint160(address(this))));
+            bns_name = bytes(name());
+        }
+        return string(bns_name);
+    }
+
+    function name() internal view returns (string memory) {
+        if (bns_name.length == 0) {
+            return string(abi.encodePacked("drive-", encode(uint160(address(this)))));
         }
         return string(bns_name);
     }
@@ -240,6 +256,55 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     function RemoveWhitelist(address _member) external onlyAdmin {
         whitelist.Remove(_member);
     }
+
+    struct StatusAggregateV1Struct {
+        address[] members;
+        uint256 member_count;
+        address[] chats;
+        uint256 chat_count;
+        address[] join_codes;
+        uint256 join_code_count;
+        string name;
+        int256 version;
+        address owner;
+        uint256 last_update;
+        uint256 zone_availability_canister;
+        uint256 is_sub_zone;
+        uint256 chat_policy;
+    }
+
+    function StatusAggregateV1(uint256 limits) external view onlyReader returns (StatusAggregateV1Struct memory) {
+        StatusAggregateV1Struct memory status = StatusAggregateV1Struct({
+            members: members.MembersPage(0, limits),
+            member_count: members.Size(),
+            chats: chats.MembersPage(0, limits),
+            chat_count: chats.Size(),
+            join_codes: join_code_set.MembersPage(0, limits),
+            join_code_count: join_code_set.Size(),
+            name: name(),
+            version: VERSION,
+            owner: owner(),
+            last_update: change_tracker(),
+            zone_availability_canister: ZoneAvailabilityCanister(),
+            is_sub_zone: IsSubZone(),
+            chat_policy: ChatPolicy()
+        });
+        return status;
+    }
+
+    function ZoneAvailabilityCanister() public view onlyReader returns (uint256) {
+        return dataValue(RoleType.Owner, 0x4f5b877fc6f89e4eb4a78282b3e325dae98e3ff97e431f92ea166ec4cde34362);
+    }
+
+    function IsSubZone() public view onlyReader returns (uint256) {
+        return dataValue(RoleType.Owner, 0x51d48f6e8985f585e881800bfe8a3856fc04f972ebedf01b34cf2df03ab26523);
+    }
+
+    function ChatPolicy() public view onlyReader returns (uint256) {
+        return dataValue(RoleType.Owner, 0x49e57aa992e5de22b558be0b543e407c5904932d266a879f59862be2b101d54f);
+    }
+
+
 
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
     // ######## ######## ########   Internal only functions  ######## ######## ########

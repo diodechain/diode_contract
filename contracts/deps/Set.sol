@@ -46,6 +46,25 @@ library Set {
         return self.items;
     }
 
+    function MembersPage(Data storage self, uint256 page, uint256 pageSize) internal view returns (address[] memory) {
+        if (self.items.length <= page * pageSize) {
+            return new address[](0);
+        }
+
+        uint256 size;
+        if (self.items.length - page * pageSize > pageSize) {
+            size = pageSize;
+        } else {
+            size = self.items.length - page * pageSize;
+        }
+        
+        address[] memory members = new address[](size);
+        for (uint256 i = 0; i < size; i++) {
+            members[i] = self.items[page * pageSize + i];
+        }
+        return members;
+    }
+
     function Size(Data storage self) internal view returns (uint256) {
         return self.items.length;
     }

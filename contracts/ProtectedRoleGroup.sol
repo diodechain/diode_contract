@@ -54,6 +54,14 @@ contract ProtectedRoleGroup is RoleGroup {
         return super.Members();
     }
 
+    function Members(uint256 page, uint256 pageSize) public view virtual override onlyReader returns (address[] memory) {
+        return super.Members(page, pageSize);
+    }
+
+    function MemberCount() public view virtual override onlyReader returns (uint256) {
+        return super.MemberCount();
+    }
+
     function MemberRoles() public view override onlyReader returns (MemberInfo[] memory) {
         return super.MemberRoles();
     }
