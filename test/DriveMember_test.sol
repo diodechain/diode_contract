@@ -65,6 +65,14 @@ contract DriveMemberTest is Test {
     address number2;
     DriveFactory factory;
 
+    function Members() public view returns (address[] memory) {
+        return new address[](0);
+    }
+
+    function owner() public view returns (address) {
+        return address(this);
+    }
+
     constructor() {
         drive = new Drive(address(bns));
         member_impl = new DriveMember();
@@ -93,25 +101,25 @@ contract DriveMemberTest is Test {
         Assert.equal(drive.IsMember(member_address), true, "member should be a member of the drive");
 
         Drive.MemberInfoExtended[] memory memberInfos = drive.MembersExtended();
-        Assert.equal(memberInfos.length, 1, "1: MembersExtended() should return one member");
-        Assert.equal(memberInfos[0].member, member_address, "1: MembersExtended() should return [member]");
-        Assert.equal(memberInfos[0].role, RoleType.Member, "1: MembersExtended() should return [RoleType.Member]");
-        Assert.equal(memberInfos[0].devices.length, 2, "1: MembersExtended() should return [2 devices]");
-        Assert.equal(memberInfos[0].devices[0], address(this), "1: MembersExtended() should return [address(this)]");
-        Assert.equal(memberInfos[0].devices[1], number1, "1: MembersExtended() should return [number1]");
+        Assert.equal(memberInfos.length, 2, "1: MembersExtended() should return two members");
+        Assert.equal(memberInfos[1].member, member_address, "1: MembersExtended() should return [member]");
+        Assert.equal(memberInfos[1].role, RoleType.Member, "1: MembersExtended() should return [RoleType.Member]");
+        Assert.equal(memberInfos[1].devices.length, 2, "1: MembersExtended() should return [2 devices]");
+        Assert.equal(memberInfos[1].devices[0], address(this), "1: MembersExtended() should return [address(this)]");
+        Assert.equal(memberInfos[1].devices[1], number1, "1: MembersExtended() should return [number1]");
 
         drive.AddMember(number2, RoleType.Member);
         memberInfos = drive.MembersExtended();
-        Assert.equal(memberInfos.length, 2, "2: MembersExtended() should return two members");
-        Assert.equal(memberInfos[0].member, member_address, "2: MembersExtended() should return [member]");
-        Assert.equal(memberInfos[0].role, RoleType.Member, "2: MembersExtended() should return [RoleType.Member]");
-        Assert.equal(memberInfos[0].devices.length, 2, "2: MembersExtended() should return [2 devices]");
-        Assert.equal(memberInfos[0].devices[0], address(this), "2: MembersExtended() should return [address(this)]");
-        Assert.equal(memberInfos[0].devices[1], number1, "2: MembersExtended() should return [number1]");
-        Assert.equal(memberInfos[1].member, number2, "2: MembersExtended() should return [number2]");
+        Assert.equal(memberInfos.length, 3, "2: MembersExtended() should return three members");
+        Assert.equal(memberInfos[1].member, member_address, "2: MembersExtended() should return [member]");
         Assert.equal(memberInfos[1].role, RoleType.Member, "2: MembersExtended() should return [RoleType.Member]");
-        Assert.equal(memberInfos[1].devices.length, 1, "2: MembersExtended() should return [1 devices]");
-        Assert.equal(memberInfos[1].devices[0], number2, "2: MembersExtended() should return [number2]");
+        Assert.equal(memberInfos[1].devices.length, 2, "2: MembersExtended() should return [2 devices]");
+        Assert.equal(memberInfos[1].devices[0], address(this), "2: MembersExtended() should return [address(this)]");
+        Assert.equal(memberInfos[1].devices[1], number1, "2: MembersExtended() should return [number1]");
+        Assert.equal(memberInfos[2].member, number2, "2: MembersExtended() should return [number2]");
+        Assert.equal(memberInfos[2].role, RoleType.Member, "2: MembersExtended() should return [RoleType.Member]");
+        Assert.equal(memberInfos[2].devices.length, 1, "2: MembersExtended() should return [1 devices]");
+        Assert.equal(memberInfos[2].devices[0], number2, "2: MembersExtended() should return [number2]");
 
         address[] memory members = new address[](1);
         members[0] = address(0x1234567890123456789012345678901234567890123456789012345678901234);

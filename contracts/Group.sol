@@ -48,14 +48,26 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
     }
 
     function Members() public view virtual returns (address[] memory) {
-        return members.Members();
+        if (members.IsMember(owner())) {
+            return members.Members();
+        }
+        address[] memory _members = new address[](members.Size() + 1);
+        _members[0] = owner();
+        for (uint256 i = 0; i < members.Size(); i++) {
+            _members[i + 1] = members.Members()[i];
+        }
+        return _members;
     }
 
     function MemberCount() public view virtual returns (uint256) {
-        return members.Size();
+        if (members.IsMember(owner())) {
+            return members.Size();
+        }
+        return members.Size() + 1;
     }
 
-    function Members(uint256 page, uint256 pageSize) public view virtual returns (address[] memory) {
+    function Members(uint256 page, uint256 pageSize) public virtual returns (address[] memory) {
+        members.Add(owner());
         return members.MembersPage(page, pageSize);
     }
 

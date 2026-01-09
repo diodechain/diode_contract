@@ -74,8 +74,13 @@ contract RoleGroup is Group {
         Group device_group = Group(_member);
         address[] memory _devices = device_group.Members();
         address[] memory _devices_with_owner = new address[](_devices.length + 1);
-        _devices_with_owner[0] = device_group.owner();
+        address _owner = device_group.owner();
+        _devices_with_owner[0] = _owner;
         for (uint256 i = 0; i < _devices.length; i++) {
+            if (_devices[i] == _owner) {
+                // If the owner is also a member, return the devices without duplicated owner
+                return _devices;
+            }
             _devices_with_owner[i + 1] = _devices[i];
         }
         return _devices_with_owner;
@@ -107,10 +112,10 @@ contract RoleGroup is Group {
     }
 
     function MembersExtended() public view virtual returns (MemberInfoExtended[] memory) {
-        address[] memory members = this.Members();
-        MemberInfoExtended[] memory memberInfos = new MemberInfoExtended[](members.length);
-        for (uint256 i = 0; i < members.length; i++) {
-            memberInfos[i] = MemberInfoExtended(members[i], role(members[i]), devices(members[i]));
+        address[] memory _members = this.Members();
+        MemberInfoExtended[] memory memberInfos = new MemberInfoExtended[](_members.length);
+        for (uint256 i = 0; i < _members.length; i++) {
+            memberInfos[i] = MemberInfoExtended(_members[i], role(_members[i]), devices(_members[i]));
         }
         return memberInfos;
     }

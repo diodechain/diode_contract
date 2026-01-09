@@ -56,8 +56,9 @@ contract DriveJoinTest is Test {
         drive.Join(rec, r, s);
 
         address[] memory members = drive.Members();
-        Assert.equal(members.length, 1, "Members() should return 1 members");
-        Assert.equal(members[0], newMember, "members[0] should be the newMember");
+        Assert.equal(members.length, 2, "Members() should return 2 members");
+        Assert.equal(members[0], address(this), "members[0] should be the owner");
+        Assert.equal(members[1], newMember, "members[1] should be the newMember");
         Assert.equal(drive.IsMember(newMember), true, "newMember should be a member now");
         Assert.equal(drive.Role(newMember), RoleType.Member, "newMember should be a member now");
     }
@@ -79,7 +80,8 @@ contract DriveJoinTest is Test {
         drive.Join(pass, rec, r, s);
 
         address[] memory members = drive.Members();
-        Assert.equal(members[0], newMember, "members[0] should be the newMember");
+        Assert.equal(members[0], address(this), "members[0] should be the owner");
+        Assert.equal(members[1], newMember, "members[1] should be the newMember");
         Assert.equal(drive.IsMember(newMember), true, "newMember be a member now");
         Assert.equal(drive.Role(newMember), RoleType.Reader, "newMember be a reader now");
     }

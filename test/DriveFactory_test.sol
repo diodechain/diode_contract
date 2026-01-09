@@ -48,7 +48,7 @@ contract DriveFactoryTest {
         drive.AddMember(number1, RoleType.Admin);
 
         // Factory created contract should work normally
-        Assert.equal(drive.Version(), 149, "Version() should be equal 149");
+        Assert.equal(drive.Version(), 150, "Version() should be equal 150");
         acceptanceTest(drive);
 
         // Upgrade
@@ -65,13 +65,16 @@ contract DriveFactoryTest {
         drive.AddMember(number1, RoleType.Admin);
 
         address[] memory members = drive.Members();
-        Assert.equal(members.length, 1, "Members() should return one member");
-        Assert.equal(members[0], number1, "Members() should return [number1]");
+        Assert.equal(members.length, 2, "Members() should return two members");
+        Assert.equal(members[0], address(this), "Members() should return [address(this)]");
+        Assert.equal(members[1], number1, "Members() should return [number1]");
 
         Drive.MemberInfo[] memory memberInfos = drive.MemberRoles();
-        Assert.equal(memberInfos.length, 1, "MemberRoles() should return one member");
-        Assert.equal(memberInfos[0].member, number1, "MemberRoles() should return [number1]");
-        Assert.equal(memberInfos[0].role, RoleType.Admin, "MemberRoles() should return [RoleType.Admin]");
+        Assert.equal(memberInfos.length, 2, "MemberRoles() should return two members");
+        Assert.equal(memberInfos[0].member, address(this), "MemberRoles() should return [address(this)]");
+        Assert.equal(memberInfos[0].role, RoleType.Owner, "MemberRoles() should return [RoleType.Owner]");
+        Assert.equal(memberInfos[1].member, number1, "MemberRoles() should return [number1]");
+        Assert.equal(memberInfos[1].role, RoleType.Admin, "MemberRoles() should return [RoleType.Admin]");
     }
 
     function testMemberWithRole() public {

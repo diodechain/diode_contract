@@ -56,7 +56,6 @@ contract ProtectedRoleGroup is RoleGroup {
 
     function Members(uint256 page, uint256 pageSize)
         public
-        view
         virtual
         override
         onlyReader

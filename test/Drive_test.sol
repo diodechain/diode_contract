@@ -50,8 +50,9 @@ contract DriveTest {
         drive.AddMember(number1, RoleType.Admin);
 
         address[] memory members = drive.Members();
-        Assert.equal(members.length, 1, "Members() should return one member");
-        Assert.equal(members[0], number1, "Members() should return [number1]");
+        Assert.equal(members.length, 2, "Members() should return two members");
+        Assert.equal(members[0], address(this), "Members() should return [address(this)]");
+        Assert.equal(members[1], number1, "Members() should return [number1]");
     }
 
     function testAdmin() public {
@@ -60,9 +61,10 @@ contract DriveTest {
         Drive(number1).AddMember(number2);
 
         address[] memory members = drive.Members();
-        Assert.equal(members.length, 2, "Members() should return two members");
-        Assert.equal(members[0], number1, "Members()[0] should return [number1]");
-        Assert.equal(members[1], number2, "Members()[1] should return [number2]");
+        Assert.equal(members.length, 3, "Members() should return three members");
+        Assert.equal(members[0], address(this), "Members()[0] should return [address(this)]");
+        Assert.equal(members[1], number1, "Members()[1] should return [number1]");
+        Assert.equal(members[2], number2, "Members()[2] should return [number2]");
     }
 
     function testMember() public {
@@ -87,7 +89,7 @@ contract DriveTest {
         drive.AddMember(number2);
 
         address[] memory members = drive.Members();
-        Assert.equal(members.length, 2, "Members() should return two members");
+        Assert.equal(members.length, 3, "Members() should return three members");
         drive.Migrate();
         members = drive.Members();
         Assert.equal(members.length, 3, "Members() should return three members");
@@ -152,13 +154,20 @@ contract DriveTest {
         drive.AddChat(address(this), number2);
         drive.AddJoinCode(address(number1), block.timestamp + 1000, 1000, RoleType.Member);
         Drive.StatusAggregateV1Struct memory status = drive.StatusAggregateV1(100);
-        Assert.equal(status.members.length, 2, "Members should return two members");
+        Assert.equal(status.owner, address(this), "Owner should be address(this)");
+        
+        Assert.equal(status.members.length, 3, "Members should return three members");
+        Assert.equal(status.members[0], number1, "Members should return [number1]");
+        Assert.equal(status.members[1], number2, "Members should return [number2]");
+        Assert.equal(status.members[2], address(this), "Members should return [address(this)]");
+        Assert.equal(status.member_count, 3, "Member count should be 3");
         Assert.equal(status.chats.length, 1, "Chats should return one chat");
         Assert.equal(status.join_codes.length, 1, "Join codes should return one join code");
 
         status = drive.StatusAggregateV1(1);
         Assert.equal(status.members.length, 1, "Members should return one member");
         Assert.equal(status.members[0], number1, "Members should return [number1]");
+        Assert.equal(status.member_count, 3, "Member count should be 3");
         Assert.equal(status.chats.length, 1, "Chats should return one chat");
         Assert.equal(status.join_codes.length, 1, "Join codes should return one join code");
     }

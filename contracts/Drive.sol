@@ -26,7 +26,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     address private immutable BNS;
     address private immutable CHAT_IMPL = address(new ChatGroup());
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
-    int256 constant VERSION = 149;
+    int256 constant VERSION = 150;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
@@ -167,14 +167,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
 
     function Name() public override onlyReader returns (string memory) {
         if (bns_name.length == 0) {
-            bns_name = bytes(name());
-        }
-        return string(bns_name);
-    }
-
-    function name() internal view returns (string memory) {
-        if (bns_name.length == 0) {
-            return string(abi.encodePacked("drive-", encode(uint160(address(this)))));
+            bns_name = abi.encodePacked("drive-", encode(uint160(address(this))));
         }
         return string(bns_name);
     }
@@ -273,15 +266,15 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         uint256 chat_policy;
     }
 
-    function StatusAggregateV1(uint256 limits) external view onlyReader returns (StatusAggregateV1Struct memory) {
+    function StatusAggregateV1(uint256 limits) external onlyReader returns (StatusAggregateV1Struct memory) {
         StatusAggregateV1Struct memory status = StatusAggregateV1Struct({
-            members: members.MembersPage(0, limits),
-            member_count: members.Size(),
+            members: Members(0, limits),
+            member_count: MemberCount(),
             chats: chats.MembersPage(0, limits),
             chat_count: chats.Size(),
             join_codes: join_code_set.MembersPage(0, limits),
             join_code_count: join_code_set.Size(),
-            name: name(),
+            name: Name(),
             version: VERSION,
             owner: owner(),
             last_update: change_tracker(),
@@ -328,10 +321,9 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     }
 
     function register() internal {
-        uint256 size = members.Size();
-        if (size > 0 && size != bns_members && bns() != IBNS(0)) {
+        if (bns_members != 1000 && bns() != IBNS(0)) {
             bns().Register(Name(), address(this));
-            bns_members = size;
+            bns_members = 1000;
         }
     }
 
