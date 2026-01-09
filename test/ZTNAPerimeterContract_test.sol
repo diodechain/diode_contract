@@ -852,8 +852,7 @@ contract ZTNAPerimeterContractTest is Test {
         string memory testKey = "combined_key";
 
         // Create a device without a direct property for testKey
-        address deviceId =
-            fleetContract.createDevice(address(0x100), "Combined Device", "A device", "sensor", "Room 1");
+        address deviceId = fleetContract.createDevice(address(0x100), "Combined Device", "A device", "sensor", "Room 1");
 
         // Create multiple tags
         address tag1 = fleetContract.createTag("Tag One", "First tag", "#FF0000");
@@ -1095,7 +1094,11 @@ contract ZTNAPerimeterContractTest is Test {
         string memory propertyValue = fleetContract.getPropertyValue(deviceId, testKey);
 
         // Combined value should have device and then tag value
-        Assert.equal(propertyValue, "device_conversion_value tag_conversion_value", "Property value should combine device and tag values");
+        Assert.equal(
+            propertyValue,
+            "device_conversion_value tag_conversion_value",
+            "Property value should combine device and tag values"
+        );
     }
 
     function testPropertyValueDirect() public {

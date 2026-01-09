@@ -65,12 +65,20 @@ contract RoleGroup is Group {
     }
 
     function devices(address _member) internal view returns (address[] memory) {
-        Group device_group = Group(_member);
-        try device_group.Members() returns (address[] memory _devices) {
-            return _devices;
-        } catch {
+        // Try/catch would be better, but the Diode L1 doesn't support it (still reverts)
+        uint32 _size;
+        assembly { _size := extcodesize(_member) }
+        if (_size == 0) {
             return new address[](0);
         }
+        Group device_group = Group(_member);
+        address[] memory _devices = device_group.Members();
+        address[] memory _devices_with_owner = new address[](_devices.length + 1);
+        _devices_with_owner[0] = device_group.owner();
+        for (uint256 i = 0; i < _devices.length; i++) {
+            _devices_with_owner[i + 1] = _devices[i];
+        }
+        return _devices_with_owner;
     }
 
     function Role(address _member) external view virtual returns (uint256) {

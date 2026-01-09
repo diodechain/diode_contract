@@ -10,7 +10,15 @@ import "../contracts/DriveFactory.sol";
 import "../contracts/Drive.sol";
 import "./forge-std/Test.sol";
 
-contract Dummy {}
+contract Dummy {
+    function owner() public view returns (address) {
+        return address(this);
+    }
+
+    function Members() public view returns (address[] memory) {
+        return new address[](0);
+    }
+}
 
 // Simple contract to receive and track meta transaction calls
 contract MetaTransactionReceiver {
@@ -85,22 +93,33 @@ contract DriveMemberTest is Test {
         Assert.equal(drive.IsMember(member_address), true, "member should be a member of the drive");
 
         Drive.MemberInfoExtended[] memory memberInfos = drive.MembersExtended();
-        Assert.equal(memberInfos.length, 1, "MembersExtended() should return one member");
-        Assert.equal(memberInfos[0].member, member_address, "MembersExtended() should return [member]");
-        Assert.equal(memberInfos[0].role, RoleType.Member, "MembersExtended() should return [RoleType.Member]");
-        Assert.equal(memberInfos[0].devices.length, 1, "MembersExtended() should return [1 devices]");
-        Assert.equal(memberInfos[0].devices[0], number1, "MembersExtended() should return [number1]");
+        Assert.equal(memberInfos.length, 1, "1: MembersExtended() should return one member");
+        Assert.equal(memberInfos[0].member, member_address, "1: MembersExtended() should return [member]");
+        Assert.equal(memberInfos[0].role, RoleType.Member, "1: MembersExtended() should return [RoleType.Member]");
+        Assert.equal(memberInfos[0].devices.length, 2, "1: MembersExtended() should return [2 devices]");
+        Assert.equal(memberInfos[0].devices[0], address(this), "1: MembersExtended() should return [address(this)]");
+        Assert.equal(memberInfos[0].devices[1], number1, "1: MembersExtended() should return [number1]");
 
         drive.AddMember(number2, RoleType.Member);
         memberInfos = drive.MembersExtended();
-        Assert.equal(memberInfos.length, 2, "MembersExtended() should return two members");
-        Assert.equal(memberInfos[0].member, member_address, "MembersExtended() should return [member]");
-        Assert.equal(memberInfos[0].role, RoleType.Member, "MembersExtended() should return [RoleType.Member]");
-        Assert.equal(memberInfos[0].devices.length, 1, "MembersExtended() should return [1 devices]");
-        Assert.equal(memberInfos[0].devices[0], number1, "MembersExtended() should return [number1]");
-        Assert.equal(memberInfos[1].member, number2, "MembersExtended() should return [number2]");
-        Assert.equal(memberInfos[1].role, RoleType.Member, "MembersExtended() should return [RoleType.Member]");
-        Assert.equal(memberInfos[1].devices.length, 0, "MembersExtended() should return [0 devices]");
+        Assert.equal(memberInfos.length, 2, "2: MembersExtended() should return two members");
+        Assert.equal(memberInfos[0].member, member_address, "2: MembersExtended() should return [member]");
+        Assert.equal(memberInfos[0].role, RoleType.Member, "2: MembersExtended() should return [RoleType.Member]");
+        Assert.equal(memberInfos[0].devices.length, 2, "2: MembersExtended() should return [2 devices]");
+        Assert.equal(memberInfos[0].devices[0], address(this), "2: MembersExtended() should return [address(this)]");
+        Assert.equal(memberInfos[0].devices[1], number1, "2: MembersExtended() should return [number1]");
+        Assert.equal(memberInfos[1].member, number2, "2: MembersExtended() should return [number2]");
+        Assert.equal(memberInfos[1].role, RoleType.Member, "2: MembersExtended() should return [RoleType.Member]");
+        Assert.equal(memberInfos[1].devices.length, 1, "2: MembersExtended() should return [1 devices]");
+        Assert.equal(memberInfos[1].devices[0], number2, "2: MembersExtended() should return [number2]");
+
+        address[] memory members = new address[](1);
+        members[0] = address(0x1234567890123456789012345678901234567890123456789012345678901234);
+        memberInfos = drive.MembersExtended(members);
+        Assert.equal(memberInfos.length, 1, "3: MembersExtended(members) should return one member");
+        Assert.equal(memberInfos[0].member, members[0], "3: MembersExtended(members) should return [members[0]]");
+        Assert.equal(memberInfos[0].role, RoleType.None, "3: MembersExtended(members) should return [RoleType.None]");
+        Assert.equal(memberInfos[0].devices.length, 0, "3:  MembersExtended(members) should return [0 devices]");
     }
 
     function testSubmitMetaTransaction() public {

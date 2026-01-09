@@ -26,7 +26,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     address private immutable BNS;
     address private immutable CHAT_IMPL = address(new ChatGroup());
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
-    int256 constant VERSION = 146;
+    int256 constant VERSION = 148;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
@@ -303,8 +303,6 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     function ChatPolicy() public view onlyReader returns (uint256) {
         return dataValue(RoleType.Owner, 0x49e57aa992e5de22b558be0b543e407c5904932d266a879f59862be2b101d54f);
     }
-
-
 
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
     // ######## ######## ########   Internal only functions  ######## ######## ########

@@ -57,7 +57,7 @@ library Set {
         } else {
             size = self.items.length - page * pageSize;
         }
-        
+
         address[] memory members = new address[](size);
         for (uint256 i = 0; i < size; i++) {
             members[i] = self.items[page * pageSize + i];
