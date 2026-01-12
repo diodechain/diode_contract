@@ -60,8 +60,8 @@ contract DriveTest {
 
         address[] memory members = drive.Members();
         Assert.equal(members.length, 2, "Members() should return two members");
-        Assert.equal(members[0], number1, "Members() should return [number1]");
-        Assert.equal(members[1], address(this), "Members() should return [address(this)]");
+        Assert.equal(members[0], address(this), "Members()[0] should return [address(this)]");
+        Assert.equal(members[1], number1, "Members()[1] should return [number1]");
     }
 
     function testAdmin() public {
@@ -72,9 +72,9 @@ contract DriveTest {
 
         address[] memory members = drive.Members();
         Assert.equal(members.length, 3, "Members() should return three members");
-        Assert.equal(members[0], number1, "Members()[1] should return [number1]");
-        Assert.equal(members[1], number2, "Members()[2] should return [number2]");
-        Assert.equal(members[2], address(this), "Members()[0] should return [address(this)]");
+        Assert.equal(members[0], address(this), "Members()[0] should return [address(this)]");
+        Assert.equal(members[1], number1, "Members()[1] should return [number1]");
+        Assert.equal(members[2], number2, "Members()[2] should return [number2]");
     }
 
     function testMember() public {
@@ -103,8 +103,8 @@ contract DriveTest {
         drive.Migrate();
         members = drive.Members();
         Assert.equal(members.length, 3, "Members() should return three members");
-        Assert.equal(members[2], drive.owner(), "members[2] should be the owner");
-        Assert.equal(members[2], address(this), "members[2] should be (this)");
+        Assert.equal(members[0], drive.owner(), "members[2] should be the owner");
+        Assert.equal(members[0], address(this), "members[2] should be (this)");
     }
 
     function testDomain() public {
@@ -112,6 +112,7 @@ contract DriveTest {
         string memory name = drive.Name();
         Assert.greaterThan(bytes(name).length, uint256(0), "name should be longer than 0");
         address[] memory results = bns.ResolveEntry(name).destinations;
+        Assert.notEqual(address(drive.bns()), address(0), "drive.bns() should not be 0");
         Assert.equal(results.length, 1, "results should have one destination");
         Assert.equal(results[0], address(drive), "results[0] should be drive");
         Assert.equal(bns.ResolveEntry(name).destination, address(drive), "name should resolve to drive");
@@ -124,10 +125,10 @@ contract DriveTest {
         drive.Migrate();
 
         address[] memory members = drive.Members();
-        Assert.equal(members[2], drive.owner(), "members[2] should be the owner");
+        Assert.equal(members[0], drive.owner(), "members[0] should be the owner");
         drive.transferOwnership(payable(members[1]));
         Assert.equal(members[1], drive.owner(), "members[1] should be the owner");
-        Assert.equal(RoleType.Admin, drive.Role(members[2]), "members[2] should be admin now");
+        Assert.equal(RoleType.Admin, drive.Role(members[0]), "members[0] should be admin now");
     }
 
     function testChat() public {
@@ -168,16 +169,16 @@ contract DriveTest {
         Assert.equal(status.owner, address(this), "Owner should be address(this)");
 
         Assert.equal(status.members.length, 3, "Members should return three members");
-        Assert.equal(status.members[0].member, number1, "Members should return [number1]");
-        Assert.equal(status.members[1].member, number2, "Members should return [number2]");
-        Assert.equal(status.members[2].member, address(this), "Members should return [address(this)]");
+        Assert.equal(status.members[0].member, address(this), "Members should return [address(this)]");
+        Assert.equal(status.members[1].member, number1, "Members should return [number1]");
+        Assert.equal(status.members[2].member, number2, "Members should return [number2]");
         Assert.equal(status.member_count, 3, "Member count should be 3");
         Assert.equal(status.chats.length, 1, "Chats should return one chat");
         Assert.equal(status.join_codes.length, 1, "Join codes should return one join code");
 
         status = drive.StatusAggregateV1(1);
         Assert.equal(status.members.length, 1, "Members should return one member");
-        Assert.equal(status.members[0].member, number1, "Members should return [number1]");
+        Assert.equal(status.members[0].member, address(this), "Members should return [address(this)]");
         Assert.equal(status.member_count, 3, "Member count should be 3");
         Assert.equal(status.chats.length, 1, "Chats should return one chat");
         Assert.equal(status.join_codes.length, 1, "Join codes should return one join code");

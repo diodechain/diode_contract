@@ -61,9 +61,12 @@ contract ChatGroup is ProtectedRoleGroup {
         uint256 member_count;
     }
 
-    function InfoAggregateV1(uint256 max_size) external onlyReader returns (Info memory) {
-        address[] memory _members = Members(0, max_size);
-
-        return Info({chat: address(this), owner: owner(), members: _members, member_count: members.Size()});
+    function InfoAggregateV1(uint256 max_size) external returns (Info memory) {
+        if (!members.IsMember(msg.sender)) {
+            return Info({chat: address(this), owner: address(0), members: new address[](0), member_count: 0});
+        } else {
+            address[] memory _members = Members(0, max_size);
+            return Info({chat: address(this), owner: owner(), members: _members, member_count: members.Size()});
+        }
     }
 }

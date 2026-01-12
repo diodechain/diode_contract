@@ -23,10 +23,10 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     uint256 password_nonce;
     bytes bns_name;
     uint256 bns_members;
-    address private immutable BNS;
     address private immutable CHAT_IMPL = address(new ChatGroup());
+    address private immutable BNS;
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
-    int256 constant VERSION = 151;
+    int256 constant VERSION = 152;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
@@ -45,8 +45,6 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
 
     constructor(address _bns) {
         BNS = _bns;
-        initialize(msg.sender);
-        update_change_tracker();
     }
 
     function Version() external pure virtual override returns (int256) {
@@ -340,7 +338,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         return role(_member);
     }
 
-    function bns() internal view virtual returns (IBNS) {
+    function bns() public view virtual returns (IBNS) {
         return IBNS(BNS);
     }
 

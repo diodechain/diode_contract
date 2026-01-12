@@ -38,13 +38,18 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
         initialize(msg.sender);
     }
 
-    function initialize(address payable arg_owner) public override initializer {
+    function initialize(address payable arg_owner) public virtual override initializer {
         update_change_tracker();
         super.initialize(arg_owner);
+        members.Add(owner());
     }
 
     function IsMember(address _member) public view virtual returns (bool) {
         return _member == owner() || members.IsMember(_member);
+    }
+
+    function IsMember() public view virtual returns (bool) {
+        return members.IsMember(msg.sender);
     }
 
     function Members() public virtual returns (address[] memory) {

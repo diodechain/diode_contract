@@ -1330,12 +1330,10 @@ interface VmSafe {
 
     /// Derive a private key from a provided mnenomic string (or mnenomic file path) in the specified language
     /// at `{derivationPath}{index}`.
-    function deriveKey(
-        string calldata mnemonic,
-        string calldata derivationPath,
-        uint32 index,
-        string calldata language
-    ) external pure returns (uint256 privateKey);
+    function deriveKey(string calldata mnemonic, string calldata derivationPath, uint32 index, string calldata language)
+        external
+        pure
+        returns (uint256 privateKey);
 
     /// Gets the label for the specified address.
     function getLabel(address account) external view returns (string memory currentLabel);

@@ -336,7 +336,8 @@ library Math {
             while (remainder != 0) {
                 uint256 quotient = gcd / remainder;
 
-                (gcd, remainder) = (
+                (gcd, remainder) =
+                (
                     // The old remainder is the next gcd to try.
                     remainder,
                     // Compute the next remainder.
@@ -345,7 +346,8 @@ library Math {
                     gcd - remainder * quotient
                 );
 
-                (x, y) = (
+                (x, y) =
+                (
                     // Increment the coefficient of a.
                     y,
                     // Decrement the coefficient of n.
