@@ -13,7 +13,7 @@ interface IDrive {
     function AddMember(address _member, uint256 role) external;
     function Swap(address payable _multisig) external;
     function Role(address _member) external view returns (uint256);
-    function Members() external view returns (address[] memory);
+    function Members() external returns (address[] memory);
     function RemoveSelf() external;
     function RemoveMember(address _member) external;
     function SetPasswordPublic(address _password) external;

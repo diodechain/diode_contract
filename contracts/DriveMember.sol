@@ -135,7 +135,7 @@ contract DriveMember is Group {
         return additional_drives.Members();
     }
 
-    function Members() public view override returns (address[] memory) {
+    function Members() public override returns (address[] memory) {
         // This function has relaxed access control to allow reading members from new Zones before
         // they are added as additional drives. In the future, this ordering problem
         // 1 -> Invite

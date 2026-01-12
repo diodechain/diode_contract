@@ -135,7 +135,7 @@ contract DriveMember is Group {
         return additional_drives.Members();
     }
 
-    function Members() public view override onlyReader returns (address[] memory) {
+    function Members() public override onlyReader returns (address[] memory) {
         return super.Members();
     }
 

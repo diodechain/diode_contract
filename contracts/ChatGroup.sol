@@ -53,4 +53,17 @@ contract ChatGroup is ProtectedRoleGroup {
     function Keys() external view onlyReader returns (address[] memory) {
         return list_all_address(GROUP_KEYS);
     }
+
+    struct Info {
+        address chat;
+        address owner;
+        address[] members;
+        uint256 member_count;
+    }
+
+    function InfoAggregateV1(uint256 max_size) external onlyReader returns (Info memory) {
+        address[] memory _members = Members(0, max_size);
+
+        return Info({chat: address(this), owner: owner(), members: _members, member_count: members.Size()});
+    }
 }

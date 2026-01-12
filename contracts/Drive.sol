@@ -26,13 +26,13 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     address private immutable BNS;
     address private immutable CHAT_IMPL = address(new ChatGroup());
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
-    int256 constant VERSION = 150;
+    int256 constant VERSION = 151;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
     Set.Data whitelist;
 
-    struct JoinCodeStruct {
+    struct JoinCodeInfo {
         address secret;
         uint256 nonce;
         uint256 expiry_time;
@@ -41,7 +41,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     }
 
     Set.Data join_code_set;
-    mapping(address => JoinCodeStruct) join_code_data;
+    mapping(address => JoinCodeInfo) join_code_data;
 
     constructor(address _bns) {
         BNS = _bns;
@@ -106,16 +106,20 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         return join_code_set.Members();
     }
 
-    function JoinCode(address _secret) external view returns (JoinCodeStruct memory) {
+    function JoinCodesPage(uint256 page, uint256 pageSize) external view onlyReader returns (address[] memory) {
+        return join_code_set.MembersPage(page, pageSize);
+    }
+
+    function JoinCode(address _secret) external view returns (JoinCodeInfo memory) {
         if (_secret == password_address) {
-            return JoinCodeStruct(password_address, password_nonce, 0, 0, RoleType.Member);
+            return JoinCodeInfo(password_address, password_nonce, 0, 0, RoleType.Member);
         } else {
             return join_code_data[_secret];
         }
     }
 
-    function JoinCodes(address[] memory _secrets) external view returns (JoinCodeStruct[] memory) {
-        JoinCodeStruct[] memory jcs = new JoinCodeStruct[](_secrets.length);
+    function JoinCodesInfo(address[] memory _secrets) public view returns (JoinCodeInfo[] memory) {
+        JoinCodeInfo[] memory jcs = new JoinCodeInfo[](_secrets.length);
         for (uint256 i = 0; i < _secrets.length; i++) {
             jcs[i] = join_code_data[_secrets[i]];
         }
@@ -128,7 +132,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         require(_target_role < _role, "Can only create invites to lower roles");
         require(join_code_set.IsMember(_secret) == false, "Join code already exists");
         join_code_set.Add(_secret);
-        join_code_data[_secret] = JoinCodeStruct(_secret, 0, _expiry_time, _expiry_count, _target_role);
+        join_code_data[_secret] = JoinCodeInfo(_secret, 0, _expiry_time, _expiry_count, _target_role);
         update_change_tracker();
     }
 
@@ -139,7 +143,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         require(_role >= RoleType.Admin, "Only Admins can call this");
         require(_target_role < _role, "Can only update invites to lower roles");
         require(join_code_set.IsMember(_secret), "Join code does not exist");
-        JoinCodeStruct storage jc = join_code_data[_secret];
+        JoinCodeInfo storage jc = join_code_data[_secret];
         require(jc.target_role < _role, "Can only update invites with lower roles");
         jc.expiry_time = _expiry_time;
         jc.expiry_count = _expiry_count;
@@ -149,7 +153,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
 
     function Join(address _secret, uint8 v, bytes32 r, bytes32 s) external {
         require(join_code_set.IsMember(_secret), "Join code does not exist");
-        JoinCodeStruct storage jc = join_code_data[_secret];
+        JoinCodeInfo storage jc = join_code_data[_secret];
         require(block.timestamp < jc.expiry_time, "Join code time expired");
         require(jc.expiry_count > 0, "Join code count expired");
         require(jc.target_role > 0, "Target role undefined");
@@ -205,6 +209,22 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         return chats.Members();
     }
 
+    function ChatsPage(uint256 page, uint256 pageSize) external view onlyReader returns (address[] memory) {
+        return chats.MembersPage(page, pageSize);
+    }
+
+    function ChatsInfoAggregateV1(address[] memory _chats, uint256 max_size)
+        public
+        onlyReader
+        returns (ChatGroup.Info[] memory)
+    {
+        ChatGroup.Info[] memory chatInfos = new ChatGroup.Info[](_chats.length);
+        for (uint256 i = 0; i < _chats.length; i++) {
+            chatInfos[i] = ChatGroup(_chats[i]).InfoAggregateV1(max_size);
+        }
+        return chatInfos;
+    }
+
     function resolve(bytes32 ref) external view override onlyReader returns (address) {
         if (ref == CHAT_REF) {
             return address(CHAT_IMPL);
@@ -251,11 +271,11 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     }
 
     struct StatusAggregateV1Struct {
-        address[] members;
+        MemberInfoExtended[] members;
         uint256 member_count;
-        address[] chats;
+        ChatGroup.Info[] chats;
         uint256 chat_count;
-        address[] join_codes;
+        JoinCodeInfo[] join_codes;
         uint256 join_code_count;
         string name;
         int256 version;
@@ -267,12 +287,16 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     }
 
     function StatusAggregateV1(uint256 limits) external onlyReader returns (StatusAggregateV1Struct memory) {
+        address[] memory _members = Members(0, limits);
+        address[] memory _chats = chats.MembersPage(0, limits);
+        address[] memory _join_codes = join_code_set.MembersPage(0, limits);
+
         StatusAggregateV1Struct memory status = StatusAggregateV1Struct({
-            members: Members(0, limits),
-            member_count: MemberCount(),
-            chats: chats.MembersPage(0, limits),
+            members: MembersExtended(_members),
+            member_count: members.Size(),
+            chats: ChatsInfoAggregateV1(_chats, limits),
             chat_count: chats.Size(),
-            join_codes: join_code_set.MembersPage(0, limits),
+            join_codes: JoinCodesInfo(_join_codes),
             join_code_count: join_code_set.Size(),
             name: Name(),
             version: VERSION,
@@ -308,7 +332,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
 
     // Resolve interface collision: both Group and IDrive declare Members and Role as public/external.
     // We provide explicit overrides and expose them with the same visibility as IDrive.
-    function Members() public view override(ProtectedRoleGroup, IDrive) onlyReader returns (address[] memory) {
+    function Members() public override(ProtectedRoleGroup, IDrive) onlyReader returns (address[] memory) {
         return super.Members();
     }
 

@@ -50,17 +50,11 @@ contract ProtectedRoleGroup is RoleGroup {
         return role(_member);
     }
 
-    function Members() public view virtual override onlyReader returns (address[] memory) {
+    function Members() public virtual override onlyReader returns (address[] memory) {
         return super.Members();
     }
 
-    function Members(uint256 page, uint256 pageSize)
-        public
-        virtual
-        override
-        onlyReader
-        returns (address[] memory)
-    {
+    function Members(uint256 page, uint256 pageSize) public virtual override onlyReader returns (address[] memory) {
         return super.Members(page, pageSize);
     }
 
@@ -68,17 +62,16 @@ contract ProtectedRoleGroup is RoleGroup {
         return super.MemberCount();
     }
 
-    function MemberRoles() public view override onlyReader returns (MemberInfo[] memory) {
+    function MemberRoles() public override onlyReader returns (MemberInfo[] memory) {
         return super.MemberRoles();
     }
 
-    function MembersExtended() public view override onlyReader returns (MemberInfoExtended[] memory) {
+    function MembersExtended() public override onlyReader returns (MemberInfoExtended[] memory) {
         return super.MembersExtended();
     }
 
     function MembersExtended(address[] memory _members)
         public
-        view
         override
         onlyReader
         returns (MemberInfoExtended[] memory)
@@ -86,7 +79,7 @@ contract ProtectedRoleGroup is RoleGroup {
         return super.MembersExtended(_members);
     }
 
-    function MemberWithRole(uint256 _role) public view override onlyReader returns (MemberInfo[] memory) {
+    function MemberWithRole(uint256 _role) public override onlyReader returns (MemberInfo[] memory) {
         return super.MemberWithRole(_role);
     }
 

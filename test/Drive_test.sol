@@ -9,6 +9,7 @@ import "../contracts/ChatGroup.sol";
 import "../contracts/Drive.sol";
 import "../contracts/DriveInvites.sol";
 import "../contracts/DriveFactory.sol";
+import "forge-std/console.sol";
 
 contract TestDrive is Drive {
     constructor() Drive(address(0x0)) {}
@@ -31,6 +32,14 @@ contract DriveTest {
     address number2;
     address number3;
 
+    function owner() public view returns (address) {
+        return address(this);
+    }
+
+    function Members() public view returns (address[] memory) {
+        return new address[](0);
+    }
+
     constructor() {
         bns = new BNS();
         factory = new DriveFactory();
@@ -51,20 +60,21 @@ contract DriveTest {
 
         address[] memory members = drive.Members();
         Assert.equal(members.length, 2, "Members() should return two members");
-        Assert.equal(members[0], address(this), "Members() should return [address(this)]");
-        Assert.equal(members[1], number1, "Members() should return [number1]");
+        Assert.equal(members[0], number1, "Members() should return [number1]");
+        Assert.equal(members[1], address(this), "Members() should return [address(this)]");
     }
 
     function testAdmin() public {
         drive.AddMember(number1, RoleType.Admin);
         Assert.ok(drive.Role(number1) == RoleType.Admin, "number1 should be RoleAdmin");
         Drive(number1).AddMember(number2);
+        Assert.ok(drive.Role(number2) == RoleType.Member, "number2 should be RoleMember");
 
         address[] memory members = drive.Members();
         Assert.equal(members.length, 3, "Members() should return three members");
-        Assert.equal(members[0], address(this), "Members()[0] should return [address(this)]");
-        Assert.equal(members[1], number1, "Members()[1] should return [number1]");
-        Assert.equal(members[2], number2, "Members()[2] should return [number2]");
+        Assert.equal(members[0], number1, "Members()[1] should return [number1]");
+        Assert.equal(members[1], number2, "Members()[2] should return [number2]");
+        Assert.equal(members[2], address(this), "Members()[0] should return [address(this)]");
     }
 
     function testMember() public {
@@ -156,18 +166,18 @@ contract DriveTest {
         drive.AddJoinCode(address(number1), block.timestamp + 1000, 1000, RoleType.Member);
         Drive.StatusAggregateV1Struct memory status = drive.StatusAggregateV1(100);
         Assert.equal(status.owner, address(this), "Owner should be address(this)");
-        
+
         Assert.equal(status.members.length, 3, "Members should return three members");
-        Assert.equal(status.members[0], number1, "Members should return [number1]");
-        Assert.equal(status.members[1], number2, "Members should return [number2]");
-        Assert.equal(status.members[2], address(this), "Members should return [address(this)]");
+        Assert.equal(status.members[0].member, number1, "Members should return [number1]");
+        Assert.equal(status.members[1].member, number2, "Members should return [number2]");
+        Assert.equal(status.members[2].member, address(this), "Members should return [address(this)]");
         Assert.equal(status.member_count, 3, "Member count should be 3");
         Assert.equal(status.chats.length, 1, "Chats should return one chat");
         Assert.equal(status.join_codes.length, 1, "Join codes should return one join code");
 
         status = drive.StatusAggregateV1(1);
         Assert.equal(status.members.length, 1, "Members should return one member");
-        Assert.equal(status.members[0], number1, "Members should return [number1]");
+        Assert.equal(status.members[0].member, number1, "Members should return [number1]");
         Assert.equal(status.member_count, 3, "Member count should be 3");
         Assert.equal(status.chats.length, 1, "Chats should return one chat");
         Assert.equal(status.join_codes.length, 1, "Join codes should return one join code");

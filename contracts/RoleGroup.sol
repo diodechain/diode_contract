@@ -64,7 +64,7 @@ contract RoleGroup is Group {
         return roles[_member];
     }
 
-    function devices(address _member) internal view returns (address[] memory) {
+    function devices(address _member) internal returns (address[] memory) {
         // Try/catch would be better, but the Diode L1 doesn't support it (still reverts)
         uint32 _size;
         assembly { _size := extcodesize(_member) }
@@ -101,7 +101,7 @@ contract RoleGroup is Group {
         address[] devices;
     }
 
-    function MemberRoles() public view virtual returns (MemberInfo[] memory) {
+    function MemberRoles() public virtual returns (MemberInfo[] memory) {
         address[] memory members = this.Members();
         MemberInfo[] memory memberInfos = new MemberInfo[](members.length);
         for (uint256 i = 0; i < members.length; i++) {
@@ -111,7 +111,7 @@ contract RoleGroup is Group {
         return memberInfos;
     }
 
-    function MembersExtended() public view virtual returns (MemberInfoExtended[] memory) {
+    function MembersExtended() public virtual returns (MemberInfoExtended[] memory) {
         address[] memory _members = this.Members();
         MemberInfoExtended[] memory memberInfos = new MemberInfoExtended[](_members.length);
         for (uint256 i = 0; i < _members.length; i++) {
@@ -120,7 +120,7 @@ contract RoleGroup is Group {
         return memberInfos;
     }
 
-    function MembersExtended(address[] memory _members) public view virtual returns (MemberInfoExtended[] memory) {
+    function MembersExtended(address[] memory _members) public virtual returns (MemberInfoExtended[] memory) {
         MemberInfoExtended[] memory memberInfos = new MemberInfoExtended[](_members.length);
         for (uint256 i = 0; i < _members.length; i++) {
             memberInfos[i] = MemberInfoExtended(_members[i], role(_members[i]), devices(_members[i]));
@@ -128,7 +128,7 @@ contract RoleGroup is Group {
         return memberInfos;
     }
 
-    function MemberWithRole(uint256 _role) public view virtual returns (MemberInfo[] memory) {
+    function MemberWithRole(uint256 _role) public virtual returns (MemberInfo[] memory) {
         address[] memory members = this.Members();
         MemberInfo[] memory memberInfos = new MemberInfo[](members.length);
         uint256 index = 0;
