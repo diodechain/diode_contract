@@ -6,6 +6,7 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./RoleGroup.sol";
+import "cross/ChainId.sol";
 
 /**
  * Protected Role Group
@@ -19,7 +20,9 @@ contract ProtectedRoleGroup is RoleGroup {
     }
 
     function requireReader(address _member) internal view virtual {
-        require(_member == address(this) || role(_member) >= RoleType.None, "Read access not allowed");
+        if (ChainId.THIS == ChainId.OASIS) {
+            require(_member == address(this) || role(_member) >= RoleType.None, "Read access not allowed");
+        }
     }
 
     function OwnerValue(uint256 _key) public view virtual override onlyReader returns (uint256) {

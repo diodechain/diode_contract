@@ -13,10 +13,6 @@ set -xe
 # ./scripts/deploy_oasis.sh --use 0.7.6 --broadcast contracts/Drive.sol:Drive --constructor-args 0x6cbf10355F8a16F7cd2F7aa762c08374959cE1bD
 # ./scripts/deploy_oasis.sh --use 0.7.6 --broadcast contracts/DriveMember.sol:DriveMember
 
-export RPC=https://sapphire.oasis.io
-export RPC=https://oasis-sapphire-mainnet.core.chainstack.com/d0b6f5fedb063c7002c88a6fbb0e2b31
-# export RPC=https://testnet.sapphire.oasis.io
-
 # Parse arguments to check if --use flag is already provided
 has_use_flag=false
 for arg in "$@"; do
@@ -34,5 +30,9 @@ else
 fi
 
 
+export RPC=https://sapphire.oasis.io
+export RPC=https://oasis-sapphire-mainnet.core.chainstack.com/d0b6f5fedb063c7002c88a6fbb0e2b31
+# export RPC=https://testnet.sapphire.oasis.io
+export FOUNDRY_REMAPPINGS_DEV=cross=`pwd`/lib/oasis
 set -x
 forge create --legacy --evm-version paris --optimize --optimizer-runs 200 --rpc-url $RPC --private-key $(cat diode_glmr.key) --verify --verifier sourcify $ARGS

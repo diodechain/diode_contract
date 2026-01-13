@@ -6,6 +6,7 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./ProtectedRoleGroup.sol";
+import "cross/ChainId.sol";
 
 /**
  * Chat Smart Contract
@@ -19,7 +20,25 @@ contract ChatGroup is ProtectedRoleGroup {
     uint256 constant ZONE = uint256(keccak256("ZONE"));
 
     function requireReader(address _member) internal view virtual override {
-        require(_member == address(zone()) || role(_member) >= RoleType.None, "Read access not allowed");
+        if (ChainId.THIS == ChainId.OASIS) {
+            require(_member == address(zone()) || role(_member) >= RoleType.None, "Read access not allowed");
+        }
+    }
+
+    function IsReader(address _member) external view returns (bool) {
+        require(
+            msg.sender == address(zone()) || role(msg.sender) >= RoleType.None,
+            "Only members and zone admins can call this"
+        );
+        return _member == address(zone()) || role(_member) >= RoleType.None;
+    }
+
+    function Version() external view virtual returns (int256) {
+        return zone().Version();
+    }
+
+    function Type() external pure virtual returns (string memory) {
+        return "ChatGroup";
     }
 
     function initialize(address payable owner, address _zone, address initial_key) public initializer {
@@ -34,12 +53,12 @@ contract ChatGroup is ProtectedRoleGroup {
         moveOwnership(newOwner);
     }
 
-    function Zone() external view onlyReader returns (RoleGroup) {
-        return zone();
+    function Zone() external view onlyReader returns (address) {
+        return address(zone());
     }
 
-    function zone() internal view returns (RoleGroup) {
-        return RoleGroup(address(at(ZONE)));
+    function zone() internal view returns (ChatGroup) {
+        return ChatGroup(address(at(ZONE)));
     }
 
     function AddKey(address key) external onlyAdmin {
@@ -62,11 +81,11 @@ contract ChatGroup is ProtectedRoleGroup {
     }
 
     function InfoAggregateV1(uint256 max_size) external returns (Info memory) {
-        if (!members.IsMember(msg.sender)) {
-            return Info({chat: address(this), owner: address(0), members: new address[](0), member_count: 0});
-        } else {
+        if (msg.sender == address(zone()) || members.IsMember(msg.sender)) {
             address[] memory _members = Members(0, max_size);
             return Info({chat: address(this), owner: owner(), members: _members, member_count: members.Size()});
+        } else {
+            return Info({chat: address(this), owner: address(0), members: new address[](0), member_count: 0});
         }
     }
 }

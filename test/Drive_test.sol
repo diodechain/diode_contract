@@ -36,7 +36,7 @@ contract DriveTest {
         return address(this);
     }
 
-    function Members() public view returns (address[] memory) {
+    function Members() public pure returns (address[] memory) {
         return new address[](0);
     }
 

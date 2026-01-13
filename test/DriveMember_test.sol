@@ -15,7 +15,7 @@ contract Dummy {
         return address(this);
     }
 
-    function Members() public view returns (address[] memory) {
+    function Members() public pure returns (address[] memory) {
         return new address[](0);
     }
 }
@@ -65,7 +65,7 @@ contract DriveMemberTest is Test {
     address number2;
     DriveFactory factory;
 
-    function Members() public view returns (address[] memory) {
+    function Members() public pure returns (address[] memory) {
         return new address[](0);
     }
 
@@ -185,7 +185,7 @@ contract DriveMemberTest is Test {
         DriveMember member = DriveMember(raw_member);
 
         Assert.equal(member.owner(), owner, "owner should be the deployer");
-        Assert.equal(member.Version(), 122, "initial version should be 122");
+        Assert.equal(member.Version(), 123, "initial version should be 123");
 
         DriveMemberV2 newImpl = new DriveMemberV2();
 

@@ -7,6 +7,7 @@ pragma experimental ABIEncoderV2;
 
 import "./Group.sol";
 import "./deps/SetReverseLocation.sol";
+import "cross/ChainId.sol";
 
 /**
  * DriveMember and Identity Smart Contract
@@ -52,11 +53,13 @@ contract DriveMember is Group {
     }
 
     function requireReader(address _member) internal view {
-        require(
-            _member == address(this) || IsMember(_member) || additional_drives.IsMember(_member)
-                || whitelist.IsMember(_member),
-            "Read access not allowed"
-        );
+        if (ChainId.THIS == ChainId.OASIS) {
+            require(
+                _member == address(this) || IsMember(_member) || additional_drives.IsMember(_member)
+                    || whitelist.IsMember(_member),
+                "Read access not allowed"
+            );
+        }
     }
 
     function requireMember(address _member) internal view override {
@@ -76,7 +79,11 @@ contract DriveMember is Group {
     }
 
     function Version() external pure virtual returns (int256) {
-        return 122;
+        return 123;
+    }
+
+    function Type() external pure virtual returns (string memory) {
+        return "DriveMember";
     }
 
     function Protect(bool _protect) external onlyMember {

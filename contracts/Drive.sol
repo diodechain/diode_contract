@@ -12,6 +12,7 @@ import "./Roles.sol";
 import "./ChatGroup.sol";
 import "./ManagedProxy.sol";
 import "./IProxyResolver.sol";
+import "cross/ChainId.sol";
 
 /**
  * Drive Smart Contract
@@ -26,7 +27,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     address private immutable CHAT_IMPL = address(new ChatGroup());
     address private immutable BNS;
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
-    int256 constant VERSION = 152;
+    int256 constant VERSION = 154;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
@@ -49,6 +50,10 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
 
     function Version() external pure virtual override returns (int256) {
         return VERSION;
+    }
+
+    function Type() external pure virtual returns (string memory) {
+        return "Drive";
     }
 
     // deprecated: use AddMember/2 instead
@@ -216,9 +221,21 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         onlyReader
         returns (ChatGroup.Info[] memory)
     {
+        return chatsInfoAggregateV1(_chats, max_size, msg.sender);
+    }
+
+    function chatsInfoAggregateV1(address[] memory _chats, uint256 max_size, address _from_member)
+        internal
+        returns (ChatGroup.Info[] memory)
+    {
         ChatGroup.Info[] memory chatInfos = new ChatGroup.Info[](_chats.length);
         for (uint256 i = 0; i < _chats.length; i++) {
-            chatInfos[i] = ChatGroup(_chats[i]).InfoAggregateV1(max_size);
+            if (ChatGroup(_chats[i]).IsReader(_from_member)) {
+                chatInfos[i] = ChatGroup(_chats[i]).InfoAggregateV1(max_size);
+            } else {
+                chatInfos[i] =
+                    ChatGroup.Info({chat: address(0), owner: address(0), members: new address[](0), member_count: 0});
+            }
         }
         return chatInfos;
     }
@@ -292,7 +309,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         StatusAggregateV1Struct memory status = StatusAggregateV1Struct({
             members: MembersExtended(_members),
             member_count: members.Size(),
-            chats: ChatsInfoAggregateV1(_chats, limits),
+            chats: chatsInfoAggregateV1(_chats, limits, msg.sender),
             chat_count: chats.Size(),
             join_codes: JoinCodesInfo(_join_codes),
             join_code_count: join_code_set.Size(),
@@ -324,8 +341,10 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     // ######## ######## ######## ######## ######## ######## ######## ######## ########
 
     function requireReader(address _member) internal view virtual override {
-        if (_member == address(this) || whitelist.IsMember(_member) || chats.IsMember(_member)) return;
-        super.requireReader(_member);
+        if (ChainId.THIS == ChainId.OASIS) {
+            if (_member == address(this) || whitelist.IsMember(_member) || chats.IsMember(_member)) return;
+            super.requireReader(_member);
+        }
     }
 
     // Resolve interface collision: both Group and IDrive declare Members and Role as public/external.

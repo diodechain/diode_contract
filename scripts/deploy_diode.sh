@@ -6,4 +6,5 @@
 set -x
 export RPC=https://eu2.prenet.diode.io:8443
 # export RPC=http://localhost:3834
+export FOUNDRY_REMAPPINGS_DEV=cross=`pwd`/lib/diode
 forge create --legacy --evm-version constantinople --optimize --optimizer-runs 200 --rpc-url $RPC --private-key $(cat diode_glmr.key) $*
