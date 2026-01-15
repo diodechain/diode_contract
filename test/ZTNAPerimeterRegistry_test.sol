@@ -21,9 +21,8 @@ contract MockFleet {
         label = "";
     }
 
-    function updateLabel(string memory _newLabel) external returns (bool) {
+    function updateLabel(string memory _newLabel) external {
         label = _newLabel;
-        return true;
     }
 }
 

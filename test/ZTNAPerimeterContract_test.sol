@@ -28,8 +28,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a new user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Verify user data
         (
@@ -58,8 +57,7 @@ contract ZTNAPerimeterContractTest is Test {
         fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Update user
-        bool success = fleetContract.updateUser(user1, "Updated User", "updated@example.com", "updated.png");
-        Assert.equal(success, true, "User update should succeed");
+        fleetContract.updateUser(user1, "Updated User", "updated@example.com", "updated.png");
 
         // Verify updated data
         (, string memory nickname, string memory email, string memory avatarURI,,,) = fleetContract.getUser(user1);
@@ -76,8 +74,7 @@ contract ZTNAPerimeterContractTest is Test {
         fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Set user as admin
-        bool success = fleetContract.setUserAdmin(user1, true);
-        Assert.equal(success, true, "Setting user as admin should succeed");
+        fleetContract.setUserAdmin(user1, true);
 
         // Verify admin status
         (,,,, bool isAdmin,,) = fleetContract.getUser(user1);
@@ -93,8 +90,7 @@ contract ZTNAPerimeterContractTest is Test {
         fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Remove user
-        bool success = fleetContract.removeUser(user1);
-        Assert.equal(success, true, "User removal should succeed");
+        fleetContract.removeUser(user1);
 
         // Verify user is inactive
         (,,,,,, bool active) = fleetContract.getUser(user1);
@@ -139,8 +135,7 @@ contract ZTNAPerimeterContractTest is Test {
         address groupId = fleetContract.createUserGroup("Test Group", "A test group");
 
         // Update group
-        bool success = fleetContract.updateUserGroup(groupId, "Updated Group", "Updated description");
-        Assert.equal(success, true, "Group update should succeed");
+        fleetContract.updateUserGroup(groupId, "Updated Group", "Updated description");
 
         // Verify updated data
         (, string memory name, string memory description,,,) = fleetContract.getUserGroup(groupId);
@@ -159,8 +154,7 @@ contract ZTNAPerimeterContractTest is Test {
         address groupId = fleetContract.createUserGroup("Test Group", "A test group");
 
         // Add user to group
-        bool success = fleetContract.addUserToGroup(user1, groupId);
-        Assert.equal(success, true, "Adding user to group should succeed");
+        fleetContract.addUserToGroup(user1, groupId);
 
         // Verify user is in group
         bool isInGroup = fleetContract.isUserInGroup(user1, groupId);
@@ -188,8 +182,7 @@ contract ZTNAPerimeterContractTest is Test {
         fleetContract.addUserToGroup(user1, groupId);
 
         // Remove user from group
-        bool success = fleetContract.removeUserFromGroup(user1, groupId);
-        Assert.equal(success, true, "Removing user from group should succeed");
+        fleetContract.removeUserFromGroup(user1, groupId);
 
         // Verify user is not in group
         Assert.equal(fleetContract.isUserInGroup(user1, groupId), false, "User should not be in group");
@@ -258,9 +251,7 @@ contract ZTNAPerimeterContractTest is Test {
             fleetContract.createDevice(address(0x100), "Test Device", "A test device", "sensor", "Room 1");
 
         // Update the device
-        bool success = fleetContract.updateDevice(deviceId, "Updated Device", "An updated device", "actuator", "Room 2");
-
-        Assert.equal(success, true, "Device update should succeed");
+        fleetContract.updateDevice(deviceId, "Updated Device", "An updated device", "actuator", "Room 2");
 
         // Get the updated device details
         (
@@ -295,8 +286,7 @@ contract ZTNAPerimeterContractTest is Test {
             fleetContract.createDevice(address(0x100), "Test Device", "A test device", "sensor", "Room 1");
 
         // Update last seen
-        bool success = fleetContract.updateDeviceLastSeen(deviceId);
-        Assert.equal(success, true, "Last seen update should succeed");
+        fleetContract.updateDeviceLastSeen(deviceId);
 
         // Get the device details
         (
@@ -328,8 +318,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Create a device
         address deviceId =
@@ -357,8 +346,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
         fleetContract.setUserAdmin(user1, true);
         // Switch to user1's context for both device creations
         vm.startPrank(user1);
@@ -384,8 +372,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
         fleetContract.setUserAdmin(user1, true);
 
         // Switch to user1's context
@@ -433,8 +420,7 @@ contract ZTNAPerimeterContractTest is Test {
         address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
 
         // Update tag
-        bool success = fleetContract.updateTag(tagId, "Updated Tag", "Updated description", "#00FF00");
-        Assert.equal(success, true, "Tag update should succeed");
+        fleetContract.updateTag(tagId, "Updated Tag", "Updated description", "#00FF00");
 
         // Verify updated data
         (, string memory name, string memory description, string memory color,,,) = fleetContract.getTag(tagId);
@@ -455,8 +441,7 @@ contract ZTNAPerimeterContractTest is Test {
         address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
 
         // Add device to tag
-        bool success = fleetContract.addDeviceToTag(deviceId, tagId);
-        Assert.equal(success, true, "Adding device to tag should succeed");
+        fleetContract.addDeviceToTag(deviceId, tagId);
 
         // Verify device is in tag
         bool isInTag = fleetContract.isDeviceInTag(deviceId, tagId);
@@ -493,8 +478,7 @@ contract ZTNAPerimeterContractTest is Test {
         Assert.equal(deviceTags.length, 1, "Device should have 1 tag");
 
         // Remove device from tag
-        bool success = fleetContract.removeDeviceFromTag(deviceId, tagId);
-        Assert.equal(success, true, "Removing device from tag should succeed");
+        fleetContract.removeDeviceFromTag(deviceId, tagId);
 
         // Check if device is no longer in tag
         isInTag = fleetContract.isDeviceInTag(deviceId, tagId);
@@ -643,8 +627,7 @@ contract ZTNAPerimeterContractTest is Test {
         address groupId = fleetContract.createUserGroup("Test Group", "A test group");
 
         // Add user to group
-        bool success = fleetContract.addUserToGroup(user1, groupId);
-        Assert.equal(success, true, "Adding user to group should succeed");
+        fleetContract.addUserToGroup(user1, groupId);
 
         // Check if user is in group
         bool isInGroup = fleetContract.isUserInGroup(user1, groupId);
@@ -667,8 +650,7 @@ contract ZTNAPerimeterContractTest is Test {
         address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
 
         // Add device to tag
-        bool success = fleetContract.addDeviceToTag(deviceId, tagId);
-        Assert.equal(success, true, "Adding device to tag should succeed");
+        fleetContract.addDeviceToTag(deviceId, tagId);
 
         // Check if device is in tag
         bool isInTag = fleetContract.isDeviceInTag(deviceId, tagId);
@@ -705,8 +687,7 @@ contract ZTNAPerimeterContractTest is Test {
         uint256 deviceCountBefore = userDevicesBefore.length;
 
         // Remove device
-        bool success = fleetContract.removeDevice(deviceId);
-        Assert.equal(success, true, "Device removal should succeed");
+        fleetContract.removeDevice(deviceId);
 
         // Get user's devices after removal
         address[] memory userDevicesAfter = fleetContract.getUserDevices(address(this));
@@ -743,8 +724,7 @@ contract ZTNAPerimeterContractTest is Test {
         uint256 tagCountBefore = allTagsBefore.length;
 
         // Remove tag
-        bool success = fleetContract.removeTag(tagId);
-        Assert.equal(success, true, "Tag removal should succeed");
+        fleetContract.removeTag(tagId);
 
         // Get all tags after removal
         address[] memory allTagsAfter = fleetContract.getAllTags();
@@ -780,8 +760,7 @@ contract ZTNAPerimeterContractTest is Test {
         uint256 groupCountBefore = allGroupsBefore.length;
 
         // Remove group
-        bool success = fleetContract.removeUserGroup(groupId);
-        Assert.equal(success, true, "Group removal should succeed");
+        fleetContract.removeUserGroup(groupId);
 
         // Get all user groups after removal
         address[] memory allGroupsAfter = fleetContract.getAllUserGroups();
@@ -804,13 +783,9 @@ contract ZTNAPerimeterContractTest is Test {
             fleetContract.createDevice(address(0x100), "Test Device", "A test device", "sensor", "Room 1");
 
         // Set device properties
-        bool success1 = fleetContract.setDeviceProperty(deviceId, "ip_address", "192.168.1.100");
-        bool success2 = fleetContract.setDeviceProperty(deviceId, "mac_address", "00:11:22:33:44:55");
-        bool success3 = fleetContract.setDeviceProperty(deviceId, "firmware", "v1.0.0");
-
-        Assert.equal(success1, true, "Setting IP address should succeed");
-        Assert.equal(success2, true, "Setting MAC address should succeed");
-        Assert.equal(success3, true, "Setting firmware version should succeed");
+        fleetContract.setDeviceProperty(deviceId, "ip_address", "192.168.1.100");
+        fleetContract.setDeviceProperty(deviceId, "mac_address", "00:11:22:33:44:55");
+        fleetContract.setDeviceProperty(deviceId, "firmware", "v1.0.0");
 
         // Get device properties
         string memory ipAddress = fleetContract.getDeviceProperty(deviceId, "ip_address");
@@ -831,11 +806,8 @@ contract ZTNAPerimeterContractTest is Test {
         address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
 
         // Set tag properties
-        bool success1 = fleetContract.setTagProperty(tagId, "default_firmware", "v2.0.0");
-        bool success2 = fleetContract.setTagProperty(tagId, "update_frequency", "daily");
-
-        Assert.equal(success1, true, "Setting default_firmware property should succeed");
-        Assert.equal(success2, true, "Setting update_frequency property should succeed");
+        fleetContract.setTagProperty(tagId, "default_firmware", "v2.0.0");
+        fleetContract.setTagProperty(tagId, "update_frequency", "daily");
 
         // Get tag properties
         string memory defaultFirmware = fleetContract.getTagProperty(tagId, "default_firmware");
@@ -880,8 +852,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Make user1 an admin
         fleetContract.setUserAdmin(user1, true);
@@ -948,8 +919,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Make user1 an admin
         fleetContract.setUserAdmin(user1, true);
@@ -1052,8 +1022,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Make user1 an admin
         fleetContract.setUserAdmin(user1, true);
@@ -1105,8 +1074,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Make user1 an admin
         fleetContract.setUserAdmin(user1, true);
@@ -1168,8 +1136,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Make user1 an admin
         fleetContract.setUserAdmin(user1, true);
@@ -1218,8 +1185,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Make user1 an admin
         fleetContract.setUserAdmin(user1, true);
@@ -1313,8 +1279,7 @@ contract ZTNAPerimeterContractTest is Test {
         beforeEach();
 
         // Create a user
-        bool success = fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
-        Assert.equal(success, true, "User creation should succeed");
+        fleetContract.createUser(user1, "User One", "user1@example.com", "avatar1.png");
 
         // Make user1 an admin
         fleetContract.setUserAdmin(user1, true);
@@ -1330,8 +1295,7 @@ contract ZTNAPerimeterContractTest is Test {
         address tagId = fleetContract.createTag("Test Tag", "A test tag", "#FF0000");
 
         // Add device to tag
-        bool addSuccess = fleetContract.addDeviceToTag(deviceId, tagId);
-        Assert.equal(addSuccess, true, "Adding device to tag should succeed");
+        fleetContract.addDeviceToTag(deviceId, tagId);
 
         // Verify device is in tag
         bool isInTag = fleetContract.isDeviceInTag(deviceId, tagId);
