@@ -76,16 +76,46 @@ contract ChatGroup is ProtectedRoleGroup {
     struct Info {
         address chat;
         address owner;
-        address[] members;
+        MemberInfo[] members;
         uint256 member_count;
+        uint256 last_update;
+        address[] keys;
+        bytes32 label_proof;
+        bytes32 description_proof;
     }
 
     function InfoAggregateV1(uint256 max_size) external returns (Info memory) {
         if (msg.sender == address(zone()) || members.IsMember(msg.sender)) {
-            address[] memory _members = Members(0, max_size);
-            return Info({chat: address(this), owner: owner(), members: _members, member_count: members.Size()});
+            MemberInfo[] memory _member_infos = MemberRoles(Members(0, max_size));
+            return Info({
+                chat: address(this),
+                owner: owner(),
+                members: _member_infos,
+                member_count: members.Size(),
+                last_update: change_tracker(),
+                keys: list_all_address(GROUP_KEYS),
+                label_proof: LabelProof(),
+                description_proof: DescriptionProof()
+            });
         } else {
-            return Info({chat: address(this), owner: address(0), members: new address[](0), member_count: 0});
+            return Info({
+                chat: address(this),
+                owner: address(0),
+                members: new MemberInfo[](0),
+                member_count: 0,
+                last_update: 0,
+                keys: new address[](0),
+                label_proof: bytes32(0),
+                description_proof: bytes32(0)
+            });
         }
+    }
+
+    function DescriptionProof() public view onlyReader returns (bytes32) {
+        return bytes32(dataValue(RoleType.Admin, 0x1596dc38e2ac5a6ddc5e019af4adcc1e017a04f510d57e69d6879d5d2996bb8e));
+    }
+
+    function LabelProof() public view onlyReader returns (bytes32) {
+        return bytes32(dataValue(RoleType.Admin, 0x1b036544434cea9770a413fd03e0fb240e1ccbd10a452f7dba85c8eca9ca3eda));
     }
 }

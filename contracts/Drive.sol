@@ -27,7 +27,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     address private immutable CHAT_IMPL = address(new ChatGroup());
     address private immutable BNS;
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
-    int256 constant VERSION = 154;
+    int256 constant VERSION = 157;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
@@ -232,9 +232,6 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         for (uint256 i = 0; i < _chats.length; i++) {
             if (ChatGroup(_chats[i]).IsReader(_from_member)) {
                 chatInfos[i] = ChatGroup(_chats[i]).InfoAggregateV1(max_size);
-            } else {
-                chatInfos[i] =
-                    ChatGroup.Info({chat: address(0), owner: address(0), members: new address[](0), member_count: 0});
             }
         }
         return chatInfos;

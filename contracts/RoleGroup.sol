@@ -111,6 +111,14 @@ contract RoleGroup is Group {
         return memberInfos;
     }
 
+    function MemberRoles(address[] memory _members) public virtual returns (MemberInfo[] memory) {
+        MemberInfo[] memory memberInfos = new MemberInfo[](_members.length);
+        for (uint256 i = 0; i < _members.length; i++) {
+            memberInfos[i] = MemberInfo(_members[i], role(_members[i]));
+        }
+        return memberInfos;
+    }
+
     function MembersExtended() public virtual returns (MemberInfoExtended[] memory) {
         address[] memory _members = this.Members();
         MemberInfoExtended[] memory memberInfos = new MemberInfoExtended[](_members.length);
