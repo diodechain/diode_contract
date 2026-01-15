@@ -6,6 +6,7 @@ pragma solidity ^0.8.20;
 
 import "./FleetContractUpgradeable.sol";
 import "./deps/Set.sol";
+import "./sapphire/Sapphire.sol";
 
 /**
  * ZTNAPerimeterContract adds new functionality around Users, User Groups, Devices, Tags (Groups of Devices)
@@ -70,6 +71,8 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         uint256 lastSeen;
         Set.Data tags;
         bool active;
+        Sapphire.Curve25519PublicKey publicKey; // Curve25519 public key
+        Sapphire.Curve25519SecretKey privateKey; // Curve25519 private key (encrypted/accessible only by device)
     }
 
     struct Tag {
@@ -163,6 +166,12 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         _;
     }
 
+    modifier onlyMemberOrDevice(address _deviceId) {
+        require(users[msg.sender].active || msg.sender == _deviceId, "Unauthorized");
+        require(devices[_deviceId].active, "Device does not exist");
+        _;
+    }
+
     modifier onlyAdmin() {
         require(users[msg.sender].isAdmin || msg.sender == operator, "Only admins can perform this action");
         _;
@@ -174,6 +183,12 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
             devices[_deviceId].owner == msg.sender || users[msg.sender].isAdmin,
             "Only device owner or admin can perform this action"
         );
+        _;
+    }
+
+    modifier onlyDevice(address _deviceId) {
+        require(msg.sender == _deviceId, "Only the device itself can perform this action");
+        require(devices[_deviceId].active, "Device does not exist");
         _;
     }
 
@@ -436,6 +451,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         devices[_deviceId].createdAt = block.timestamp;
         devices[_deviceId].lastSeen = block.timestamp;
         devices[_deviceId].active = true;
+        doGenerateDeviceKeyPair(_deviceId);
         // Note: tags is already initialized as an empty Set.Data
 
         allDevices.push(_deviceId);
@@ -546,6 +562,48 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         );
     }
 
+    struct DeviceV2 {
+        address id;
+        address owner;
+        string name;
+        string description;
+        string deviceType;
+        string location;
+        uint256 createdAt;
+        uint256 lastSeen;
+        bool active;
+        Sapphire.Curve25519PublicKey publicKey;
+        address[] tags;
+        string[] properties;
+    }
+
+    function getDeviceV2(address _deviceId, string[] memory _keys)
+        external
+        view
+        onlyMember
+        deviceExists(_deviceId)
+        returns (DeviceV2 memory device)
+    {
+        string[] memory properties = doGetDeviceProperties(_deviceId, _keys);
+        address[] memory tags = Set.Members(devices[_deviceId].tags);
+        Device storage device = devices[_deviceId];
+
+        return DeviceV2({
+            id: _deviceId,
+            owner: device.owner,
+            name: device.name,
+            description: device.description,
+            deviceType: device.deviceType,
+            location: device.location,
+            createdAt: device.createdAt,
+            lastSeen: device.lastSeen,
+            active: device.active,
+            publicKey: device.publicKey,
+            tags: tags,
+            properties: properties
+        });
+    }
+
     function getUserDevices(address _userAddress)
         external
         view
@@ -558,6 +616,70 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
 
     function getAllDevices() external view onlyMember returns (address[] memory) {
         return allDevices;
+    }
+
+    /**
+     * @notice Get the public key of a device
+     * @param _deviceId The device address
+     * @return publicKey The Curve25519 public key of the device
+     */
+    function getDevicePublicKey(address _deviceId)
+        external
+        view
+        onlyMember
+        deviceExists(_deviceId)
+        returns (Sapphire.Curve25519PublicKey publicKey)
+    {
+        return devices[_deviceId].publicKey;
+    }
+
+    /**
+     * @notice Get the private key of a device (only accessible by the device itself)
+     * @param _deviceId The device address
+     * @return privateKey The Curve25519 private key of the device
+     */
+    function getDevicePrivateKey(address _deviceId)
+        external
+        view
+        onlyDevice(_deviceId)
+        returns (Sapphire.Curve25519SecretKey privateKey)
+    {
+        return devices[_deviceId].privateKey;
+    }
+
+    /**
+     * @notice Generate a Curve25519 key pair for an existing device (migration function)
+     * @param _deviceId The device address
+     * @return publicKey The generated public key
+     */
+    function generateDeviceKeyPair(address _deviceId)
+        external
+        onlyDeviceOwner(_deviceId)
+        deviceExists(_deviceId)
+        returns (Sapphire.Curve25519PublicKey publicKey)
+    {
+        require(
+            Sapphire.Curve25519PublicKey.unwrap(devices[_deviceId].publicKey) == bytes32(0),
+            "Device already has a key pair"
+        );
+
+        doGenerateDeviceKeyPair(_deviceId);
+        return devices[_deviceId].publicKey;
+    }
+
+   
+    function doGenerateDeviceKeyPair(address _deviceId) internal
+    {
+        if (block.chainid != 0x5afe) {
+            return;
+        }
+        // Generate Curve25519 key pair for the device
+        bytes memory personalization = abi.encodePacked("ZTNA_DEVICE_", _deviceId);
+        (Sapphire.Curve25519PublicKey pk, Sapphire.Curve25519SecretKey sk) =
+            Sapphire.generateCurve25519KeyPair(personalization);
+
+        devices[_deviceId].publicKey = pk;
+        devices[_deviceId].privateKey = sk;
     }
 
     // ======== Tag Management ========
@@ -722,6 +844,18 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return deviceProperties[_deviceId][_key];
     }
 
+    function getDeviceProperties(address _deviceId, string[] memory _keys) external view onlyMemberOrDevice(_deviceId) returns (string[] memory) {
+        return doGetDeviceProperties(_deviceId, _keys);
+    }
+
+    function doGetDeviceProperties(address _deviceId, string[] memory _keys) internal view returns (string[] memory) {
+        string[] memory values = new string[](_keys.length);
+        for (uint256 i = 0; i < _keys.length; i++) {
+            values[i] = deviceProperties[_deviceId][_keys[i]];
+        }
+        return values;
+    }
+
     function setTagProperty(address _tagId, string memory _key, string memory _value)
         external
         onlyAdmin
@@ -807,6 +941,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
     }
 
     function Version() external pure override returns (uint256) {
-        return 802;
+        return 803;
     }
 }
