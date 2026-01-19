@@ -215,6 +215,6 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     }
 
     function Version() external pure returns (uint256) {
-        return 114;
+        return 115;
     }
 }

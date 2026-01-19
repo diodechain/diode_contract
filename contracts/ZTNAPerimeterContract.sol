@@ -701,7 +701,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         external
         onlyDeviceOwner(_deviceId)
         tagExists(_tagId)
-        returns (bool)
     {
         require(devices[_deviceId].owner == msg.sender || users[msg.sender].isAdmin, "AUTH");
 
@@ -722,7 +721,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         external
         deviceExists(_deviceId)
         tagExists(_tagId)
-        returns (bool)
     {
         require(devices[_deviceId].owner == msg.sender || users[msg.sender].isAdmin, "AUTH");
 
