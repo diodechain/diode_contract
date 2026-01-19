@@ -19,6 +19,12 @@ contract TestDrive is Drive {
             _value := bns_name.slot
         }
     }
+
+    function join_code_data_slot() public pure returns (uint256 _value) {
+        assembly {
+            _value := join_code_data.slot
+        }
+    }
 }
 
 contract DriveTest {
@@ -158,6 +164,7 @@ contract DriveTest {
     function testSlotPos() public {
         TestDrive test = new TestDrive();
         Assert.equal(test.name_slot(), 57, "name_slot should be at 57");
+        Assert.equal(test.join_code_data_slot(), 64, "join_code_data_slot should be at 64");
     }
 
     function testStatusAggregateV1() public {

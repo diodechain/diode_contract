@@ -31,7 +31,6 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
-    Set.Data whitelist;
 
     struct JoinCodeInfo {
         address secret;
@@ -43,6 +42,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
 
     Set.Data join_code_set;
     mapping(address => JoinCodeInfo) join_code_data;
+    Set.Data whitelist;
 
     constructor(address _bns) {
         BNS = _bns;
