@@ -697,11 +697,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         emit TagRemoved(_tagId);
     }
 
-    function addDeviceToTag(address _deviceId, address _tagId)
-        external
-        onlyDeviceOwner(_deviceId)
-        tagExists(_tagId)
-    {
+    function addDeviceToTag(address _deviceId, address _tagId) external onlyDeviceOwner(_deviceId) tagExists(_tagId) {
         require(devices[_deviceId].owner == msg.sender || users[msg.sender].isAdmin, "AUTH");
 
         _addDeviceToTag(_deviceId, _tagId);
@@ -717,11 +713,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         emit DeviceAddedToTag(_deviceId, _tagId);
     }
 
-    function removeDeviceFromTag(address _deviceId, address _tagId)
-        external
-        deviceExists(_deviceId)
-        tagExists(_tagId)
-    {
+    function removeDeviceFromTag(address _deviceId, address _tagId) external deviceExists(_deviceId) tagExists(_tagId) {
         require(devices[_deviceId].owner == msg.sender || users[msg.sender].isAdmin, "AUTH");
 
         _removeDeviceFromTag(_deviceId, _tagId);
