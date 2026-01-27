@@ -85,7 +85,8 @@ contract ChatGroup is ProtectedRoleGroup {
     }
 
     function InfoAggregateV1(uint256 max_size) external returns (Info memory) {
-        if (msg.sender == address(zone()) || members.IsMember(msg.sender)) {
+        address _zone = address(zone());
+        if (_zone == address(0) || msg.sender == _zone || role(msg.sender) >= RoleType.None) {
             MemberInfo[] memory _member_infos = MemberRoles(Members(0, max_size));
             return Info({
                 chat: address(this),
