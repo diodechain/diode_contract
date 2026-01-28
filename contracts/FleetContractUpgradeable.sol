@@ -97,6 +97,12 @@ contract FleetContractUpgradeable is IFleetContract {
         return operator;
     }
 
+    function transferOperator(address payable _newOperator) public virtual onlyOperator {
+        require(_newOperator != address(0), "New operator cannot be zero address");
+        operator = _newOperator;
+        accountant = _newOperator;
+    }
+
     function SetDeviceAllowlist(address _client, bool _value) public virtual onlyOperator {
         allowlist[_client] = _value;
     }

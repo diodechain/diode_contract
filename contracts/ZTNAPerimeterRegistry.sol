@@ -8,6 +8,7 @@ import "./ManagedProxy.sol";
 import "./deps/Set.sol";
 import "./ZTNAPerimeterContract.sol";
 import "./ZTNAWallet.sol";
+import "./ZTNAOrganisation.sol";
 
 interface InitializableFleet {
     function initialize(address payable _owner, string memory _label) external;
@@ -15,6 +16,10 @@ interface InitializableFleet {
 
 interface InitializableUser {
     function initialize(address payable _owner) external;
+}
+
+interface InitializableOrganisation {
+    function initialize(address payable _owner, string memory _name, string memory _description) external;
 }
 
 // Per user Fleet Registry used for Tracking user fleets in the Perimeter ManagementUser Interface
@@ -57,12 +62,24 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
 
     mapping(address => address) private userWallets;
 
+    // Organisation tracking
+    mapping(address => address[]) private userOrganisations;
+
+    // Organisation membership tracking (user -> set of orgs)
+    mapping(address => Set.Data) private adminOrganisations; // orgs where user is admin
+    mapping(address => Set.Data) private memberOrganisations; // orgs where user is member
+
+    // Track valid organisation addresses (to validate callbacks)
+    mapping(address => bool) private validOrganisations;
+
     address private immutable perimeterImplementation;
     address private immutable userImplementation;
+    address private immutable organisationImplementation;
 
     constructor() {
         perimeterImplementation = address(new ZTNAPerimeterContract());
         userImplementation = address(new ZTNAWallet());
+        organisationImplementation = address(new ZTNAOrganisation(address(this)));
     }
 
     // function Validate() external view returns (string memory) {
@@ -89,6 +106,8 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
             return address(perimeterImplementation);
         } else if (what == "ZTNAWallet") {
             return address(userImplementation);
+        } else if (what == "ZTNAOrganisation") {
+            return address(organisationImplementation);
         }
         return address(0);
     }
@@ -214,7 +233,151 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
         return _toFleetMetadataView(fleets[sharedFleets[sender][msg.sender].items[fleetIndex]]);
     }
 
+    // ======== Organisation Support ========
+
+    /**
+     * @notice Create a new organisation. The caller becomes the owner.
+     * @param _name The name of the organisation
+     * @param _description A description of the organisation
+     * @return org The address of the newly created organisation
+     */
+    function CreateOrganisation(string memory _name, string memory _description) public returns (address org) {
+        org = address(new ManagedProxy(this, "ZTNAOrganisation"));
+        InitializableOrganisation(org).initialize(payable(msg.sender), _name, _description);
+        userOrganisations[msg.sender].push(org);
+        validOrganisations[org] = true;
+        return org;
+    }
+
+    /**
+     * @notice Create a new organisation with default name
+     * @return The address of the newly created organisation
+     */
+    function CreateOrganisation() external returns (address) {
+        return
+            CreateOrganisation(string(abi.encodePacked("Organisation ", userOrganisations[msg.sender].length + 1)), "");
+    }
+
+    /**
+     * @notice Get the number of organisations owned by the caller
+     * @return The number of organisations
+     */
+    function GetOwnOrganisationCount() external view returns (uint256) {
+        return userOrganisations[msg.sender].length;
+    }
+
+    /**
+     * @notice Get an organisation owned by the caller by index
+     * @param orgIndex The index of the organisation
+     * @return The organisation address
+     */
+    function GetOwnOrganisation(uint256 orgIndex) external view returns (address) {
+        return userOrganisations[msg.sender][orgIndex];
+    }
+
+    /**
+     * @notice Get the ZTNAOrganisation implementation contract address
+     * @return The address of the organisation implementation
+     */
+    function OrganisationContract() external view returns (address) {
+        return organisationImplementation;
+    }
+
+    // ======== Organisation Membership Callbacks ========
+    // These are called by organisation contracts to track membership in the registry
+
+    modifier onlyValidOrganisation() {
+        require(validOrganisations[msg.sender], "Caller is not a valid organisation");
+        _;
+    }
+
+    /**
+     * @notice Called by organisation when adding an admin
+     * @param _user The user being added as admin
+     */
+    function orgAddAdmin(address _user) external onlyValidOrganisation {
+        Set.Add(adminOrganisations[_user], msg.sender);
+    }
+
+    /**
+     * @notice Called by organisation when removing an admin
+     * @param _user The user being removed as admin
+     */
+    function orgRemoveAdmin(address _user) external onlyValidOrganisation {
+        Set.Remove(adminOrganisations[_user], msg.sender);
+    }
+
+    /**
+     * @notice Called by organisation when adding a member
+     * @param _user The user being added as member
+     */
+    function orgAddMember(address _user) external onlyValidOrganisation {
+        Set.Add(memberOrganisations[_user], msg.sender);
+    }
+
+    /**
+     * @notice Called by organisation when removing a member
+     * @param _user The user being removed as member
+     */
+    function orgRemoveMember(address _user) external onlyValidOrganisation {
+        Set.Remove(memberOrganisations[_user], msg.sender);
+    }
+
+    /**
+     * @notice Called by organisation when transferring ownership
+     * @param _previousOwner The previous owner
+     * @param _newOwner The new owner
+     */
+    function orgTransferOwnership(address _previousOwner, address _newOwner) external onlyValidOrganisation {
+        // Remove org from previous owner's list
+        address[] storage prevOwnerOrgs = userOrganisations[_previousOwner];
+        for (uint256 i = 0; i < prevOwnerOrgs.length; i++) {
+            if (prevOwnerOrgs[i] == msg.sender) {
+                prevOwnerOrgs[i] = prevOwnerOrgs[prevOwnerOrgs.length - 1];
+                prevOwnerOrgs.pop();
+                break;
+            }
+        }
+        // Add org to new owner's list
+        userOrganisations[_newOwner].push(msg.sender);
+    }
+
+    // ======== Organisation Membership Queries ========
+    // These allow users to query which organisations they belong to
+
+    /**
+     * @notice Get all organisations where the caller is an admin
+     * @return Array of organisation addresses
+     */
+    function GetOrganisationsWhereAdmin() external view returns (address[] memory) {
+        return Set.Members(adminOrganisations[msg.sender]);
+    }
+
+    /**
+     * @notice Get all organisations where the caller is a member
+     * @return Array of organisation addresses
+     */
+    function GetOrganisationsWhereMember() external view returns (address[] memory) {
+        return Set.Members(memberOrganisations[msg.sender]);
+    }
+
+    /**
+     * @notice Get all organisations the caller owns, is admin of, or is member of
+     * @return ownedOrgs Organisations owned by caller
+     * @return adminOrgs Organisations where caller is admin
+     * @return memberOrgs Organisations where caller is member
+     */
+    function GetAllMyOrganisations()
+        external
+        view
+        returns (address[] memory ownedOrgs, address[] memory adminOrgs, address[] memory memberOrgs)
+    {
+        ownedOrgs = userOrganisations[msg.sender];
+        adminOrgs = Set.Members(adminOrganisations[msg.sender]);
+        memberOrgs = Set.Members(memberOrganisations[msg.sender]);
+    }
+
     function Version() external pure returns (uint256) {
-        return 115;
+        return 118;
     }
 }

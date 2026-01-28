@@ -239,6 +239,23 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         users[_userAddress].isAdmin = _isAdmin;
     }
 
+    /**
+     * @notice Add a user as admin to this perimeter. If the user doesn't exist, create them first.
+     * @param _userAddress The address of the user to add as admin
+     * @param _nickname The nickname for the user (used if creating new user)
+     */
+    function addPerimeterAdmin(address _userAddress, string memory _nickname) external onlyOperator {
+        require(_userAddress != address(0), "IUA");
+
+        // If user doesn't exist, create them
+        if (!users[_userAddress].active) {
+            _createUser(_userAddress, _nickname, "", "", true);
+        } else {
+            // User exists, just set admin status
+            users[_userAddress].isAdmin = true;
+        }
+    }
+
     function removeUser(address _userAddress) external onlyOperator userExists(_userAddress) {
         // Remove user from all groups
         address[] memory userGroupsList = Set.Members(users[_userAddress].groups);
@@ -885,6 +902,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
     }
 
     function Version() external pure override returns (uint256) {
-        return 803;
+        return 804;
     }
 }
