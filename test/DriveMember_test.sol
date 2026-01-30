@@ -178,20 +178,20 @@ contract DriveMemberTest is Test {
 
     function testFactoryUpgrade() public {
         uint256 ownerKey = 0x1111111111111111111111111111111111111111111111111111111111111111;
-        address owner = vm.addr(ownerKey);
+        address _owner = vm.addr(ownerKey);
 
         bytes32 salt = hex"0022002200220022002200220022002200220022002200220022002200220022";
-        address raw_member = factory.Create(payable(owner), salt, address(member_impl));
+        address raw_member = factory.Create(payable(_owner), salt, address(member_impl));
         DriveMember member = DriveMember(raw_member);
 
-        Assert.equal(member.owner(), owner, "owner should be the deployer");
+        Assert.equal(member.owner(), _owner, "owner should be the deployer");
         Assert.equal(member.Version(), 123, "initial version should be 123");
 
         DriveMemberV2 newImpl = new DriveMemberV2();
 
         // Use vm.prank to call Nonce as the owner (required for onlyReader modifier)
-        vm.prank(owner);
-        uint256 nonce = member.Nonce(owner);
+        vm.prank(_owner);
+        uint256 nonce = member.Nonce(_owner);
         Assert.equal(nonce, 0, "nonce should start at 0");
 
         uint256 deadline = block.timestamp + 1 hours;

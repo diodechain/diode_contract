@@ -2,10 +2,15 @@
 
 ## Oasis Sapphire Mainnet
 
-Version 105     0x39A97a9A46DF4daEFEcBf1D2c24288e801c306d1
-Version 113     0x5c6ED819886b77017baAf81ef0E7abEAcb17bD1D
+Registry Version 105     0x39A97a9A46DF4daEFEcBf1D2c24288e801c306d1
+Registry Version 113     0x5c6ED819886b77017baAf81ef0E7abEAcb17bD1D
+Registry Version 120     0x6d8b523dB9d13a37BFDC7c8daCFAc763BDb17740
 
-Proxy:          0xf90314E31D34C7ad82382f1a9dCB5Fc0FDA71ACe
+Organisation Version 202    0x395d376a2A335F1956f9276771Ea8E529D2684E6
+Perimeter    Version 804    0xA2719cE8e1CEEBF27C4CCbCAbCEbEc2756aBdc2F
+Wallet       Version 104    0x6D40092ECFDcd0DaB23b57EFD5467AeE3e901983
+
+Registry Proxy:          0xf90314E31D34C7ad82382f1a9dCB5Fc0FDA71ACe
 
 ## Oasis Sapphire Testnet
 

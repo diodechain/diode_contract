@@ -7,6 +7,7 @@ pragma solidity ^0.8.20;
 import "./deps/Set.sol";
 import "./ZTNAPerimeterContract.sol";
 import "./FleetContractUpgradeable.sol";
+import "./IZTNAContract.sol";
 
 /**
  * @title ZTNAOrganisation
@@ -23,7 +24,7 @@ import "./FleetContractUpgradeable.sol";
  * 5. Owners and Admins can create new perimeters within the organization
  * 6. Admins can add themselves as admins to perimeters owned by the organization
  */
-contract ZTNAOrganisation {
+contract ZTNAOrganisation is IZTNAContract {
     using Set for Set.Data;
 
     // ======== Structs ========
@@ -85,7 +86,7 @@ contract ZTNAOrganisation {
 
     // ======== Initialization ========
     function initialize(address payable _owner, string memory _name, string memory _description) external {
-        require(!initialized, "Already initialized");
+        require(!initialized, "AI");
         initialized = true;
 
         owner = _owner;
@@ -96,23 +97,43 @@ contract ZTNAOrganisation {
 
     // ======== Modifiers ========
     modifier onlyOwner() {
-        require(owner == msg.sender, "NOT_OWNER");
+        _requireOwner(msg.sender);
         _;
+    }
+
+    function _requireOwner(address _user) internal view {
+        require(owner == _user, "YNO");
     }
 
     modifier onlyOwnerOrAdmin() {
-        require(owner == msg.sender || _isAdmin(msg.sender), "NOT_OWNER_OR_ADMIN");
+        _requireOwnerOrAdmin(msg.sender);
         _;
+    }
+
+    function _requireOwnerOrAdmin(address _user) internal view {
+        require(owner == _user || _isAdmin(_user), "YNOA");
     }
 
     modifier onlyMember() {
-        require(owner == msg.sender || _isMember(msg.sender), "NOT_MEMBER");
+        _requireMemberOrOwner(msg.sender);
         _;
     }
 
+    function _requireMemberOrOwner(address _user) internal view {
+        require(owner == _user || _isMember(_user), "YNOM");
+    }
+
+    function _requireMember(address _user) internal view {
+        require(_isMember(_user), "YNM");
+    }
+
     modifier onlyPerimeterOwner(address _perimeter) {
-        require(FleetContractUpgradeable(_perimeter).Operator() == msg.sender, "NOT_PERIMETER_OWNER");
+        _requirePerimeterOwner(_perimeter);
         _;
+    }
+
+    function _requirePerimeterOwner(address _perimeter) internal view {
+        require(FleetContractUpgradeable(_perimeter).Operator() == msg.sender, "YNPO");
     }
 
     // ======== Internal Helper Functions ========
@@ -218,7 +239,7 @@ contract ZTNAOrganisation {
         external
         onlyOwnerOrAdmin
     {
-        require(memberInfo[_member].active, "NOT_MEMBER");
+        _requireMember(_member);
 
         memberInfo[_member].nickname = _nickname;
         memberInfo[_member].email = _email;
@@ -233,7 +254,7 @@ contract ZTNAOrganisation {
      * @param _adminStatus Whether the member should be an admin
      */
     function setAdmin(address _member, bool _adminStatus) external onlyOwner {
-        require(memberInfo[_member].active, "NOT_MEMBER");
+        _requireMember(_member);
         require(memberInfo[_member].isAdmin != _adminStatus, "ALREADY_SET");
 
         memberInfo[_member].isAdmin = _adminStatus;
@@ -253,7 +274,7 @@ contract ZTNAOrganisation {
      * @param _admin The admin address
      */
     function removeAdmin(address _admin) external onlyOwner {
-        require(memberInfo[_admin].active, "NOT_MEMBER");
+        _requireMember(_admin);
         require(memberInfo[_admin].isAdmin, "NOT_ADMIN");
 
         memberInfo[_admin].isAdmin = false;
@@ -267,7 +288,7 @@ contract ZTNAOrganisation {
      * @param _member The address to remove as member
      */
     function removeMember(address _member) external onlyOwnerOrAdmin {
-        require(memberInfo[_member].active, "NOT_MEMBER");
+        _requireMember(_member);
         // Admins can only remove non-admin members
         require(msg.sender == owner || !memberInfo[_member].isAdmin, "ONLY_OWNER_CAN_REMOVE_ADMIN");
 
@@ -444,7 +465,7 @@ contract ZTNAOrganisation {
      * @return MemberView struct
      */
     function getMember(address _member) external view onlyMember returns (MemberView memory) {
-        require(memberInfo[_member].active, "NOT_MEMBER");
+        _requireMember(_member);
         Member storage m = memberInfo[_member];
         return MemberView({
             user: m.user,
@@ -519,6 +540,10 @@ contract ZTNAOrganisation {
 
     function Version() external pure returns (uint256) {
         return 202;
+    }
+
+    function Type() external pure returns (bytes32) {
+        return "ZTNAOrganisation";
     }
 }
 

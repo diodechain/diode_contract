@@ -7,12 +7,13 @@ pragma solidity ^0.8.20;
 import "./FleetContractUpgradeable.sol";
 import "./deps/Set.sol";
 import "./sapphire/Sapphire.sol";
+import "./IZTNAContract.sol";
 
 /**
  * ZTNAPerimeterContract adds new functionality around Users, User Groups, Devices, Tags (Groups of Devices)
  * similar to Tailscale's tailnet configuration panel
  */
-contract ZTNAPerimeterContract is FleetContractUpgradeable {
+contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     using Set for Set.Data;
 
     // Fleet label
@@ -141,51 +142,83 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
 
     // ======== Modifiers ========
     modifier userExists(address _userAddress) {
-        require(users[_userAddress].active, "UNE");
-        _;
-    }
-
-    modifier userGroupExists(address _groupId) {
-        require(userGroups[_groupId].active, "UGNE");
-        _;
-    }
-
-    modifier deviceExists(address _deviceId) {
-        require(devices[_deviceId].active, "DNE");
-        _;
-    }
-
-    modifier tagExists(address _tagId) {
-        require(tags[_tagId].active, "TNE");
+        _requireUserExists(_userAddress);
         _;
     }
 
     modifier onlyMember() {
-        require(users[msg.sender].active, "UNE");
+        _requireUserExists(msg.sender);
         _;
+    }
+
+    function _requireUserExists(address _userAddress) internal view {
+        require(users[_userAddress].active, "UNE");
+    }
+
+    modifier userGroupExists(address _groupId) {
+        _requireUserGroupExists(_groupId);
+        _;
+    }
+
+    function _requireUserGroupExists(address _groupId) internal view {
+        require(userGroups[_groupId].active, "UGNE");
+    }
+
+    modifier deviceExists(address _deviceId) {
+        _requireDeviceExists(_deviceId);
+        _;
+    }
+
+    function _requireDeviceExists(address _deviceId) internal view {
+        require(devices[_deviceId].active, "DNE");
+    }
+
+    modifier tagExists(address _tagId) {
+        _requireTagExists(_tagId);
+        _;
+    }
+
+    function _requireTagExists(address _tagId) internal view {
+        require(tags[_tagId].active, "TNE");
     }
 
     modifier onlyMemberOrDevice(address _deviceId) {
+        _requireMemberOrDevice(_deviceId);
+        _;
+    }
+
+    function _requireMemberOrDevice(address _deviceId) internal view {
         require(users[msg.sender].active || msg.sender == _deviceId, "AUTH");
         require(devices[_deviceId].active, "DNE");
-        _;
     }
 
     modifier onlyAdmin() {
-        require(users[msg.sender].isAdmin || msg.sender == operator, "AUTH");
+        _requireAdmin(msg.sender);
         _;
+    }
+
+    function _requireAdmin(address _userAddress) internal view {
+        require(users[_userAddress].isAdmin || _userAddress == operator, "AUTH");
     }
 
     modifier onlyDeviceOwner(address _deviceId) {
-        require(devices[_deviceId].active, "DNE");
-        require(devices[_deviceId].owner == msg.sender || users[msg.sender].isAdmin, "AUTH");
+        _requireDeviceOwner(_deviceId);
         _;
     }
 
+    function _requireDeviceOwner(address _deviceId) internal view {
+        require(devices[_deviceId].active, "DNE");
+        require(devices[_deviceId].owner == msg.sender || users[msg.sender].isAdmin, "AUTH");
+    }
+
     modifier onlyDevice(address _deviceId) {
+        _requireDevice(_deviceId);
+        _;
+    }
+
+    function _requireDevice(address _deviceId) internal view {
         require(msg.sender == _deviceId, "AUTH");
         require(devices[_deviceId].active, "DNE");
-        _;
     }
 
     // ======== User Management ========
@@ -901,7 +934,11 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable {
         return (tag.id, tag.name, tag.description, tag.color, tag.createdAt, tag.createdBy, tag.active);
     }
 
-    function Version() external pure override returns (uint256) {
+    function Version() external pure override(FleetContractUpgradeable, IZTNAContract) returns (uint256) {
         return 804;
+    }
+
+    function Type() external pure returns (bytes32) {
+        return "ZTNAPerimeterContract";
     }
 }

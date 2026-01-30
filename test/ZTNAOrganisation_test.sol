@@ -27,6 +27,9 @@ contract ZTNAOrganisationTest is Test {
 
         // Deploy the registry which also deploys the organisation implementation
         registry = new ZTNAPerimeterRegistry();
+        registry.SetContractInfo(new ZTNAOrganisation(address(registry)));
+        registry.SetContractInfo(new ZTNAPerimeterContract());
+        registry.SetContractInfo(new ZTNAWallet());
     }
 
     // ======== Helper Functions ========
@@ -589,7 +592,7 @@ contract ZTNAOrganisationTest is Test {
     }
 
     function testRegistryReturnsAddress() public view {
-        address orgImpl = registry.OrganisationContract();
+        address orgImpl = registry.resolve("ZTNAOrganisation");
         Assert.notEqual(orgImpl, address(0), "Organisation implementation should not be zero");
     }
 

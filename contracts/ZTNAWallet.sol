@@ -5,8 +5,9 @@
 pragma solidity ^0.8.20;
 
 import "./sapphire/auth/SiweAuth.sol";
+import "./IZTNAContract.sol";
 
-contract ZTNAWallet is SiweAuth {
+contract ZTNAWallet is SiweAuth, IZTNAContract {
     address owner;
 
     constructor() SiweAuth("ZTNAWallet") {
@@ -55,5 +56,9 @@ contract ZTNAWallet is SiweAuth {
 
     function Version() external pure returns (uint256) {
         return 104;
+    }
+
+    function Type() external pure returns (bytes32) {
+        return "ZTNAWallet";
     }
 }

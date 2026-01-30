@@ -9,6 +9,7 @@ import "./deps/Set.sol";
 import "./ZTNAPerimeterContract.sol";
 import "./ZTNAWallet.sol";
 import "./ZTNAOrganisation.sol";
+import "./IZTNAContract.sol";
 
 interface InitializableFleet {
     function initialize(address payable _owner, string memory _label) external;
@@ -23,7 +24,7 @@ interface InitializableOrganisation {
 }
 
 // Per user Fleet Registry used for Tracking user fleets in the Perimeter ManagementUser Interface
-contract ZTNAPerimeterRegistry is IProxyResolver {
+contract ZTNAPerimeterRegistry is IProxyResolver, IZTNAContract {
     bytes32 internal constant OWNER_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
     using Set for Set.Data;
@@ -42,6 +43,11 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
         address fleet;
         uint256 createdAt;
         uint256 updatedAt;
+    }
+
+    struct ContractInfo {
+        uint256 version;
+        address implementation;
     }
 
     // All fleet metadata
@@ -72,44 +78,31 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     // Track valid organisation addresses (to validate callbacks)
     mapping(address => bool) private validOrganisations;
 
-    address private immutable perimeterImplementation;
-    address private immutable userImplementation;
-    address private immutable organisationImplementation;
+    mapping(bytes32 => ContractInfo) private contractInfo;
 
     constructor() {
-        perimeterImplementation = address(new ZTNAPerimeterContract());
-        userImplementation = address(new ZTNAWallet());
-        organisationImplementation = address(new ZTNAOrganisation(address(this)));
+        address owner = msg.sender;
+        assembly {
+            sstore(OWNER_SLOT, owner)
+        }
     }
-
-    // function Validate() external view returns (string memory) {
-    //     if (perimeterImplementation == address(0)) {
-    //         return "Perimeter implementation not set";
-    //     }
-    //     if (userImplementation == address(0)) {
-    //         return "User implementation not set";
-    //     }
-    //     return "Contract is valid";
-    // }
-
-    // function SetImplementation(bytes32 what, address implementation) external {
-    //     require(msg.sender == Owner(), "You do not have permission to set the default fleet implementation");
-    //     if (what == "ZTNAPerimeterRegistry") {
-    //         perimeterImplementation = implementation;
-    //     } else if (what == "ZTNAWallet") {
-    //         userImplementation = implementation;
-    //     }
-    // }
 
     function resolve(bytes32 what) external view returns (address) {
         if (what == "ZTNAPerimeterRegistry") {
-            return address(perimeterImplementation);
-        } else if (what == "ZTNAWallet") {
-            return address(userImplementation);
-        } else if (what == "ZTNAOrganisation") {
-            return address(organisationImplementation);
+            return contractInfo["ZTNAPerimeterContract"].implementation;
         }
-        return address(0);
+        
+        return contractInfo[what].implementation;
+    }
+
+    function SetContractInfo(IZTNAContract _contract) external {
+        require(msg.sender == Owner(), "YNO");
+        bytes32 _type = _contract.Type();
+        uint256 old_version = contractInfo[_type].version;
+        uint256 new_version = _contract.Version();
+        require(new_version > old_version, "IV");
+        contractInfo[_type].implementation = address(_contract);
+        contractInfo[_type].version = new_version;
     }
 
     function Owner() public view returns (address) {
@@ -160,8 +153,12 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
         CreateFleet(string(abi.encodePacked("Fleet ", userFleets[msg.sender].length + 1)));
     }
 
+    function _requireFleetOwner(address fleet) internal view {
+        require(fleets[fleet].owner == msg.sender, "YNO");
+    }
+
     function AddFleetUser(address fleet, address user) external {
-        require(fleets[fleet].owner == msg.sender, "You do not own this fleet");
+        _requireFleetOwner(fleet);
         Set.Add(fleets[fleet].users, user);
         fleets[fleet].updatedAt = block.timestamp;
         Set.Add(users[user], msg.sender);
@@ -169,7 +166,7 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     }
 
     function RemoveFleetUser(address fleet, address user) external {
-        require(fleets[fleet].owner == msg.sender, "You do not own this fleet");
+        _requireFleetOwner(fleet);
         Set.Remove(fleets[fleet].users, user);
         fleets[fleet].updatedAt = block.timestamp;
         Set.Remove(sharedFleets[msg.sender][user], fleet);
@@ -192,27 +189,22 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
         return _toFleetMetadataView(fleets[userFleets[msg.sender][fleetIndex]]);
     }
 
+    function _requireMember(address fleet) internal view {
+        require(fleets[fleet].owner == msg.sender || Set.IsMember(fleets[fleet].users, msg.sender), "YNM");
+    }
+
     function GetFleetUserCount(address fleet) external view returns (uint256) {
-        require(
-            fleets[fleet].owner == msg.sender || Set.IsMember(fleets[fleet].users, msg.sender),
-            "You do not own this fleet"
-        );
+        _requireMember(fleet);
         return Set.Size(fleets[fleet].users);
     }
 
     function GetFleetUser(address fleet, uint256 userIndex) external view returns (address) {
-        require(
-            fleets[fleet].owner == msg.sender || Set.IsMember(fleets[fleet].users, msg.sender),
-            "You do not own this fleet"
-        );
+        _requireMember(fleet);
         return fleets[fleet].users.items[userIndex];
     }
 
     function GetFleet(address fleet) external view returns (FleetMetadataView memory) {
-        require(
-            fleets[fleet].owner == msg.sender || Set.IsMember(fleets[fleet].users, msg.sender),
-            "You do not own this fleet"
-        );
+        _requireMember(fleet);
         return _toFleetMetadataView(fleets[fleet]);
     }
 
@@ -275,19 +267,11 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
         return userOrganisations[msg.sender][orgIndex];
     }
 
-    /**
-     * @notice Get the ZTNAOrganisation implementation contract address
-     * @return The address of the organisation implementation
-     */
-    function OrganisationContract() external view returns (address) {
-        return organisationImplementation;
-    }
-
     // ======== Organisation Membership Callbacks ========
     // These are called by organisation contracts to track membership in the registry
 
     modifier onlyValidOrganisation() {
-        require(validOrganisations[msg.sender], "Caller is not a valid organisation");
+        require(validOrganisations[msg.sender], "CNO");
         _;
     }
 
@@ -378,6 +362,10 @@ contract ZTNAPerimeterRegistry is IProxyResolver {
     }
 
     function Version() external pure returns (uint256) {
-        return 118;
+        return 120;
+    }
+
+    function Type() external pure returns (bytes32) {
+        return "ZTNAPerimeterRegistry";
     }
 }

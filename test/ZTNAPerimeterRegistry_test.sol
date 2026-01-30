@@ -38,6 +38,8 @@ contract ZTNAPerimeterRegistryTest {
 
         // Create the FleetRegistry - it already has a default implementation set in constructor
         fleetRegistry = new ZTNAPerimeterRegistry();
+        fleetRegistry.SetContractInfo(new ZTNAPerimeterContract());
+        fleetRegistry.SetContractInfo(new ZTNAWallet());
 
         // Set up test addresses
         testUser1 = address(0x1234);
