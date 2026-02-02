@@ -404,7 +404,7 @@ contract ZTNAOrganisationTest is Test {
     }
 
     function testRegistryVersionUpdated() public view {
-        Assert.equal(registry.Version(), 118, "Registry version should be 118");
+        Assert.equal(registry.Version(), 120, "Registry version should be 120");
     }
 
     function testOrganisationContractVersion() public {
@@ -871,7 +871,7 @@ contract ZTNAOrganisationTest is Test {
     }
 
     function testRegistryVersionUpdatedWithMembership() public view {
-        Assert.equal(registry.Version(), 118, "Registry version should be 118");
+        Assert.equal(registry.Version(), 120, "Registry version should be 120");
     }
 
     function testOrganisationVersionUpdatedWithMembership() public {
