@@ -111,6 +111,13 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     address[] private allDevices;
     address[] private allTags;
 
+    string private constant DEFAULT_TAG_NAME = "default";
+    string private constant DEFAULT_TAG_DESCRIPTION = "Default tag for perimeter settings";
+    string private constant DEFAULT_TAG_COLOR = "#000";
+    string private constant DEFAULT_FLEET_KEY = "fleet";
+    string private constant DEFAULT_FLEET_VALUE = "0x6000000000000000000000000000000000000000";
+    address private defaultTagId;
+
     // Override initialize to include label
     function initialize(address payable _owner, string memory _label) public initializer {
         super.initialize(_owner);
@@ -123,6 +130,8 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
         // Create default user group
         address adminGroupId = _createUserGroup("Administrators", "Users with administrative privileges");
         _addUserToGroup(_owner, adminGroupId);
+
+        _initDefaultTag(_owner);
     }
 
     // For backward compatibility
@@ -700,12 +709,14 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     }
 
     // ======== Tag Management ========
-    function createTag(string memory _name, string memory _description, string memory _color)
-        external
-        onlyAdmin
-        returns (address)
-    {
-        address tagId = address(bytes20(keccak256(abi.encodePacked("TAG", tagCounter++, block.timestamp))));
+    function _createTagInternal(
+        string memory _name,
+        string memory _description,
+        string memory _color,
+        address _createdBy,
+        bool _addToAllTags
+    ) private returns (address tagId) {
+        tagId = address(bytes20(keccak256(abi.encodePacked("TAG", tagCounter++, block.timestamp))));
 
         // Initialize the tag struct fields individually
         tags[tagId].id = tagId;
@@ -713,12 +724,34 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
         tags[tagId].description = _description;
         tags[tagId].color = _color;
         tags[tagId].createdAt = block.timestamp;
-        tags[tagId].createdBy = msg.sender;
+        tags[tagId].createdBy = _createdBy;
         tags[tagId].active = true;
 
-        allTags.push(tagId);
+        if (_addToAllTags) {
+            allTags.push(tagId);
+        }
+
         emit TagCreated(tagId, _name);
         return tagId;
+    }
+
+    function _initDefaultTag(address _owner) private {
+        if (defaultTagId != address(0)) {
+            return;
+        }
+
+        defaultTagId =
+            _createTagInternal(DEFAULT_TAG_NAME, DEFAULT_TAG_DESCRIPTION, DEFAULT_TAG_COLOR, _owner, false);
+        tagProperties[defaultTagId][DEFAULT_FLEET_KEY] = DEFAULT_FLEET_VALUE;
+        emit TagPropertySet(defaultTagId, DEFAULT_FLEET_KEY, DEFAULT_FLEET_VALUE);
+    }
+
+    function createTag(string memory _name, string memory _description, string memory _color)
+        external
+        onlyAdmin
+        returns (address)
+    {
+        return _createTagInternal(_name, _description, _color, msg.sender, true);
     }
 
     function updateTag(address _tagId, string memory _name, string memory _description, string memory _color)
@@ -734,6 +767,8 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     }
 
     function removeTag(address _tagId) external onlyAdmin tagExists(_tagId) {
+        require(_tagId != defaultTagId, "DEFAULT_TAG");
+
         // Remove all devices from this tag
         address[] memory tagDevicesList = Set.Members(tagDevices[_tagId]);
         for (uint256 i = 0; i < tagDevicesList.length; i++) {
@@ -898,6 +933,10 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
             }
         }
 
+        if (bytes(combinedValue).length == 0 && defaultTagId != address(0)) {
+            return tagProperties[defaultTagId][_key];
+        }
+
         return combinedValue;
     }
 
@@ -912,7 +951,28 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     }
 
     function getAllTags() external view onlyMember returns (address[] memory) {
-        return allTags;
+        if (defaultTagId == address(0)) {
+            return allTags;
+        }
+
+        uint256 count = 0;
+        for (uint256 i = 0; i < allTags.length; i++) {
+            if (allTags[i] != defaultTagId) {
+                count++;
+            }
+        }
+
+        address[] memory filteredTags = new address[](count);
+        uint256 index = 0;
+        for (uint256 i = 0; i < allTags.length; i++) {
+            address tagId = allTags[i];
+            if (tagId != defaultTagId) {
+                filteredTags[index] = tagId;
+                index++;
+            }
+        }
+
+        return filteredTags;
     }
 
     function getTag(address _tagId)
@@ -935,7 +995,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     }
 
     function Version() external pure override(FleetContractUpgradeable, IZTNAContract) returns (uint256) {
-        return 804;
+        return 805;
     }
 
     function Type() external pure returns (bytes32) {
