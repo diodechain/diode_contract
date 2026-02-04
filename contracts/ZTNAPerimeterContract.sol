@@ -951,28 +951,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     }
 
     function getAllTags() external view onlyMember returns (address[] memory) {
-        if (defaultTagId == address(0)) {
-            return allTags;
-        }
-
-        uint256 count = 0;
-        for (uint256 i = 0; i < allTags.length; i++) {
-            if (allTags[i] != defaultTagId) {
-                count++;
-            }
-        }
-
-        address[] memory filteredTags = new address[](count);
-        uint256 index = 0;
-        for (uint256 i = 0; i < allTags.length; i++) {
-            address tagId = allTags[i];
-            if (tagId != defaultTagId) {
-                filteredTags[index] = tagId;
-                index++;
-            }
-        }
-
-        return filteredTags;
+        return allTags;
     }
 
     function getTag(address _tagId)
