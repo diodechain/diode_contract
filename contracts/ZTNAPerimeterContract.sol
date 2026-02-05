@@ -111,12 +111,9 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     address[] private allDevices;
     address[] private allTags;
 
-    string private constant DEFAULT_TAG_NAME = "default";
-    string private constant DEFAULT_TAG_DESCRIPTION = "Default tag for perimeter settings";
-    string private constant DEFAULT_TAG_COLOR = "#000";
-    string private constant DEFAULT_FLEET_KEY = "fleet";
+    // Static default tag id used for fallback properties (not a real tag).
+    address private constant DEFAULT_TAG_ID = address(uint160(uint256(keccak256("diode_default_tag"))));
     string private constant DEFAULT_FLEET_VALUE = "0x6000000000000000000000000000000000000000";
-    address private defaultTagId;
 
     // Override initialize to include label
     function initialize(address payable _owner, string memory _label) public initializer {
@@ -130,8 +127,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
         // Create default user group
         address adminGroupId = _createUserGroup("Administrators", "Users with administrative privileges");
         _addUserToGroup(_owner, adminGroupId);
-
-        _initDefaultTag(_owner);
     }
 
     // For backward compatibility
@@ -709,14 +704,12 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     }
 
     // ======== Tag Management ========
-    function _createTagInternal(
-        string memory _name,
-        string memory _description,
-        string memory _color,
-        address _createdBy,
-        bool _addToAllTags
-    ) private returns (address tagId) {
-        tagId = address(bytes20(keccak256(abi.encodePacked("TAG", tagCounter++, block.timestamp))));
+    function createTag(string memory _name, string memory _description, string memory _color)
+        external
+        onlyAdmin
+        returns (address)
+    {
+        address tagId = address(bytes20(keccak256(abi.encodePacked("TAG", tagCounter++, block.timestamp))));
 
         // Initialize the tag struct fields individually
         tags[tagId].id = tagId;
@@ -724,34 +717,12 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
         tags[tagId].description = _description;
         tags[tagId].color = _color;
         tags[tagId].createdAt = block.timestamp;
-        tags[tagId].createdBy = _createdBy;
+        tags[tagId].createdBy = msg.sender;
         tags[tagId].active = true;
 
-        if (_addToAllTags) {
-            allTags.push(tagId);
-        }
-
+        allTags.push(tagId);
         emit TagCreated(tagId, _name);
         return tagId;
-    }
-
-    function _initDefaultTag(address _owner) private {
-        if (defaultTagId != address(0)) {
-            return;
-        }
-
-        defaultTagId =
-            _createTagInternal(DEFAULT_TAG_NAME, DEFAULT_TAG_DESCRIPTION, DEFAULT_TAG_COLOR, _owner, false);
-        tagProperties[defaultTagId][DEFAULT_FLEET_KEY] = DEFAULT_FLEET_VALUE;
-        emit TagPropertySet(defaultTagId, DEFAULT_FLEET_KEY, DEFAULT_FLEET_VALUE);
-    }
-
-    function createTag(string memory _name, string memory _description, string memory _color)
-        external
-        onlyAdmin
-        returns (address)
-    {
-        return _createTagInternal(_name, _description, _color, msg.sender, true);
     }
 
     function updateTag(address _tagId, string memory _name, string memory _description, string memory _color)
@@ -767,8 +738,6 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     }
 
     function removeTag(address _tagId) external onlyAdmin tagExists(_tagId) {
-        require(_tagId != defaultTagId, "DEFAULT_TAG");
-
         // Remove all devices from this tag
         address[] memory tagDevicesList = Set.Members(tagDevices[_tagId]);
         for (uint256 i = 0; i < tagDevicesList.length; i++) {
@@ -933,8 +902,12 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
             }
         }
 
-        if (bytes(combinedValue).length == 0 && defaultTagId != address(0)) {
-            return tagProperties[defaultTagId][_key];
+        if (bytes(combinedValue).length == 0) {
+            string memory defaultValue = tagProperties[DEFAULT_TAG_ID][_key];
+            if (bytes(defaultValue).length == 0 && keccak256(bytes(_key)) == keccak256("fleet")) {
+                return DEFAULT_FLEET_VALUE;
+            }
+            return defaultValue;
         }
 
         return combinedValue;
