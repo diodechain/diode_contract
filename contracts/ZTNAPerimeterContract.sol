@@ -904,7 +904,9 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
 
         if (bytes(combinedValue).length == 0) {
             string memory defaultValue = tagProperties[DEFAULT_TAG_ID][_key];
-            if (bytes(defaultValue).length == 0 && keccak256(bytes(_key)) == keccak256("fleet")) {
+            // Intentional bytes32 cast for lower-gas fixed-key comparison.
+            // forge-lint: disable-next-line(unsafe-typecast)
+            if (bytes(defaultValue).length == 0 && bytes32(bytes(_key)) == "fleet") {
                 return DEFAULT_FLEET_VALUE;
             }
             return defaultValue;
