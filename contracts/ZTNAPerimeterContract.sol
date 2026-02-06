@@ -111,6 +111,10 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     address[] private allDevices;
     address[] private allTags;
 
+    // Static default tag id used for fallback properties (not a real tag).
+    address private constant DEFAULT_TAG_ID = address(uint160(uint256(keccak256("diode_default_tag"))));
+    string private constant DEFAULT_FLEET_VALUE = "0x6000000000000000000000000000000000000000";
+
     // Override initialize to include label
     function initialize(address payable _owner, string memory _label) public initializer {
         super.initialize(_owner);
@@ -898,6 +902,16 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
             }
         }
 
+        if (bytes(combinedValue).length == 0) {
+            string memory defaultValue = tagProperties[DEFAULT_TAG_ID][_key];
+            // Intentional bytes32 cast for lower-gas fixed-key comparison.
+            // forge-lint: disable-next-line(unsafe-typecast)
+            if (bytes(defaultValue).length == 0 && bytes32(bytes(_key)) == "fleet") {
+                return DEFAULT_FLEET_VALUE;
+            }
+            return defaultValue;
+        }
+
         return combinedValue;
     }
 
@@ -935,7 +949,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     }
 
     function Version() external pure override(FleetContractUpgradeable, IZTNAContract) returns (uint256) {
-        return 804;
+        return 805;
     }
 
     function Type() external pure returns (bytes32) {
