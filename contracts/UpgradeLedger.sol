@@ -20,7 +20,7 @@ contract UpgradeLedger is ChangeTracker, OwnableInitializable {
         string reason;
     }
 
-    address public TOKEN;
+    address public immutable TOKEN;
     mapping(address => Payment[]) public payments;
 
     constructor(address _owner, address token) {
@@ -46,6 +46,6 @@ contract UpgradeLedger is ChangeTracker, OwnableInitializable {
     }
 
     function Version() public pure returns (int256) {
-        return 100;
+        return 101;
     }
 }
