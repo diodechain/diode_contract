@@ -12,6 +12,9 @@
 # ./scripts/deploy_moonbeam.sh contracts/Bridge.sol:Bridge --constructor-args 0x3d565Ec28595c1a0710ABCBd8C0F979d31E38704 [] 3
 # ./scripts/deploy_moonbeam.sh contracts/DiodeNodeRegistry.sol:DiodeNodeRegistry --constructor-args 0x3d565Ec28595c1a0710ABCBd8C0F979d31E38704 0x434116a99619f2B465A137199C38c1Aab0353913
 
+# ./scripts/deploy_moonbeam.sh contracts/UpgradeLedger.sol:UpgradeLedger --constructor-args 0x7102533B13b950c964efd346Ee15041E3e55413f 0x434116a99619f2B465A137199C38c1Aab0353913
+# ./scripts/deploy_moonbeam.sh contracts/Proxy8.sol:Proxy8 --constructor-args 0x6c997Bf4Ff53f266308be9a3e80F7a50749C7f63 0x7102533B13b950c964efd346Ee15041E3e55413f
+
 
 # BERRY TEST: ./scripts/deploy_moonbeam.sh contracts/YieldVault.sol:YieldVault --constructor-args 0xb9f1fa217c9a86915b4368e4ee9f079d6e5644a9 31536000 31536000 1500
 # ./scripts/deploy_moonbeam.sh contracts/YieldVault.sol:YieldVault --constructor-args 0x434116a99619f2B465A137199C38c1Aab0353913 31536000 31536000 1500

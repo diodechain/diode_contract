@@ -820,38 +820,27 @@ contract ZTNAPerimeterContractTest is Test {
     function testDefaultFleetPropertyWhenUnset() public {
         beforeEach();
 
-        address deviceId =
-            fleetContract.createDevice(address(0x100), "Fleet Device", "A device", "sensor", "Room 1");
+        address deviceId = fleetContract.createDevice(address(0x100), "Fleet Device", "A device", "sensor", "Room 1");
 
         string memory fleetValue = fleetContract.getPropertyValue(deviceId, "fleet");
-        Assert.equal(
-            fleetValue,
-            "0x6000000000000000000000000000000000000000",
-            "Should return default fleet when unset"
-        );
+        Assert.equal(fleetValue, "0x6000000000000000000000000000000000000000", "Should return default fleet when unset");
     }
 
     function testFleetPropertyOverridesDefaultWhenDeviceSet() public {
         beforeEach();
 
-        address deviceId =
-            fleetContract.createDevice(address(0x101), "Fleet Device", "A device", "sensor", "Room 1");
+        address deviceId = fleetContract.createDevice(address(0x101), "Fleet Device", "A device", "sensor", "Room 1");
 
         fleetContract.setDeviceProperty(deviceId, "fleet", "0x7000000000000000000000000000000000000000");
 
         string memory fleetValue = fleetContract.getPropertyValue(deviceId, "fleet");
-        Assert.equal(
-            fleetValue,
-            "0x7000000000000000000000000000000000000000",
-            "Device fleet should override default"
-        );
+        Assert.equal(fleetValue, "0x7000000000000000000000000000000000000000", "Device fleet should override default");
     }
 
     function testDefaultFleetPropertyWithTagWithoutFleet() public {
         beforeEach();
 
-        address deviceId =
-            fleetContract.createDevice(address(0x102), "Fleet Device", "A device", "sensor", "Room 1");
+        address deviceId = fleetContract.createDevice(address(0x102), "Fleet Device", "A device", "sensor", "Room 1");
         address tagId = fleetContract.createTag("Tag One", "A tag", "#FF0000");
 
         fleetContract.addDeviceToTag(deviceId, tagId);
@@ -867,19 +856,14 @@ contract ZTNAPerimeterContractTest is Test {
     function testFleetPropertyFromTag() public {
         beforeEach();
 
-        address deviceId =
-            fleetContract.createDevice(address(0x103), "Fleet Device", "A device", "sensor", "Room 1");
+        address deviceId = fleetContract.createDevice(address(0x103), "Fleet Device", "A device", "sensor", "Room 1");
         address tagId = fleetContract.createTag("Tag One", "A tag", "#FF0000");
 
         fleetContract.setTagProperty(tagId, "fleet", "0x8000000000000000000000000000000000000000");
         fleetContract.addDeviceToTag(deviceId, tagId);
 
         string memory fleetValue = fleetContract.getPropertyValue(deviceId, "fleet");
-        Assert.equal(
-            fleetValue,
-            "0x8000000000000000000000000000000000000000",
-            "Tag fleet should override default"
-        );
+        Assert.equal(fleetValue, "0x8000000000000000000000000000000000000000", "Tag fleet should override default");
     }
 
     function testPropertyValueCombinedFromMultipleTags() public {

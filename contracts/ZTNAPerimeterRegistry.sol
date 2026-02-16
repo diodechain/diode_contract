@@ -91,7 +91,7 @@ contract ZTNAPerimeterRegistry is IProxyResolver, IZTNAContract {
         if (what == "ZTNAPerimeterRegistry") {
             return contractInfo["ZTNAPerimeterContract"].implementation;
         }
-        
+
         return contractInfo[what].implementation;
     }
 
