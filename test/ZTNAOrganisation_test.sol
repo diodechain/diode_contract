@@ -384,6 +384,201 @@ contract ZTNAOrganisationTest is Test {
         org.addSelfAsPerimeterAdmin(externalPerimeter, "ShouldFail");
     }
 
+    function testPerimeterAdminCanUpdateLabel() public {
+        ZTNAOrganisation org = createOrg("Test Org", "Testing perimeter admin capabilities");
+        org.addAdmin(admin1);
+
+        address perimeter = org.createPerimeter("Original Label");
+        vm.prank(admin1);
+        org.addSelfAsPerimeterAdmin(perimeter, "OrgAdmin");
+
+        ZTNAPerimeterContract p = ZTNAPerimeterContract(perimeter);
+        Assert.equal(p.label(), "Original Label", "Initial label should match");
+
+        vm.prank(admin1);
+        p.updateLabel("Updated by Admin");
+
+        Assert.equal(p.label(), "Updated by Admin", "Admin should be able to update label");
+    }
+
+    function testPerimeterAdminCanManageUsers() public {
+        ZTNAOrganisation org = createOrg("Test Org", "Testing perimeter admin user management");
+        org.addAdmin(admin1);
+
+        address perimeter = org.createPerimeter("Test Perimeter");
+        vm.prank(admin1);
+        org.addSelfAsPerimeterAdmin(perimeter, "OrgAdmin");
+
+        ZTNAPerimeterContract p = ZTNAPerimeterContract(perimeter);
+
+        // Admin creates a new user
+        vm.prank(admin1);
+        p.createUser(member1, "New User", "user@test.com", "");
+
+        vm.prank(admin1);
+        (, string memory nickname,,,,,) = p.getUser(member1);
+        Assert.equal(nickname, "New User", "Admin should be able to create user");
+
+        // Admin updates the user
+        vm.prank(admin1);
+        p.updateUser(member1, "Updated Nickname", "updated@test.com", "");
+
+        vm.prank(admin1);
+        (, nickname,,,,,) = p.getUser(member1);
+        Assert.equal(nickname, "Updated Nickname", "Admin should be able to update user");
+
+        // Admin adds another perimeter admin
+        vm.prank(admin1);
+        p.addPerimeterAdmin(member2, "SecondAdmin");
+
+        vm.prank(admin1);
+        Assert.equal(p.isUserAdmin(member2), true, "Admin should be able to add perimeter admin");
+
+        // Admin removes user
+        vm.prank(admin1);
+        p.removeUser(member2);
+
+        vm.prank(admin1);
+        (, , , , , , bool active) = p.getUser(member2);
+        Assert.equal(active, false, "Admin should be able to remove user");
+    }
+
+    function testPerimeterAdminCanManageUserGroups() public {
+        ZTNAOrganisation org = createOrg("Test Org", "Testing perimeter admin group management");
+        org.addAdmin(admin1);
+
+        address perimeter = org.createPerimeter("Test Perimeter");
+        vm.prank(admin1);
+        org.addSelfAsPerimeterAdmin(perimeter, "OrgAdmin");
+
+        ZTNAPerimeterContract p = ZTNAPerimeterContract(perimeter);
+
+        // Create user first
+        vm.prank(admin1);
+        p.createUser(member1, "GroupMember", "", "");
+
+        // Admin creates user group
+        vm.prank(admin1);
+        address groupId = p.createUserGroup("Developers", "Dev team");
+
+        vm.prank(admin1);
+        (, string memory groupName,,,,) = p.getUserGroup(groupId);
+        Assert.equal(groupName, "Developers", "Admin should be able to create user group");
+
+        // Admin updates user group
+        vm.prank(admin1);
+        p.updateUserGroup(groupId, "Senior Developers", "Senior dev team");
+
+        vm.prank(admin1);
+        (, groupName,,,,) = p.getUserGroup(groupId);
+        Assert.equal(groupName, "Senior Developers", "Admin should be able to update user group");
+
+        // Admin adds user to group
+        vm.prank(admin1);
+        p.addUserToGroup(member1, groupId);
+
+        vm.prank(admin1);
+        address[] memory groupMembers = p.getGroupUsers(groupId);
+        Assert.equal(groupMembers.length, 1, "Admin should be able to add user to group");
+        Assert.equal(groupMembers[0], member1, "Member1 should be in group");
+
+        // Admin removes user from group
+        vm.prank(admin1);
+        p.removeUserFromGroup(member1, groupId);
+
+        vm.prank(admin1);
+        groupMembers = p.getGroupUsers(groupId);
+        Assert.equal(groupMembers.length, 0, "Admin should be able to remove user from group");
+
+        // Admin removes user group
+        vm.prank(admin1);
+        p.removeUserGroup(groupId);
+
+        // Verify group is gone: addUserToGroup to removed group should revert
+        vm.prank(admin1);
+        vm.expectRevert();
+        p.addUserToGroup(member1, groupId);
+    }
+
+    function testPerimeterAdminCanManageTagsAndDevices() public {
+        ZTNAOrganisation org = createOrg("Test Org", "Testing perimeter admin tags/devices");
+        org.addAdmin(admin1);
+
+        address perimeter = org.createPerimeter("Test Perimeter");
+        vm.prank(admin1);
+        org.addSelfAsPerimeterAdmin(perimeter, "OrgAdmin");
+
+        ZTNAPerimeterContract p = ZTNAPerimeterContract(perimeter);
+
+        // Admin creates device
+        address deviceId = address(0xdead);
+        vm.prank(admin1);
+        p.createDevice(deviceId, "Admin Device", "Test device", "sensor", "Office");
+
+        vm.prank(admin1);
+        (, , string memory deviceName, , , , , , ) = p.getDevice(deviceId);
+        Assert.equal(deviceName, "Admin Device", "Admin should be able to create device");
+
+        // Admin creates tag
+        vm.prank(admin1);
+        address tagId = p.createTag("Production", "Prod tag", "#ff0000");
+
+        vm.prank(admin1);
+        (, string memory tagName, , , , , ) = p.getTag(tagId);
+        Assert.equal(tagName, "Production", "Admin should be able to create tag");
+
+        // Admin updates tag
+        vm.prank(admin1);
+        p.updateTag(tagId, "Staging", "Staging tag", "#00ff00");
+
+        vm.prank(admin1);
+        (, tagName, , , , , ) = p.getTag(tagId);
+        Assert.equal(tagName, "Staging", "Admin should be able to update tag");
+
+        // Admin adds device to tag (admin can do this via onlyDeviceOwner - admins bypass owner check)
+        vm.prank(admin1);
+        p.addDeviceToTag(deviceId, tagId);
+
+        vm.prank(admin1);
+        Assert.equal(p.isDeviceInTag(deviceId, tagId), true, "Admin should be able to add device to tag");
+
+        // Admin sets tag property
+        vm.prank(admin1);
+        p.setTagProperty(tagId, "env", "staging");
+
+        vm.prank(admin1);
+        Assert.equal(p.getTagProperty(tagId, "env"), "staging", "Admin should be able to set tag property");
+    }
+
+    function testPerimeterAdminCanSetUserAdmin() public {
+        ZTNAOrganisation org = createOrg("Test Org", "Testing perimeter admin setUserAdmin");
+        org.addAdmin(admin1);
+
+        address perimeter = org.createPerimeter("Test Perimeter");
+        vm.prank(admin1);
+        org.addSelfAsPerimeterAdmin(perimeter, "OrgAdmin");
+
+        ZTNAPerimeterContract p = ZTNAPerimeterContract(perimeter);
+
+        vm.prank(admin1);
+        p.createUser(member1, "RegularUser", "", "");
+
+        vm.prank(admin1);
+        Assert.equal(p.isUserAdmin(member1), false, "Member1 should not be admin initially");
+
+        vm.prank(admin1);
+        p.setUserAdmin(member1, true);
+
+        vm.prank(admin1);
+        Assert.equal(p.isUserAdmin(member1), true, "Admin should be able to promote user to admin");
+
+        vm.prank(admin1);
+        p.setUserAdmin(member1, false);
+
+        vm.prank(admin1);
+        Assert.equal(p.isUserAdmin(member1), false, "Admin should be able to demote user from admin");
+    }
+
     // ======== Use Case 6: Backwards Compatibility ========
 
     function testExistingPerimetersWorkWithoutOrg() public {

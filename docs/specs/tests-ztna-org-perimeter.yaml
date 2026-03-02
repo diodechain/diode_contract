@@ -1,0 +1,146 @@
+# ZTNA Organisation & Perimeter Ownership - Spec Tests
+# Use with Foundry/Solidity - map input fields to contract call args
+
+addMember:
+  - name: "owner adds member as non-admin"
+    input: { member: "0x1234567890123456789012345678901234567890", nickname: "Alice", asAdmin: false }
+    output: null
+    error: false
+  - name: "owner adds member as admin"
+    input: { member: "0x1234567890123456789012345678901234567891", nickname: "Admin", asAdmin: true }
+    output: null
+    error: false
+  - name: "revert when adding zero address"
+    input: { member: "0x0000000000000000000000000000000000000000", nickname: "", asAdmin: false }
+    output: null
+    error: "INVALID_MEMBER"
+  - name: "revert when adding existing member"
+    input: { member: "0x1234567890123456789012345678901234567890", nickname: "Again", asAdmin: false }
+    output: null
+    error: "ALREADY_MEMBER"
+  # Note: "admin cannot add admin" requires setup where caller is admin not owner - test in integration
+
+addAdmin:
+  - name: "owner adds admin"
+    input: { admin: "0x1234567890123456789012345678901234567892" }
+    output: null
+    error: false
+  - name: "revert when non-owner adds admin"
+    input: { admin: "0x1234567890123456789012345678901234567893" }
+    output: null
+    error: "YNO"
+
+setAdmin:
+  - name: "owner sets member as admin"
+    input: { member: "0x1234567890123456789012345678901234567890", adminStatus: true }
+    output: null
+    error: false
+  - name: "revert when admin status unchanged"
+    input: { member: "0x1234567890123456789012345678901234567890", adminStatus: true }
+    output: null
+    error: "ALREADY_SET"
+
+removeMember:
+  - name: "owner removes admin member"
+    input: { member: "0x1234567890123456789012345678901234567891" }
+    output: null
+    error: false
+  - name: "admin removes non-admin member"
+    input: { member: "0x1234567890123456789012345678901234567890" }
+    output: null
+    error: false
+  - name: "revert when admin removes admin"
+    input: { member: "0x1234567890123456789012345678901234567891" }
+    output: null
+    error: "ONLY_OWNER_CAN_REMOVE_ADMIN"
+
+transferPerimeterToOrganisation:
+  - name: "owner transfers owned perimeter to org"
+    input: { perimeter: "0xPERIMETER_ADDRESS" }
+    output: null
+    error: false
+  - name: "revert when perimeter already in org"
+    input: { perimeter: "0xPERIMETER_ALREADY_IN_ORG" }
+    output: null
+    error: "PERIMETER_ALREADY_IN_ORG"
+  - name: "revert when caller not perimeter owner"
+    input: { perimeter: "0xPERIMETER_OWNED_BY_OTHER" }
+    output: null
+    error: "YNPO"
+
+registerPerimeter:
+  - name: "register perimeter already owned by org"
+    input: { perimeter: "0xPERIMETER_OPERATOR_IS_ORG" }
+    output: null
+    error: false
+  - name: "revert when perimeter not owned by org"
+    input: { perimeter: "0xPERIMETER_OPERATOR_IS_EOA" }
+    output: null
+    error: "PERIMETER_NOT_OWNED_BY_ORG"
+  - name: "revert when perimeter already in org"
+    input: { perimeter: "0xPERIMETER_ALREADY_REGISTERED" }
+    output: null
+    error: "PERIMETER_ALREADY_IN_ORG"
+
+removePerimeter:
+  - name: "owner removes perimeter and transfers to new owner"
+    input: { perimeter: "0xPERIMETER", newOwner: "0x1234567890123456789012345678901234567890" }
+    output: null
+    error: false
+  - name: "revert when perimeter not in org"
+    input: { perimeter: "0xUNKNOWN", newOwner: "0x1234567890123456789012345678901234567890" }
+    output: null
+    error: "PERIMETER_NOT_IN_ORG"
+  - name: "revert when new owner is zero"
+    input: { perimeter: "0xPERIMETER", newOwner: "0x0000000000000000000000000000000000000000" }
+    output: null
+    error: "INVALID_NEW_OWNER"
+
+addSelfAsPerimeterAdmin:
+  - name: "owner adds self as perimeter admin"
+    input: { perimeter: "0xPERIMETER_IN_ORG", nickname: "Owner" }
+    output: null
+    error: false
+  - name: "admin adds self as perimeter admin"
+    input: { perimeter: "0xPERIMETER_IN_ORG", nickname: "OrgAdmin" }
+    output: null
+    error: false
+  - name: "revert when member (non-admin) tries"
+    input: { perimeter: "0xPERIMETER_IN_ORG", nickname: "Member" }
+    output: null
+    error: "YNOA"
+  - name: "revert when perimeter not in org"
+    input: { perimeter: "0xPERIMETER_NOT_IN_ORG", nickname: "Admin" }
+    output: null
+    error: "PERIMETER_NOT_IN_ORG"
+
+# View functions - output expectations
+isOwner:
+  - name: "returns true for owner"
+    input: { user: "0xOWNER_ADDRESS" }
+    output: true
+    error: false
+  - name: "returns false for non-owner"
+    input: { user: "0xOTHER_ADDRESS" }
+    output: false
+    error: false
+
+isAdmin:
+  - name: "returns true for admin member"
+    input: { user: "0xADMIN_ADDRESS" }
+    output: true
+    error: false
+  - name: "returns false for non-admin member"
+    input: { user: "0xMEMBER_ADDRESS" }
+    output: false
+    error: false
+
+isMember:
+  - name: "returns true for active member"
+    input: { user: "0xMEMBER_ADDRESS" }
+    output: true
+    error: false
+  - name: "returns false for non-member"
+    input: { user: "0xSTRANGER_ADDRESS" }
+    output: false
+    error: false

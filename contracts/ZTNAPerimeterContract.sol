@@ -135,7 +135,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     }
 
     // Allow updating the fleet label
-    function updateLabel(string memory _newLabel) external onlyOperator {
+    function updateLabel(string memory _newLabel) external onlyAdmin {
         label = _newLabel;
         emit FleetLabelUpdated(_newLabel);
     }
@@ -228,7 +228,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     // ======== User Management ========
     function createUser(address _userAddress, string memory _nickname, string memory _email, string memory _avatarURI)
         external
-        onlyOperator
+        onlyAdmin
     {
         _createUser(_userAddress, _nickname, _email, _avatarURI, false);
     }
@@ -262,7 +262,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
 
     function updateUser(address _userAddress, string memory _nickname, string memory _email, string memory _avatarURI)
         external
-        onlyOperator
+        onlyAdmin
         userExists(_userAddress)
     {
         users[_userAddress].nickname = _nickname;
@@ -272,7 +272,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
         emit UserUpdated(_userAddress, _nickname);
     }
 
-    function setUserAdmin(address _userAddress, bool _isAdmin) external onlyOperator userExists(_userAddress) {
+    function setUserAdmin(address _userAddress, bool _isAdmin) external onlyAdmin userExists(_userAddress) {
         users[_userAddress].isAdmin = _isAdmin;
     }
 
@@ -281,7 +281,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
      * @param _userAddress The address of the user to add as admin
      * @param _nickname The nickname for the user (used if creating new user)
      */
-    function addPerimeterAdmin(address _userAddress, string memory _nickname) external onlyOperator {
+    function addPerimeterAdmin(address _userAddress, string memory _nickname) external onlyAdmin {
         require(_userAddress != address(0), "IUA");
 
         // If user doesn't exist, create them
@@ -293,7 +293,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
         }
     }
 
-    function removeUser(address _userAddress) external onlyOperator userExists(_userAddress) {
+    function removeUser(address _userAddress) external onlyAdmin userExists(_userAddress) {
         // Remove user from all groups
         address[] memory userGroupsList = Set.Members(users[_userAddress].groups);
         for (uint256 i = 0; i < userGroupsList.length; i++) {
@@ -949,7 +949,7 @@ contract ZTNAPerimeterContract is FleetContractUpgradeable, IZTNAContract {
     }
 
     function Version() external pure override(FleetContractUpgradeable, IZTNAContract) returns (uint256) {
-        return 805;
+        return 806;
     }
 
     function Type() external pure returns (bytes32) {
