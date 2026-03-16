@@ -18,7 +18,7 @@ defmodule Contracts.Mixfile do
   defp deps do
     [
       {:poison, "~> 3.0"},
-      {:keccakf1600, "~> 2.0", hex: :keccakf1600_orig}
+      {:ex_sha3, "~> 0.1.5"}
     ]
   end
 end

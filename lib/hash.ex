@@ -36,7 +36,7 @@ defmodule Hash do
   end
 
   def keccak_256(string) do
-    :keccakf1600.hash(:sha3_256, string)
+    ExSha3.keccak_256(string)
   end
 
   def sha3_256(string) do

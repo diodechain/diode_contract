@@ -9,7 +9,7 @@ import "../contracts/ChatGroup.sol";
 import "../contracts/Drive.sol";
 import "../contracts/DriveInvites.sol";
 import "../contracts/DriveFactory.sol";
-import "forge-std/console.sol";
+import "./forge-std/Test.sol";
 
 contract TestDrive is Drive {
     constructor() Drive(address(0x0)) {}
@@ -27,7 +27,7 @@ contract TestDrive is Drive {
     }
 }
 
-contract DriveTest {
+contract DriveTest is Test {
     BNS bns;
     DriveInvites invites;
     DriveFactory factory;
@@ -189,5 +189,55 @@ contract DriveTest {
         Assert.equal(status.member_count, 3, "Member count should be 3");
         Assert.equal(status.chats.length, 1, "Chats should return one chat");
         Assert.equal(status.join_codes.length, 1, "Join codes should return one join code");
+    }
+
+    function testCanisterCallToken_SetGet() public {
+        bytes32 token = keccak256("test-canister-token");
+        drive.SetCanisterCallToken(token);
+        Assert.equal(drive.GetCanisterCallToken(), token, "GetCanisterCallToken should return set token");
+
+        drive.SetCanisterCallToken(bytes32(0));
+        Assert.equal(drive.GetCanisterCallToken(), bytes32(0), "GetCanisterCallToken should return zero after clear");
+    }
+
+    function testCanisterCallToken_OnlyOwnerCanSet() public {
+        drive.AddMember(number1, RoleType.Admin);
+        bytes32 token = keccak256("test-token");
+        vm.prank(number1);
+        vm.expectRevert();
+        drive.SetCanisterCallToken(token);
+    }
+
+    function testCanisterCallToken_OnlyOwnerCanGet() public {
+        bytes32 token = keccak256("test-token");
+        drive.SetCanisterCallToken(token);
+        drive.AddMember(number1, RoleType.Reader);
+        vm.prank(number1);
+        vm.expectRevert();
+        drive.GetCanisterCallToken();
+    }
+
+    function testCanisterCallToken_RoleWithCallToken() public {
+        drive.AddMember(number1, RoleType.Admin);
+        drive.AddMember(number2, RoleType.Member);
+        bytes32 token = keccak256("canister-api-token");
+        drive.SetCanisterCallToken(token);
+
+        Assert.equal(drive.RoleWithCallToken(token, address(this)), RoleType.Owner, "RoleWithCallToken(this) should be Owner");
+        Assert.equal(drive.RoleWithCallToken(token, number1), RoleType.Admin, "RoleWithCallToken(admin) should be Admin");
+        Assert.equal(drive.RoleWithCallToken(token, number2), RoleType.Member, "RoleWithCallToken(member) should be Member");
+        Assert.equal(drive.RoleWithCallToken(token, number3), RoleType.None, "RoleWithCallToken(non-member) should be None");
+    }
+
+    function testCanisterCallToken_RoleWithCallToken_InvalidTokenReverts() public {
+        drive.AddMember(number1, RoleType.Admin);
+        bytes32 token = keccak256("correct-token");
+        drive.SetCanisterCallToken(token);
+
+        vm.expectRevert();
+        drive.RoleWithCallToken(keccak256("wrong-token"), address(this));
+
+        vm.expectRevert();
+        drive.RoleWithCallToken(bytes32(0), address(this));
     }
 }

@@ -27,7 +27,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     address private immutable CHAT_IMPL = address(new ChatGroup());
     address private immutable BNS;
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
-    int256 constant VERSION = 159;
+    int256 constant VERSION = 160;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
@@ -323,6 +323,21 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
 
     function ZoneAvailabilityCanister() public view onlyReader returns (uint256) {
         return dataValue(RoleType.Owner, 0x4f5b877fc6f89e4eb4a78282b3e325dae98e3ff97e431f92ea166ec4cde34362);
+    }
+
+    uint256 constant CANISTER_CALL_TOKEN_KEY = uint256(keccak256("canister_call_token"));
+
+    function SetCanisterCallToken(bytes32 _token) external onlyOwner {
+        SetOwnerValue(CANISTER_CALL_TOKEN_KEY, uint256(_token));
+    }
+
+    function GetCanisterCallToken() external view onlyOwner returns (bytes32) {
+        return bytes32(dataValue(RoleType.Owner, CANISTER_CALL_TOKEN_KEY));
+    }
+
+    function RoleWithCallToken(bytes32 _token, address _member) external view returns (uint256) {
+        require(_token != 0 && _token == bytes32(dataValue(RoleType.Owner, CANISTER_CALL_TOKEN_KEY)), "Invalid token");
+        return role(_member);
     }
 
     function IsSubZone() public view onlyReader returns (uint256) {
