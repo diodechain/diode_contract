@@ -65,6 +65,22 @@ library Set {
         return members;
     }
 
+    /// @notice Contiguous slice of Members() starting at `offset`, at most `limit` addresses.
+    function Slice(Data storage self, uint256 offset, uint256 limit) internal view returns (address[] memory) {
+        uint256 len = self.items.length;
+        if (limit == 0 || offset >= len) {
+            return new address[](0);
+        }
+
+        uint256 remaining = len - offset;
+        uint256 n = limit < remaining ? limit : remaining;
+        address[] memory out = new address[](n);
+        for (uint256 i = 0; i < n; i++) {
+            out[i] = self.items[offset + i];
+        }
+        return out;
+    }
+
     function Size(Data storage self) internal view returns (uint256) {
         return self.items.length;
     }

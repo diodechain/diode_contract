@@ -5,11 +5,14 @@
 pragma solidity >=0.7.6;
 
 import "./IFleetContract.sol";
+import "./deps/Set.sol";
 
 /**
  * FleetContract
  */
-contract FleetContractUpgradeable is IFleetContract {
+contract FleetContractUpgradeable is IConsoleFleetContract {
+    using Set for Set.Data;
+
     address private _reserved_0;
     address public operator;
     address payable public accountant;
@@ -29,6 +32,13 @@ contract FleetContractUpgradeable is IFleetContract {
      * @dev Indicates that the contract is in the process of being initialized.
      */
     bool private initializing;
+
+    /**
+     * @dev Enumerable allowlist: insertion order for GetDeviceList pagination.
+     * @dev Appended after existing storage for upgrade-safe layout.
+     * @dev Entries added before this enumeration existed are only visible via DeviceAllowlist until set again via operator APIs.
+     */
+    Set.Data private _allowlistSet;
 
     /**
      * @dev Modifier to use in the initializer function of a contract.
@@ -104,7 +114,27 @@ contract FleetContractUpgradeable is IFleetContract {
     }
 
     function SetDeviceAllowlist(address _client, bool _value) public virtual onlyOperator {
-        allowlist[_client] = _value;
+        if (_value) {
+            _addAllowlisted(_client);
+        } else {
+            _removeAllowlisted(_client);
+        }
+    }
+
+    function _addAllowlisted(address _client) internal {
+        if (allowlist[_client]) {
+            return;
+        }
+        allowlist[_client] = true;
+        _allowlistSet.Add(_client);
+    }
+
+    function _removeAllowlisted(address _client) internal {
+        if (!allowlist[_client]) {
+            return;
+        }
+        allowlist[_client] = false;
+        _allowlistSet.Remove(_client);
     }
 
     function DeviceAllowlist(address _client) public view override returns (bool) {
@@ -112,7 +142,27 @@ contract FleetContractUpgradeable is IFleetContract {
     }
 
     function Version() external pure virtual returns (uint256) {
-        return 301;
+        return 400;
+    }
+
+    function AddDeviceBatch(address[] memory _clients) external onlyOperator {
+        for (uint256 i = 0; i < _clients.length; i++) {
+            _addAllowlisted(_clients[i]);
+        }
+    }
+
+    function RemoveDeviceBatch(address[] memory _clients) external onlyOperator {
+        for (uint256 i = 0; i < _clients.length; i++) {
+            _removeAllowlisted(_clients[i]);
+        }
+    }
+
+    function GetDeviceCount() external view returns (uint256) {
+        return _allowlistSet.Size();
+    }
+
+    function GetDeviceList(uint256 offset, uint256 limit) external view returns (address[] memory) {
+        return _allowlistSet.Slice(offset, limit);
     }
 
     /**

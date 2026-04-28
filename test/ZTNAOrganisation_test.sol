@@ -439,7 +439,7 @@ contract ZTNAOrganisationTest is Test {
         p.removeUser(member2);
 
         vm.prank(admin1);
-        (, , , , , , bool active) = p.getUser(member2);
+        (,,,,,, bool active) = p.getUser(member2);
         Assert.equal(active, false, "Admin should be able to remove user");
     }
 
@@ -516,7 +516,7 @@ contract ZTNAOrganisationTest is Test {
         p.createDevice(deviceId, "Admin Device", "Test device", "sensor", "Office");
 
         vm.prank(admin1);
-        (, , string memory deviceName, , , , , , ) = p.getDevice(deviceId);
+        (,, string memory deviceName,,,,,,) = p.getDevice(deviceId);
         Assert.equal(deviceName, "Admin Device", "Admin should be able to create device");
 
         // Admin creates tag
@@ -524,7 +524,7 @@ contract ZTNAOrganisationTest is Test {
         address tagId = p.createTag("Production", "Prod tag", "#ff0000");
 
         vm.prank(admin1);
-        (, string memory tagName, , , , , ) = p.getTag(tagId);
+        (, string memory tagName,,,,,) = p.getTag(tagId);
         Assert.equal(tagName, "Production", "Admin should be able to create tag");
 
         // Admin updates tag
@@ -532,7 +532,7 @@ contract ZTNAOrganisationTest is Test {
         p.updateTag(tagId, "Staging", "Staging tag", "#00ff00");
 
         vm.prank(admin1);
-        (, tagName, , , , , ) = p.getTag(tagId);
+        (, tagName,,,,,) = p.getTag(tagId);
         Assert.equal(tagName, "Staging", "Admin should be able to update tag");
 
         // Admin adds device to tag (admin can do this via onlyDeviceOwner - admins bypass owner check)
