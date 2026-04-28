@@ -223,10 +223,18 @@ contract DriveTest is Test {
         bytes32 token = keccak256("canister-api-token");
         drive.SetCanisterCallToken(token);
 
-        Assert.equal(drive.RoleWithCallToken(token, address(this)), RoleType.Owner, "RoleWithCallToken(this) should be Owner");
-        Assert.equal(drive.RoleWithCallToken(token, number1), RoleType.Admin, "RoleWithCallToken(admin) should be Admin");
-        Assert.equal(drive.RoleWithCallToken(token, number2), RoleType.Member, "RoleWithCallToken(member) should be Member");
-        Assert.equal(drive.RoleWithCallToken(token, number3), RoleType.None, "RoleWithCallToken(non-member) should be None");
+        Assert.equal(
+            drive.RoleWithCallToken(token, address(this)), RoleType.Owner, "RoleWithCallToken(this) should be Owner"
+        );
+        Assert.equal(
+            drive.RoleWithCallToken(token, number1), RoleType.Admin, "RoleWithCallToken(admin) should be Admin"
+        );
+        Assert.equal(
+            drive.RoleWithCallToken(token, number2), RoleType.Member, "RoleWithCallToken(member) should be Member"
+        );
+        Assert.equal(
+            drive.RoleWithCallToken(token, number3), RoleType.None, "RoleWithCallToken(non-member) should be None"
+        );
     }
 
     function testCanisterCallToken_RoleWithCallToken_InvalidTokenReverts() public {
