@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script updates the target of the NodeRegistry contract proxy
+# This script updates the target of the UpgradeLedger contract proxy
 
 # Examples:
 # ./scripts/update_moonbeam.sh 0x8af6F5bfb5D02c6E084d787FB4338BaE9f9861E7
