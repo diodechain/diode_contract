@@ -9,6 +9,7 @@ import "./deps/IERC20.sol";
 import "./deps/SafeERC20.sol";
 import "./deps/Utils.sol";
 import "./deps/SafeMath.sol";
+import "./deps/math/Math.sol";
 import "./deps/Initializable.sol";
 import "./IFleetContract.sol";
 
@@ -239,22 +240,23 @@ contract DiodeRegistryLight is Initializable {
 
         // No need to continue beyond this point, if there is nothing to distribute
         reward -= foundationTax;
-        if (reward == 0) return;
         uint256 rest = reward;
 
         for (uint256 n = 0; n < fleet.nodeArray.length; n++) {
             address nodeAddress = fleet.nodeArray[n];
             NodeStats storage node = fleet.nodeStats[nodeAddress];
 
-            uint256 value = (reward * node.score) / fleet.score;
+            if (reward > 0) {
+                uint256 value = Math.mulDiv(reward, node.score, fleet.score);
 
-            if (value > 0) {
-                if (!relayRewards[nodeAddress].exists) {
-                    relayArray.push(nodeAddress);
-                    relayRewards[nodeAddress].exists = true;
+                if (value > 0) {
+                    if (!relayRewards[nodeAddress].exists) {
+                        relayArray.push(nodeAddress);
+                        relayRewards[nodeAddress].exists = true;
+                    }
+                    relayRewards[nodeAddress].reward += value;
+                    rest -= value;
                 }
-                relayRewards[nodeAddress].reward += value;
-                rest -= value;
             }
 
             for (uint256 c = 0; c < node.clientArray.length; c++) {
@@ -265,7 +267,9 @@ contract DiodeRegistryLight is Initializable {
             delete fleet.nodeStats[nodeAddress];
         }
 
-        foundationWithdrawableBalance += foundationTax + rest;
+        if (reward > 0 || foundationTax > 0) {
+            foundationWithdrawableBalance += foundationTax + rest;
+        }
         // Fleet Cleanup
         fleet.score = 0;
         delete fleet.nodeArray;
@@ -453,6 +457,6 @@ contract DiodeRegistryLight is Initializable {
     }
 
     function Version() external pure returns (uint256) {
-        return 110;
+        return 111;
     }
 }

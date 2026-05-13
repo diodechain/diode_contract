@@ -256,4 +256,39 @@ contract DiodeRegistryLightTest is Test {
             diode.balanceOf(address(reg)), amount - 2 * expectedReward - 1, "registry deducted rewards rounded down"
         );
     }
+
+    function testReward_Overflow_Fix() public {
+        (address alice, uint256 alicePk) = makeAddrAndKey("alice");
+        uint256 amount = 1000 * 10**18;
+        foundation_token.mint(address(this), amount);
+        diode.approve(address(reg), amount);
+        reg.ContractStake(fleet1, amount);
+        uint256 epoch = block.timestamp / reg.SecondsPerEpoch();
+        uint256 totalConnections = 3;
+        // Super large totalBytes to trigger overflow
+        uint256 totalBytes = type(uint256).max / 10000;
+        vm.roll(block.number + 2);
+
+        bytes32[] memory ticket = new bytes32[](7);
+        ticket[0] = bytes32(block.chainid);
+        ticket[1] = bytes32(epoch);
+        ticket[2] = Utils.addressToBytes32(address(fleet1));
+        ticket[3] = Utils.addressToBytes32(address(relay1));
+        ticket[4] = bytes32(totalConnections);
+        ticket[5] = bytes32(totalBytes);
+        ticket[6] = "fake";
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(alicePk, Utils.bytes32Hash(ticket));
+
+        bytes32[3] memory sig = [r, s, bytes32(uint256(v))];
+        fleet1.SetDeviceAllowlist(alice, true);
+
+        vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
+        reg.SubmitTicket(epoch, fleet1, address(relay1), totalConnections, totalBytes, ticket[6], sig);
+
+        vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
+        // This will revert with Panic(0x11) under the old code,
+        // but should pass cleanly with the new Math.mulDiv fix.
+        reg.EndEpochForAllFleets();
+    }
 }
