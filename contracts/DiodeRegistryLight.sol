@@ -69,7 +69,7 @@ contract DiodeRegistryLight is Initializable {
     mapping(address => RelayReward) public relayRewards;
 
     struct RelayReward {
-        bool exists;
+        bool _reserved;
         uint256 reward;
     }
 
@@ -126,7 +126,6 @@ contract DiodeRegistryLight is Initializable {
         uint256 withdrawRequestSize;
         uint256 withdrawableBalance;
         uint256 currentEpoch;
-        uint256 score;
         address[] _reservedNodeArray;
         mapping(address => NodeStats) _reservedNodeStats;
         mapping(uint256 => EpochActivity) epochActivity;
@@ -242,7 +241,6 @@ contract DiodeRegistryLight is Initializable {
         uint256 fleetScore = act.score;
 
         fleet.currentEpoch = currentEpoch;
-        fleet.score = 0;
 
         uint256 reward = fleet.currentBalance / 100;
         // No traffic => no reward, and no tax
@@ -274,11 +272,7 @@ contract DiodeRegistryLight is Initializable {
                 unchecked {
                     uint256 value = (reward * nodeScore) / fleetScore;
                     if (value > 0) {
-                        RelayReward storage relay = relayRewards[nodeAddress];
-                        if (!relay.exists) {
-                            relay.exists = true;
-                        }
-                        relay.reward += value;
+                        relayRewards[nodeAddress].reward += value;
                         totalPaid += value;
                     }
                     ++n;
@@ -406,8 +400,9 @@ contract DiodeRegistryLight is Initializable {
 
     function GetFleet(IFleetContract _fleet) external view returns (FleetStat memory) {
         FleetStats storage f = fleetStats[address(_fleet)];
+        uint256 score = f.epochActivity[f.currentEpoch].score;
         return
-            FleetStat(f.exists, f.currentBalance, f.withdrawRequestSize, f.withdrawableBalance, f.currentEpoch, f.score);
+            FleetStat(f.exists, f.currentBalance, f.withdrawRequestSize, f.withdrawableBalance, f.currentEpoch, score);
     }
 
     function GetClientScore(IFleetContract _fleet, address nodeAddress, address clientAddress)
@@ -488,7 +483,6 @@ contract DiodeRegistryLight is Initializable {
                 client.score += delta;
                 act.score += delta;
                 act.nodeScores[nodeIdx - 1] += delta;
-                fleet.score += delta;
             }
         }
     }

@@ -21,7 +21,7 @@ contract DiodeRegistryLightGas is Test {
     /// v112 EndEpochForFleet at 100 relays (epoch-scoped, pre micro-optimization)
     uint256 internal constant V112_SCENARIO_B_100 = 6_864_308;
     /// v114 with proxy-safe RelayReward mapping at slot 52
-    uint256 internal constant V114_SCENARIO_B_100 = 4_543_999;
+    uint256 internal constant V114_SCENARIO_B_100 = 2_321_218;
     uint256 internal constant STAKE_AMOUNT = 100_000;
     uint256 internal constant CONNECTIONS = 3;
     uint256 internal constant BYTES = 5;
