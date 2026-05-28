@@ -1,7 +1,7 @@
 [profile.default]
 #evm_version = "constantinople"
 optimizer = true
-optimizer_runs = 200
+optimizer_runs = 20_000
 remappings = ["cross=lib/diode"]
 
 [profile.lint]

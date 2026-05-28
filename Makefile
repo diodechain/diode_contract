@@ -9,6 +9,10 @@ compile:
 test:
 	forge test -vvv
 
+.PHONY: test-gas
+test-gas:
+	forge test --match-contract DiodeRegistryLightGas -vv
+
 .PHONY: lint
 lint:
 	forge lint contracts test/*.sol

@@ -8,6 +8,8 @@ pragma experimental ABIEncoderV2;
 import "./deps/IERC20.sol";
 import "./deps/SafeERC20.sol";
 import "./deps/Utils.sol";
+import "./deps/SafeMath.sol";
+import "./deps/math/Math.sol";
 import "./deps/Initializable.sol";
 import "./IFleetContract.sol";
 
@@ -21,6 +23,7 @@ import "./IFleetContract.sol";
  *
  */
 contract DiodeRegistryLight is Initializable {
+    using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
     uint64 public constant SecondsPerEpoch = 2_592_000;
@@ -56,13 +59,18 @@ contract DiodeRegistryLight is Initializable {
      * Think of it like: "Hey, new month started! Let me pay last month's
      * rewards first, then I'll process your new ticket."
      *
-     * Activity is keyed by epoch so epoch finalization does not delete storage:
+     * For accounting the activity from devices we maintain a three
+     * level tree of iterable maps:
      *
-     *   fleetStats[fleet].epochActivity[epoch].nodes[node].clients[client]
+     * FleetContracts => Relays => Devices(aka Client)
      *
-     * Each device ticket is stored into the current epoch bucket ensuring that
-     * device activity is deduplicated on a per-node basis. When an epoch is
-     * settled, its bucket is left in storage (orphaned) and a new bucket is used.
+     *   fleetStats[fleet].nodeStats[node].clientStats[client]
+     *
+     * Each device ticket is stored into this tree ensuring that
+     * device activity is deduplicated on a per-node basis.
+     *
+     * Rollups of the total counts are done on the Nodes level as
+     * well as on the Fleet level.
      *
      */
     address[] public relayArray;
@@ -86,40 +94,7 @@ contract DiodeRegistryLight is Initializable {
     IFleetContract[] public fleetArray;
     mapping(address => FleetStats) fleetStats;
 
-    /// @dev v113+ lazy relayArray registration (must remain after fleetStats for proxy layout)
-    mapping(address => bool) internal relayInArray;
-
     // ==================== DATA STRUCTURES ==================
-    /// @dev Reserved for proxy storage compatibility with v111 (do not use in logic).
-    struct ClientStats {
-        bool exists;
-        uint256 score;
-    }
-
-    /// @dev Reserved for proxy storage compatibility with v111 (do not use in logic).
-    struct NodeStats {
-        bool exists;
-        uint256 score;
-        address[] clientArray;
-        mapping(address => ClientStats) clientStats;
-    }
-
-    struct ClientEpochStats {
-        uint256 score;
-    }
-
-    struct NodeEpochStats {
-        mapping(address => ClientEpochStats) clients;
-    }
-
-    struct EpochActivity {
-        uint256 score;
-        address[] nodeArray;
-        uint256[] nodeScores;
-        mapping(address => uint256) nodeIndex;
-        mapping(address => NodeEpochStats) nodes;
-    }
-
     struct FleetStats {
         bool exists;
         uint256 currentBalance;
@@ -127,9 +102,22 @@ contract DiodeRegistryLight is Initializable {
         uint256 withdrawableBalance;
         uint256 currentEpoch;
         uint256 score;
-        address[] _reservedNodeArray;
-        mapping(address => NodeStats) _reservedNodeStats;
-        mapping(uint256 => EpochActivity) epochActivity;
+        // These two together form an iterable map
+        address[] nodeArray;
+        mapping(address => NodeStats) nodeStats;
+    }
+
+    struct NodeStats {
+        bool exists;
+        uint256 score;
+        // These two together form an iterable map
+        address[] clientArray;
+        mapping(address => ClientStats) clientStats;
+    }
+
+    struct ClientStats {
+        bool exists;
+        uint256 score;
     }
 
     modifier onlyFoundation() {
@@ -186,13 +174,8 @@ contract DiodeRegistryLight is Initializable {
     }
 
     function RelayWithdraw(address nodeAddress) public {
-        uint256 amount = relayRewards[nodeAddress].reward;
-        require(amount > 0, "No rewards to withdraw");
-        if (!relayInArray[nodeAddress]) {
-            relayInArray[nodeAddress] = true;
-            relayArray.push(nodeAddress);
-        }
-        Token.safeTransfer(nodeAddress, amount);
+        require(relayRewards[nodeAddress].reward > 0, "No rewards to withdraw");
+        Token.safeTransfer(nodeAddress, relayRewards[nodeAddress].reward);
         relayRewards[nodeAddress].reward = 0;
     }
 
@@ -210,7 +193,7 @@ contract DiodeRegistryLight is Initializable {
 
     // One Epoch should be roughly one month
     function Epoch() public view returns (uint256) {
-        return block.timestamp / SecondsPerEpoch;
+        return block.timestamp.div(SecondsPerEpoch);
     }
 
     function EndEpoch() public {
@@ -236,17 +219,11 @@ contract DiodeRegistryLight is Initializable {
         FleetStats storage fleet = fleetStats[address(fleetContract)];
         if (!fleet.exists) return;
         if (fleet.currentEpoch >= currentEpoch) return;
-
-        uint256 settleEpoch = fleet.currentEpoch;
-        EpochActivity storage act = fleet.epochActivity[settleEpoch];
-        uint256 fleetScore = act.score;
-
         fleet.currentEpoch = currentEpoch;
-        fleet.score = 0;
 
         uint256 reward = fleet.currentBalance / 100;
         // No traffic => no reward, and no tax
-        if (fleetScore == 0) reward = 0;
+        if (fleet.score == 0) reward = 0;
 
         uint256 foundationTax = (reward * foundationTaxRate) / 100;
 
@@ -261,34 +238,41 @@ contract DiodeRegistryLight is Initializable {
         }
         fleet.withdrawRequestSize = 0;
 
+        // No need to continue beyond this point, if there is nothing to distribute
         reward -= foundationTax;
+        uint256 rest = reward;
 
-        if (reward > 0 && fleetScore > 0) {
-            uint256 nodeLen = act.nodeArray.length;
-            uint256 totalPaid = 0;
+        for (uint256 n = 0; n < fleet.nodeArray.length; n++) {
+            address nodeAddress = fleet.nodeArray[n];
+            NodeStats storage node = fleet.nodeStats[nodeAddress];
 
-            for (uint256 n = 0; n < nodeLen;) {
-                address nodeAddress = act.nodeArray[n];
-                uint256 nodeScore = act.nodeScores[n];
+            if (reward > 0) {
+                uint256 value = Math.mulDiv(reward, node.score, fleet.score);
 
-                unchecked {
-                    uint256 value = (reward * nodeScore) / fleetScore;
-                    if (value > 0) {
-                        RelayReward storage relay = relayRewards[nodeAddress];
-                        if (!relay.exists) {
-                            relay.exists = true;
-                        }
-                        relay.reward += value;
-                        totalPaid += value;
+                if (value > 0) {
+                    if (!relayRewards[nodeAddress].exists) {
+                        relayArray.push(nodeAddress);
+                        relayRewards[nodeAddress].exists = true;
                     }
-                    ++n;
+                    relayRewards[nodeAddress].reward += value;
+                    rest -= value;
                 }
             }
 
-            foundationWithdrawableBalance += foundationTax + reward - totalPaid;
-        } else if (reward > 0 || foundationTax > 0) {
-            foundationWithdrawableBalance += foundationTax + reward;
+            for (uint256 c = 0; c < node.clientArray.length; c++) {
+                // Client Map Cleanup
+                delete node.clientStats[node.clientArray[c]];
+            }
+            // Node Cleanup
+            delete fleet.nodeStats[nodeAddress];
         }
+
+        if (reward > 0 || foundationTax > 0) {
+            foundationWithdrawableBalance += foundationTax + rest;
+        }
+        // Fleet Cleanup
+        fleet.score = 0;
+        delete fleet.nodeArray;
     }
 
     /**
@@ -406,9 +390,8 @@ contract DiodeRegistryLight is Initializable {
 
     function GetFleet(IFleetContract _fleet) external view returns (FleetStat memory) {
         FleetStats storage f = fleetStats[address(_fleet)];
-        return FleetStat(
-            f.exists, f.currentBalance, f.withdrawRequestSize, f.withdrawableBalance, f.currentEpoch, f.score
-        );
+        return
+            FleetStat(f.exists, f.currentBalance, f.withdrawRequestSize, f.withdrawableBalance, f.currentEpoch, f.score);
     }
 
     function GetClientScore(IFleetContract _fleet, address nodeAddress, address clientAddress)
@@ -416,42 +399,17 @@ contract DiodeRegistryLight is Initializable {
         view
         returns (uint256)
     {
-        FleetStats storage f = fleetStats[address(_fleet)];
-        return f.epochActivity[f.currentEpoch].nodes[nodeAddress].clients[clientAddress].score;
-    }
-
-    function GetClientScoreForEpoch(
-        IFleetContract _fleet,
-        uint256 epoch,
-        address nodeAddress,
-        address clientAddress
-    ) external view returns (uint256) {
-        return fleetStats[address(_fleet)].epochActivity[epoch].nodes[nodeAddress].clients[clientAddress].score;
+        return fleetStats[address(_fleet)].nodeStats[nodeAddress].clientStats[clientAddress].score;
     }
 
     function GetNode(IFleetContract _fleet, address nodeAddress) external view returns (Node memory) {
-        FleetStats storage f = fleetStats[address(_fleet)];
-        EpochActivity storage act = f.epochActivity[f.currentEpoch];
-        return Node(nodeAddress, _nodeScore(act, nodeAddress));
-    }
-
-    function GetNodeForEpoch(IFleetContract _fleet, uint256 epoch, address nodeAddress)
-        external
-        view
-        returns (Node memory)
-    {
-        EpochActivity storage act = fleetStats[address(_fleet)].epochActivity[epoch];
-        return Node(nodeAddress, _nodeScore(act, nodeAddress));
+        NodeStats storage n = fleetStats[address(_fleet)].nodeStats[nodeAddress];
+        Node memory node = Node(nodeAddress, n.score);
+        return node;
     }
 
     function RelayRewards(address nodeAddress) external view returns (uint256) {
         return relayRewards[nodeAddress].reward;
-    }
-
-    function _nodeScore(EpochActivity storage act, address nodeAddress) private view returns (uint256) {
-        uint256 idx = act.nodeIndex[nodeAddress];
-        if (idx == 0) return 0;
-        return act.nodeScores[idx - 1];
     }
 
     // ====================================================================================
@@ -472,26 +430,23 @@ contract DiodeRegistryLight is Initializable {
             fleetArray.push(fleetContract);
         }
 
-        EpochActivity storage act = fleet.epochActivity[currentEpoch];
-        uint256 nodeIdx = act.nodeIndex[nodeAddress];
-        if (nodeIdx == 0) {
-            act.nodeArray.push(nodeAddress);
-            act.nodeScores.push(0);
-            nodeIdx = act.nodeArray.length;
-            act.nodeIndex[nodeAddress] = nodeIdx;
+        NodeStats storage node = fleet.nodeStats[nodeAddress];
+        if (node.exists == false) {
+            node.exists = true;
+            fleet.nodeArray.push(nodeAddress);
         }
 
-        NodeEpochStats storage node = act.nodes[nodeAddress];
-        ClientEpochStats storage client = node.clients[clientAddress];
+        ClientStats storage client = node.clientStats[clientAddress];
+        if (client.exists == false) {
+            client.exists = true;
+            node.clientArray.push(clientAddress);
+        }
 
         if (score > client.score) {
             uint256 delta = score - client.score;
-            unchecked {
-                client.score += delta;
-                act.score += delta;
-                act.nodeScores[nodeIdx - 1] += delta;
-                fleet.score += delta;
-            }
+            client.score += delta;
+            fleet.score += delta;
+            node.score += delta;
         }
     }
 
@@ -502,6 +457,6 @@ contract DiodeRegistryLight is Initializable {
     }
 
     function Version() external pure returns (uint256) {
-        return 114;
+        return 111;
     }
 }

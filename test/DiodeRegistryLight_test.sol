@@ -291,4 +291,37 @@ contract DiodeRegistryLightTest is Test {
         // but should pass cleanly with the new Math.mulDiv fix.
         reg.EndEpochForAllFleets();
     }
+
+    function testEpochScopedHistoricalClientScore() public {
+        (address alice, uint256 alicePk) = makeAddrAndKey("alice");
+        address relay = address(relay1);
+        reg.ContractStake(fleet1, 100_000);
+        uint256 ticketEpoch = block.timestamp / reg.SecondsPerEpoch();
+        vm.roll(block.number + 2);
+
+        bytes32[] memory ticket = new bytes32[](7);
+        ticket[0] = bytes32(block.chainid);
+        ticket[1] = bytes32(ticketEpoch);
+        ticket[2] = Utils.addressToBytes32(address(fleet1));
+        ticket[3] = Utils.addressToBytes32(relay);
+        ticket[4] = bytes32(uint256(3));
+        ticket[5] = bytes32(uint256(5));
+        ticket[6] = "fake";
+
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(alicePk, Utils.bytes32Hash(ticket));
+        fleet1.SetDeviceAllowlist(alice, true);
+
+        vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
+        reg.SubmitTicket(ticketEpoch, fleet1, relay, 3, 5, ticket[6], [r, s, bytes32(uint256(v))]);
+
+        uint256 activityEpoch = reg.currentEpoch();
+        assertEq(reg.GetClientScoreForEpoch(fleet1, activityEpoch, relay, alice), 3077);
+
+        vm.warp(block.timestamp + reg.SecondsPerEpoch() + 1);
+        reg.EndEpochForAllFleets();
+
+        assertEq(reg.GetFleet(fleet1).score, 0, "open score cleared after settle");
+        assertEq(reg.GetClientScoreForEpoch(fleet1, activityEpoch, relay, alice), 3077);
+        assertEq(reg.Version(), 114);
+    }
 }
