@@ -406,9 +406,8 @@ contract DiodeRegistryLight is Initializable {
 
     function GetFleet(IFleetContract _fleet) external view returns (FleetStat memory) {
         FleetStats storage f = fleetStats[address(_fleet)];
-        return FleetStat(
-            f.exists, f.currentBalance, f.withdrawRequestSize, f.withdrawableBalance, f.currentEpoch, f.score
-        );
+        return
+            FleetStat(f.exists, f.currentBalance, f.withdrawRequestSize, f.withdrawableBalance, f.currentEpoch, f.score);
     }
 
     function GetClientScore(IFleetContract _fleet, address nodeAddress, address clientAddress)
@@ -420,12 +419,11 @@ contract DiodeRegistryLight is Initializable {
         return f.epochActivity[f.currentEpoch].nodes[nodeAddress].clients[clientAddress].score;
     }
 
-    function GetClientScoreForEpoch(
-        IFleetContract _fleet,
-        uint256 epoch,
-        address nodeAddress,
-        address clientAddress
-    ) external view returns (uint256) {
+    function GetClientScoreForEpoch(IFleetContract _fleet, uint256 epoch, address nodeAddress, address clientAddress)
+        external
+        view
+        returns (uint256)
+    {
         return fleetStats[address(_fleet)].epochActivity[epoch].nodes[nodeAddress].clients[clientAddress].score;
     }
 

@@ -84,13 +84,9 @@ contract DiodeRegistryLightGas is Test {
         sig = [r, s, bytes32(uint256(v))];
     }
 
-    function _submitTicket(
-        Env memory env,
-        uint256 ticketEpoch,
-        address relay,
-        uint256 clientPk,
-        bytes32 localAddress
-    ) internal {
+    function _submitTicket(Env memory env, uint256 ticketEpoch, address relay, uint256 clientPk, bytes32 localAddress)
+        internal
+    {
         bytes32[3] memory sig = _signTicket(ticketEpoch, env.fleet1, relay, clientPk, localAddress);
         env.reg.SubmitTicket(ticketEpoch, env.fleet1, relay, CONNECTIONS, BYTES, localAddress, sig);
     }
@@ -107,9 +103,7 @@ contract DiodeRegistryLightGas is Test {
         _submitDistinctTickets(env, ticketEpoch, count, relayCount);
     }
 
-    function _submitDistinctTickets(Env memory env, uint256 ticketEpoch, uint256 count, uint256 relayCount)
-        internal
-    {
+    function _submitDistinctTickets(Env memory env, uint256 ticketEpoch, uint256 count, uint256 relayCount) internal {
         vm.pauseGasMetering();
         vm.roll(block.number + 2);
 
@@ -229,8 +223,7 @@ contract DiodeRegistryLightGas is Test {
             for (uint256 r = 0; r < side && submitted < count; r++) {
                 address relay = r == 0 ? address(env.relay1) : _relayAddress(r);
                 for (uint256 c = 0; c < side && submitted < count; c++) {
-                    (address client, uint256 clientPk) =
-                        makeAddrAndKey(string(abi.encodePacked("mix", r, c)));
+                    (address client, uint256 clientPk) = makeAddrAndKey(string(abi.encodePacked("mix", r, c)));
                     env.fleet1.SetDeviceAllowlist(client, true);
                     bytes32 localAddress = keccak256(abi.encodePacked("mix", r, c));
                     _submitTicket(env, ticketEpoch, relay, clientPk, localAddress);
@@ -297,19 +290,13 @@ contract DiodeRegistryLightGas is Test {
 
             (address client, uint256 clientPk) = makeAddrAndKey("boundaryClient");
             env.fleet1.SetDeviceAllowlist(client, true);
-            bytes32[3] memory sig =
-                _signTicket(closingEpoch, env.fleet1, address(env.relay1), clientPk, "boundary");
+            bytes32[3] memory sig = _signTicket(closingEpoch, env.fleet1, address(env.relay1), clientPk, "boundary");
 
             uint256 g0 = gasleft();
-            env.reg.SubmitTicket(
-                closingEpoch, env.fleet1, address(env.relay1), CONNECTIONS, BYTES, "boundary", sig
-            );
+            env.reg.SubmitTicket(closingEpoch, env.fleet1, address(env.relay1), CONNECTIONS, BYTES, "boundary", sig);
             uint256 boundaryGas = g0 - gasleft();
 
-            console2.log(
-                string(abi.encodePacked("epochBoundarySubmit_count=", vm.toString(count))),
-                boundaryGas
-            );
+            console2.log(string(abi.encodePacked("epochBoundarySubmit_count=", vm.toString(count))), boundaryGas);
 
             DiodeRegistryLight.FleetStat memory f = env.reg.GetFleet(env.fleet1);
             assertEq(f.score, CONNECTIONS * 1024 + BYTES, "new epoch ticket applied");

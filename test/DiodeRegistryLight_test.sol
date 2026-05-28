@@ -259,7 +259,7 @@ contract DiodeRegistryLightTest is Test {
 
     function testReward_Overflow_Fix() public {
         (address alice, uint256 alicePk) = makeAddrAndKey("alice");
-        uint256 amount = 1000 * 10**18;
+        uint256 amount = 1000 * 10 ** 18;
         foundation_token.mint(address(this), amount);
         diode.approve(address(reg), amount);
         reg.ContractStake(fleet1, amount);

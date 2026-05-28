@@ -5,6 +5,10 @@ all: compile
 compile:
 	forge compile
 
+.PHONY: format
+format:
+	forge fmt
+
 .PHONY: test
 test:
 	forge test -vvv
