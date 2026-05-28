@@ -76,6 +76,7 @@ DIODEREGISTRYLIGHT:
     0xAa55b0311c0Bc5d3DB4b656F2dCb6b09758B69E8 DiodeRegistryLight.sol v1 (shanghai)
     0x8bec5bdedd8731cac55fda9771503e458ad387d0 DiodeRegistryLight.sol v110 (cancun)
     0x7D18920F36C959Bd823fee1d66aB8111D9cB0ef1 DiodeRegistryLight.sol v111 (cancun)
+    0xfD52Af8B15BB3D6b86460C6332A6eea1bc1f14b6 DiodeRegistryLight.sol v114 (cancun)
 
 DEVFLEET:
     0x8aFe08d333f785C818199a5bdc7A52ac6Ffc492A Proxy.sol
