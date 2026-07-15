@@ -22,6 +22,7 @@ contract UpgradeLedger is ChangeTracker, OwnableInitializable {
 
     address public immutable TOKEN;
     mapping(address => Payment[]) public payments;
+    address[] public paymentAddresses;
 
     constructor(address _owner, address token) {
         TOKEN = token;
@@ -31,8 +32,21 @@ contract UpgradeLedger is ChangeTracker, OwnableInitializable {
     function RecordPayment(uint256 _amount, string memory _reason) public {
         require(_amount > 0, "Amount must be greater than 0");
         IERC20(TOKEN).transferFrom(msg.sender, address(this), _amount);
-        payments[msg.sender].push(Payment(msg.sender, _amount, block.timestamp, _reason));
+        recordPaymentImpl(msg.sender, _amount, _reason);
+    }
+
+    function RecordPaymentFor(address _sender, uint256 _amount, string memory _reason) public {
+        require(_amount > 0, "Amount must be greater than 0");
+        IERC20(TOKEN).transferFrom(msg.sender, address(this), _amount);
+        recordPaymentImpl(_sender, _amount, _reason);
+    }
+
+    function recordPaymentImpl(address _sender, uint256 _amount, string memory _reason) internal {
+        payments[_sender].push(Payment(_sender, _amount, block.timestamp, _reason));
         update_change_tracker();
+        if (payments[_sender].length == 1) {
+            paymentAddresses.push(_sender);
+        }
     }
 
     function GetPayments(address _sender) public view returns (Payment[] memory) {
@@ -46,6 +60,6 @@ contract UpgradeLedger is ChangeTracker, OwnableInitializable {
     }
 
     function Version() public pure returns (int256) {
-        return 101;
+        return 102;
     }
 }

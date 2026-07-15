@@ -76,6 +76,17 @@ contract UpgradeLedgerTest {
         token.mint(address(user2), 1000 ether);
     }
 
+    function paymentAddressCount() internal view returns (uint256 count) {
+        while (true) {
+            (bool success,) =
+                address(ledger).staticcall(abi.encodeWithSignature("paymentAddresses(uint256)", count));
+            if (!success) {
+                break;
+            }
+            count++;
+        }
+    }
+
     function testConstructor() public {
         // Test that TOKEN is set correctly
         Assert.equal(address(ledger.TOKEN()), address(token), "TOKEN should be set correctly");
@@ -272,5 +283,100 @@ contract UpgradeLedgerTest {
 
         // Change tracker should be updated
         Assert.notEqual(ledger.change_tracker(), initialChange, "Change tracker should be updated after payment");
+    }
+
+    function testVersion() public {
+        Assert.equal(ledger.Version(), 102, "Version should be 102");
+    }
+
+    function testRecordPaymentFor() public {
+        uint256 amount = 100 ether;
+        string memory reason = "Payment on behalf of user2";
+
+        user1.__updateTarget(address(token));
+        address(user1).call(abi.encodeWithSignature("approve(address,uint256)", address(ledger), amount));
+        user1.__updateTarget(address(ledger));
+
+        uint256 initialContractBalance = token.balanceOf(address(ledger));
+        uint256 initialUser1Balance = token.balanceOf(address(user1));
+        uint256 initialUser2Balance = token.balanceOf(address(user2));
+
+        address(user1).call(
+            abi.encodeWithSignature("RecordPaymentFor(address,uint256,string)", address(user2), amount, reason)
+        );
+
+        Assert.equal(
+            token.balanceOf(address(ledger)), initialContractBalance + amount, "Contract should receive tokens"
+        );
+        Assert.equal(token.balanceOf(address(user1)), initialUser1Balance - amount, "Payer should lose tokens");
+        Assert.equal(token.balanceOf(address(user2)), initialUser2Balance, "Credited user should not lose tokens");
+
+        UpgradeLedger.Payment[] memory user2Payments = ledger.GetPayments(address(user2));
+        Assert.equal(user2Payments.length, 1, "Should have 1 payment for user2");
+        Assert.equal(user2Payments[0].sender, address(user2), "Payment should be credited to user2");
+        Assert.equal(user2Payments[0].amount, amount, "Amount should be correct");
+        Assert.equal(user2Payments[0].reason, reason, "Reason should be correct");
+
+        UpgradeLedger.Payment[] memory user1Payments = ledger.GetPayments(address(user1));
+        Assert.equal(user1Payments.length, 0, "Payer should have no payments recorded");
+    }
+
+    function testRecordPaymentForZeroAmount() public {
+        (bool success,) = address(user1).call(
+            abi.encodeWithSignature("RecordPaymentFor(address,uint256,string)", address(user2), 0, "Test")
+        );
+
+        Assert.notOk(success, "Zero amount RecordPaymentFor should fail");
+    }
+
+    function testRecordPaymentForInsufficientAllowance() public {
+        uint256 amount = 100 ether;
+
+        user1.__updateTarget(address(token));
+        address(user1).call(abi.encodeWithSignature("approve(address,uint256)", address(ledger), amount - 1));
+        user1.__updateTarget(address(ledger));
+
+        (bool success,) = address(user1).call(
+            abi.encodeWithSignature("RecordPaymentFor(address,uint256,string)", address(user2), amount, "Test")
+        );
+
+        Assert.notOk(success, "RecordPaymentFor with insufficient allowance should fail");
+    }
+
+    function testPaymentAddresses() public {
+        uint256 amount1 = 50 ether;
+        uint256 amount2 = 75 ether;
+
+        user1.__updateTarget(address(token));
+        address(user1).call(abi.encodeWithSignature("approve(address,uint256)", address(ledger), amount1 + amount2));
+        user1.__updateTarget(address(ledger));
+
+        address(user1).call(abi.encodeWithSignature("RecordPayment(uint256,string)", amount1, "First payment"));
+        Assert.equal(ledger.paymentAddresses(0), address(user1), "First payer should be in paymentAddresses");
+        Assert.equal(paymentAddressCount(), 1, "Should have 1 payment address after first payment");
+
+        address(user1).call(abi.encodeWithSignature("RecordPayment(uint256,string)", amount2, "Second payment"));
+        Assert.equal(paymentAddressCount(), 1, "Should still have 1 payment address after second payment");
+    }
+
+    function testPaymentAddressesMultipleUsers() public {
+        uint256 amount1 = 25 ether;
+        uint256 amount2 = 35 ether;
+
+        user1.__updateTarget(address(token));
+        address(user1).call(abi.encodeWithSignature("approve(address,uint256)", address(ledger), amount1));
+        user1.__updateTarget(address(ledger));
+        address(user1).call(abi.encodeWithSignature("RecordPayment(uint256,string)", amount1, "User1 payment"));
+
+        user2.__updateTarget(address(token));
+        address(user2).call(abi.encodeWithSignature("approve(address,uint256)", address(ledger), amount2));
+        user2.__updateTarget(address(ledger));
+        address(user2).call(
+            abi.encodeWithSignature("RecordPaymentFor(address,uint256,string)", address(user2), amount2, "User2 payment")
+        );
+
+        Assert.equal(paymentAddressCount(), 2, "Should have 2 payment addresses");
+        Assert.equal(ledger.paymentAddresses(0), address(user1), "First payment address should be user1");
+        Assert.equal(ledger.paymentAddresses(1), address(user2), "Second payment address should be user2");
     }
 }

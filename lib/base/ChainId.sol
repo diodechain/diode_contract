@@ -6,5 +6,5 @@ library ChainId {
     uint256 constant MOONBEAM = 1284;
     uint256 constant OASIS = 0x5afe; // 23294
 
-    uint256 constant THIS = DIODE; 
+    uint256 constant THIS = BASE; 
 }
