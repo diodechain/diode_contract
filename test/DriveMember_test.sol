@@ -185,7 +185,7 @@ contract DriveMemberTest is Test {
         DriveMember member = DriveMember(raw_member);
 
         Assert.equal(member.owner(), _owner, "owner should be the deployer");
-        Assert.equal(member.Version(), 123, "initial version should be 123");
+        Assert.equal(member.Version(), 124, "initial version should be 124");
 
         DriveMemberV2 newImpl = new DriveMemberV2();
 

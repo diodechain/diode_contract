@@ -10,6 +10,7 @@ import "./Roles.sol";
 import "./deps/OwnableInitializable.sol";
 import "./deps/Set.sol";
 import "./ChangeTracker.sol";
+import "./MembershipHistory.sol";
 
 /**
  * Generic Group
@@ -19,6 +20,7 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
 
     Set.Data members;
     uint256 constant DATA_SLOT = uint256(keccak256("DATA_SLOT"));
+    uint256 constant MEMBERSHIP_MARKER_ROLE = 1;
 
     struct DataKey {
         uint256 class;
@@ -42,6 +44,41 @@ contract Group is Storage, OwnableInitializable, ChangeTracker {
         update_change_tracker();
         super.initialize(arg_owner);
         members.Add(owner());
+        _ensureMembershipHistory();
+    }
+
+    /// @dev Role stored in membership history for plain Group members (overridden by RoleGroup).
+    function _membershipHistoryRole(address) internal view virtual returns (uint256) {
+        return MEMBERSHIP_MARKER_ROLE;
+    }
+
+    function _ensureMembershipHistory() internal {
+        if (!MembershipHistory.ensureStart()) {
+            return;
+        }
+        address own = owner();
+        MembershipHistory.seedOpen(own, _membershipHistoryRole(own));
+        address[] memory list = members.Members();
+        for (uint256 i = 0; i < list.length; i++) {
+            MembershipHistory.seedOpen(list[i], _membershipHistoryRole(list[i]));
+        }
+    }
+
+    function EnsureMembershipHistory() public virtual {
+        _ensureMembershipHistory();
+    }
+
+    function MembershipHistoryStart() public view virtual returns (uint256) {
+        return MembershipHistory.historyStart();
+    }
+
+    function MemberAt(address _member, uint256 _timestamp)
+        public
+        view
+        virtual
+        returns (MembershipHistory.MembershipAtResult memory)
+    {
+        return MembershipHistory.at(_member, _timestamp);
     }
 
     function IsMember(address _member) public view virtual returns (bool) {

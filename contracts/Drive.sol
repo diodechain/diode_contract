@@ -12,6 +12,7 @@ import "./Roles.sol";
 import "./ChatGroup.sol";
 import "./ManagedProxy.sol";
 import "./IProxyResolver.sol";
+import "./MembershipHistory.sol";
 import "cross/ChainId.sol";
 
 /**
@@ -27,7 +28,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     address private immutable CHAT_IMPL = address(new ChatGroup());
     address private immutable BNS;
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
-    int256 constant VERSION = 160;
+    int256 constant VERSION = 161;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
@@ -367,6 +368,19 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
 
     function Role(address _member) public view override(ProtectedRoleGroup, IDrive) onlyReader returns (uint256) {
         return role(_member);
+    }
+
+    function RoleAt(address _member, uint256 _timestamp)
+        public
+        view
+        override(RoleGroup, IDrive)
+        returns (MembershipHistory.MembershipAtResult memory)
+    {
+        return MembershipHistory.at(_member, _timestamp);
+    }
+
+    function MembershipHistoryStart() public view override(Group, IDrive) returns (uint256) {
+        return MembershipHistory.historyStart();
     }
 
     function bns() public view virtual returns (IBNS) {
