@@ -5,6 +5,8 @@
 pragma solidity >=0.7.6;
 pragma experimental ABIEncoderV2;
 
+import "./MembershipHistory.sol";
+
 interface IDrive {
     function Version() external pure returns (int256);
     function AddMember(address _member) external;
@@ -13,6 +15,11 @@ interface IDrive {
     function AddMember(address _member, uint256 role) external;
     function Swap(address payable _multisig) external;
     function Role(address _member) external view returns (uint256);
+    function RoleAt(address _member, uint256 _timestamp)
+        external
+        view
+        returns (MembershipHistory.MembershipAtResult memory);
+    function MembershipHistoryStart() external view returns (uint256);
     function Members() external returns (address[] memory);
     function RemoveSelf() external;
     function RemoveMember(address _member) external;

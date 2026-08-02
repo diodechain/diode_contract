@@ -7,6 +7,7 @@ pragma experimental ABIEncoderV2;
 
 import "./Group.sol";
 import "./deps/SetReverseLocation.sol";
+import "./MembershipHistory.sol";
 import "cross/ChainId.sol";
 
 /**
@@ -79,7 +80,7 @@ contract DriveMember is Group {
     }
 
     function Version() external pure virtual returns (int256) {
-        return 123;
+        return 124;
     }
 
     function Type() external pure virtual returns (string memory) {
@@ -92,11 +93,18 @@ contract DriveMember is Group {
     }
 
     function AddMember(address _member) external onlyMember {
+        bool wasMember = IsMember(_member);
         members.Add(_member);
+        _ensureMembershipHistory();
+        if (!wasMember) {
+            MembershipHistory.recordJoin(_member, MEMBERSHIP_MARKER_ROLE);
+        }
         update_change_tracker();
     }
 
     function RemoveMember(address _member) external onlyMember {
+        _ensureMembershipHistory();
+        MembershipHistory.recordLeave(_member);
         members.Remove(_member);
         update_change_tracker();
     }

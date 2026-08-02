@@ -6,6 +6,7 @@ pragma solidity ^0.7.6;
 pragma experimental ABIEncoderV2;
 
 import "./Group.sol";
+import "./MembershipHistory.sol";
 
 /**
  * Generic Group
@@ -47,13 +48,31 @@ contract RoleGroup is Group {
         return values;
     }
 
+    function _membershipHistoryRole(address _member) internal view virtual override returns (uint256) {
+        return role(_member);
+    }
+
     function _add(address _member, uint256 _role) internal virtual {
+        // Use set membership / stored role only — do not treat owner() as wasMember,
+        // otherwise transferOwnership's post-transfer _add(newOwner, Owner) skips history.
+        bool wasMember = members.IsMember(_member);
+        uint256 oldRole = roles[_member];
         members.Add(_member);
         roles[_member] = _role;
+        _ensureMembershipHistory();
+        if (wasMember) {
+            if (oldRole != _role) {
+                MembershipHistory.recordRoleChange(_member, _role);
+            }
+        } else {
+            MembershipHistory.recordJoin(_member, _role);
+        }
         update_change_tracker();
     }
 
     function remove(address _member) internal virtual {
+        _ensureMembershipHistory();
+        MembershipHistory.recordLeave(_member);
         members.Remove(_member);
         delete roles[_member];
         update_change_tracker();
@@ -62,6 +81,15 @@ contract RoleGroup is Group {
     function role(address _member) internal view returns (uint256) {
         if (_member == owner()) return RoleType.Owner;
         return roles[_member];
+    }
+
+    function RoleAt(address _member, uint256 _timestamp)
+        public
+        view
+        virtual
+        returns (MembershipHistory.MembershipAtResult memory)
+    {
+        return MembershipHistory.at(_member, _timestamp);
     }
 
     function devices(address _member) internal returns (address[] memory) {
