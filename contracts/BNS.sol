@@ -23,8 +23,8 @@ contract BNS is IBNS, ChangeTracker {
     mapping(address => ReverseEntry) public reverse;
     bytes32[] public namesIndex;
 
-    function Version() external pure override returns (int256) {
-        return 320;
+    function Version() external pure virtual override returns (int256) {
+        return 321;
     }
 
     /**
@@ -102,7 +102,7 @@ contract BNS is IBNS, ChangeTracker {
         BNSEntry storage current = names[key];
         requireOnlyOwner(current);
         BNSEntry storage newentry = names[convert(_newname)];
-        require(!isLocked(newentry), "The new name is not available you");
+        requireNotLocked(newentry);
         newentry = current;
         delete names[key];
         update_change_tracker();
@@ -124,7 +124,11 @@ contract BNS is IBNS, ChangeTracker {
     function Unregister(string calldata _name) external override {
         bytes32 key = convert(_name);
         BNSEntry memory current = names[key];
-        require(current.owner == msg.sender || !isLocked(current), "This name is not yours to unregister");
+        if (isOwned(current)) {
+            requireOnlyOwner(current);
+        } else {
+            requireNotLocked(current);
+        }
         delete names[key];
         update_change_tracker();
     }
@@ -291,7 +295,7 @@ contract BNS is IBNS, ChangeTracker {
      *   INTERNAL FUNCTIONS **********************
      *
      */
-    function requireOnlyOwner(BNSEntry storage current) internal view {
+    function requireOnlyOwner(BNSEntry memory current) internal view virtual {
         require(
             isOwned(current) && current.owner == msg.sender,
             "This name is not registered by you, or it's lease has ended"
@@ -301,6 +305,10 @@ contract BNS is IBNS, ChangeTracker {
     function isOwned(BNSEntry memory current) internal pure returns (bool) {
         return current.owner != address(0);
         //return block.number < current.leaseEnd || (current.leaseEnd == 0 && current.owner != address(0));
+    }
+
+    function requireNotLocked(BNSEntry memory current) internal view {
+        require(!isLocked(current), "This name is locked");
     }
 
     function isLocked(BNSEntry memory current) internal pure returns (bool) {
@@ -317,7 +325,11 @@ contract BNS is IBNS, ChangeTracker {
         bytes32 _hash = convert(_name);
 
         BNSEntry memory current = names[_hash];
-        require(current.owner == msg.sender || !isLocked(current), "This name is already taken");
+        if (isOwned(current)) {
+            requireOnlyOwner(current);
+        } else {
+            requireNotLocked(current);
+        }
         if (current.owner == address(0)) {
             namesIndex.push(_hash);
         }
