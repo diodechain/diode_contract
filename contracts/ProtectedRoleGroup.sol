@@ -19,9 +19,10 @@ contract ProtectedRoleGroup is RoleGroup {
         _;
     }
 
+    // Oasis: role > None (None==0 so `>= None` would always pass). Other chains: no-op.
     function requireReader(address _member) internal view virtual {
         if (ChainId.THIS == ChainId.OASIS) {
-            require(_member == address(this) || role(_member) >= RoleType.None, "Read access not allowed");
+            require(_member == address(this) || role(_member) > RoleType.None, "Read access not allowed");
         }
     }
 
@@ -51,6 +52,32 @@ contract ProtectedRoleGroup is RoleGroup {
 
     function Role(address _member) external view virtual override onlyReader returns (uint256) {
         return role(_member);
+    }
+
+    function RoleAt(address _member, uint256 _timestamp)
+        public
+        view
+        virtual
+        override
+        onlyReader
+        returns (MembershipHistory.MembershipAtResult memory)
+    {
+        return super.RoleAt(_member, _timestamp);
+    }
+
+    function MemberAt(address _member, uint256 _timestamp)
+        public
+        view
+        virtual
+        override
+        onlyReader
+        returns (MembershipHistory.MembershipAtResult memory)
+    {
+        return super.MemberAt(_member, _timestamp);
+    }
+
+    function MembershipHistoryStart() public view virtual override onlyReader returns (uint256) {
+        return super.MembershipHistoryStart();
     }
 
     function Members() public virtual override onlyReader returns (address[] memory) {

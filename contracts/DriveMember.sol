@@ -80,7 +80,7 @@ contract DriveMember is Group {
     }
 
     function Version() external pure virtual returns (int256) {
-        return 124;
+        return 125;
     }
 
     function Type() external pure virtual returns (string memory) {
@@ -162,6 +162,20 @@ contract DriveMember is Group {
 
     function IsMember(address _member) public view override returns (bool) {
         return owner() == _member || super.IsMember(_member);
+    }
+
+    function MemberAt(address _member, uint256 _timestamp)
+        public
+        view
+        override
+        onlyReader
+        returns (MembershipHistory.MembershipAtResult memory)
+    {
+        return super.MemberAt(_member, _timestamp);
+    }
+
+    function MembershipHistoryStart() public view override onlyReader returns (uint256) {
+        return super.MembershipHistoryStart();
     }
 
     function SubmitTransaction(address dst, bytes memory data) public onlyMember {

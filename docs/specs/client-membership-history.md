@@ -6,8 +6,8 @@ This document describes how Diode Collab (ddrive) and other clients should use t
 
 | Contract | Min version | APIs |
 |---|---|---|
-| `Drive` (zone) | `161` | `RoleAt`, `MembershipHistoryStart`, `EnsureMembershipHistory` |
-| `DriveMember` (identity / linked devices) | `124` | `MemberAt`, `MembershipHistoryStart`, `EnsureMembershipHistory` |
+| `Drive` (zone) | `162` | `RoleAt`, `MembershipHistoryStart`, `EnsureMembershipHistory` |
+| `DriveMember` (identity / linked devices) | `125` | `MemberAt`, `MembershipHistoryStart`, `EnsureMembershipHistory` |
 
 Live ACL APIs (`Role`, `IsMember`, `Members`) are unchanged and still mean **authorized now**.
 
@@ -59,6 +59,35 @@ struct MembershipAtResult {
 - If `validTo == 0`, the interval is **open-ended** as of chain head: holds for all `T >= validFrom` until membership changes again.
 - Leave time is exclusive: at the leave timestamp, status is `None` (not `Member`).
 
+## Access control (Oasis vs other chains)
+
+History views use the same reader gate as live read APIs (`Role`, `IsMember`, …):
+
+| API | Gate |
+|---|---|
+| `RoleAt` | `ProtectedRoleGroup.onlyReader` (zone) |
+| `MemberAt` | `onlyReader` on `DriveMember` |
+| `MembershipHistoryStart` | same as above per contract |
+| `EnsureMembershipHistory` | **public** (any caller; needed after proxy upgrade) |
+
+### Non-Oasis (Diode, Moonbeam, Base, …)
+
+`requireReader` is a no-op. Anyone can call view history APIs. Third-party signature verification can query freely.
+
+### Oasis (`ChainId.THIS == OASIS`)
+
+Reads are **private**: the caller must be an authorized reader, identical to `Role` / other protected views.
+
+**Drive / `ProtectedRoleGroup`:** caller must be `address(this)` or have `role(caller) > RoleType.None` (BackupBot and above). `Drive` additionally allows zone whitelist and registered chat contracts before that check.
+
+**DriveMember:** caller must be `address(this)`, a member (or owner), an additional-drive address, or on the identity whitelist.
+
+Implications for clients on Oasis:
+
+- Signature verification must run as a reader (zone member / identity member / whitelisted verifier), not as an arbitrary third-party EOA.
+- After a member leaves, that address can no longer call `RoleAt` / `MemberAt` — verify and cache intervals **while** the verifier still has read access, or use a long-lived reader/whitelist account for verification.
+- On Oasis, do not assume public RPC eth_call as a stranger will succeed for membership history.
+
 ## Contract calls
 
 ### Drive (zone membership)
@@ -96,6 +125,8 @@ Use `MemberAt` when verifying that a device key was linked to an identity at the
 
 Timestamps are **unix seconds**, matching `block.timestamp` — not block numbers. No binary search over blocks is required for membership once history is initialized.
 
+On Oasis, steps 2a/2b must be submitted with a reader identity (see Access control).
+
 ## Interpreting results
 
 ### `status == Member` (2)
@@ -116,7 +147,7 @@ Negative intervals are also cacheable (including gaps between leave and rejoin, 
 
 History cannot answer. Causes:
 
-1. Proxy not yet upgraded to Drive ≥ 161 / DriveMember ≥ 124
+1. Proxy not yet upgraded to Drive ≥ 162 / DriveMember ≥ 125
 2. Upgraded but `EnsureMembershipHistory()` (or a membership mutation) has not run yet → `MembershipHistoryStart() == 0`
 3. File timestamp `< MembershipHistoryStart()` (pre-upgrade / pre-ensure period)
 
@@ -151,11 +182,11 @@ Batching: when verifying many files from the same signer, sort by timestamp and 
 
 For **existing** zones and identities after deploying the new implementation:
 
-1. Upgrade proxy to Drive `161` / DriveMember `124` via `DriveFactory.Upgrade`
+1. Upgrade proxy to Drive `162` / DriveMember `125` via `DriveFactory.Upgrade`
 2. Call `EnsureMembershipHistory()` once (any caller; public)
    - Sets `MembershipHistoryStart` to `block.timestamp`
    - Backfills open intervals for current members/devices from that start
-3. Confirm `MembershipHistoryStart() > 0`
+3. Confirm `MembershipHistoryStart() > 0` (caller must be a reader on Oasis)
 4. Switch verification path:
    - `T >= MembershipHistoryStart` → use `RoleAt` / `MemberAt`
    - `T < MembershipHistoryStart` or `status == Unknown` → legacy path
@@ -205,4 +236,4 @@ EnsureMembershipHistory()
 change_tracker() → uint256
 ```
 
-`RoleAt` / `MemberAt` / `MembershipHistoryStart` are public view (no reader restriction) so third parties can verify signatures without already being zone members.
+View history APIs are reader-gated via `onlyReader` on Oasis (same family as `Role` / live membership reads) and unrestricted on other chains. `EnsureMembershipHistory` remains callable by anyone.

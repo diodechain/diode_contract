@@ -28,7 +28,7 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     address private immutable CHAT_IMPL = address(new ChatGroup());
     address private immutable BNS;
     bytes32 constant CHAT_REF = keccak256("CHAT_REF");
-    int256 constant VERSION = 161;
+    int256 constant VERSION = 162;
 
     Set.Data chats;
     mapping(address => address) chat_contracts;
@@ -360,8 +360,8 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         }
     }
 
-    // Resolve interface collision: both Group and IDrive declare Members and Role as public/external.
-    // We provide explicit overrides and expose them with the same visibility as IDrive.
+    // IDrive + ProtectedRoleGroup both declare Members/Role/RoleAt/MembershipHistoryStart.
+    // RoleAt/MembershipHistoryStart omit onlyReader here — ProtectedRoleGroup applies it once via super.
     function Members() public override(ProtectedRoleGroup, IDrive) onlyReader returns (address[] memory) {
         return super.Members();
     }
@@ -373,14 +373,14 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
     function RoleAt(address _member, uint256 _timestamp)
         public
         view
-        override(RoleGroup, IDrive)
+        override(ProtectedRoleGroup, IDrive)
         returns (MembershipHistory.MembershipAtResult memory)
     {
-        return MembershipHistory.at(_member, _timestamp);
+        return super.RoleAt(_member, _timestamp);
     }
 
-    function MembershipHistoryStart() public view override(Group, IDrive) returns (uint256) {
-        return MembershipHistory.historyStart();
+    function MembershipHistoryStart() public view override(ProtectedRoleGroup, IDrive) returns (uint256) {
+        return super.MembershipHistoryStart();
     }
 
     function bns() public view virtual returns (IBNS) {

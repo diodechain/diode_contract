@@ -13,6 +13,10 @@ format:
 test:
 	forge test -vvv
 
+.PHONY: test-oasis
+test-oasis:
+	FOUNDRY_PROFILE=oasis forge test --match-test testHistoryApisReaderGate -vvv
+
 .PHONY: test-gas
 test-gas:
 	forge test --match-contract DiodeRegistryLightGas -vv
