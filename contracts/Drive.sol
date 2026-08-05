@@ -360,8 +360,8 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         }
     }
 
-    // Resolve interface collision: both Group and IDrive declare Members and Role as public/external.
-    // We provide explicit overrides and expose them with the same visibility as IDrive.
+    // IDrive + ProtectedRoleGroup both declare Members/Role/RoleAt/MembershipHistoryStart.
+    // RoleAt/MembershipHistoryStart omit onlyReader here — ProtectedRoleGroup applies it once via super.
     function Members() public override(ProtectedRoleGroup, IDrive) onlyReader returns (address[] memory) {
         return super.Members();
     }
@@ -374,13 +374,12 @@ contract Drive is IDrive, ProtectedRoleGroup, IProxyResolver {
         public
         view
         override(ProtectedRoleGroup, IDrive)
-        onlyReader
         returns (MembershipHistory.MembershipAtResult memory)
     {
         return super.RoleAt(_member, _timestamp);
     }
 
-    function MembershipHistoryStart() public view override(ProtectedRoleGroup, IDrive) onlyReader returns (uint256) {
+    function MembershipHistoryStart() public view override(ProtectedRoleGroup, IDrive) returns (uint256) {
         return super.MembershipHistoryStart();
     }
 

@@ -164,7 +164,6 @@ contract DriveMember is Group {
         return owner() == _member || super.IsMember(_member);
     }
 
-    /// @dev Reader-gated like other Oasis reads (`Nonce`, `Drive`, …). Unrestricted on non-Oasis chains.
     function MemberAt(address _member, uint256 _timestamp)
         public
         view

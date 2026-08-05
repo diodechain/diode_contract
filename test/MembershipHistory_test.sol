@@ -104,6 +104,8 @@ contract MembershipHistoryTest is Test {
 
         MembershipHistory.MembershipAtResult memory beforeJoin = drive.RoleAt(member1, start + 1);
         Assert.equal(uint256(beforeJoin.status), uint256(STATUS_NONE), "before first join is None after history start");
+        Assert.equal(beforeJoin.validFrom, start, "none gap from history start");
+        Assert.equal(beforeJoin.validTo, joinTime, "none gap until join");
     }
 
     function testRejoinGaps() public {
@@ -286,7 +288,6 @@ contract MembershipHistoryTest is Test {
         identity.AddMember(device);
 
         if (ChainId.THIS == ChainId.OASIS) {
-            // Drive: stranger cannot read history or live Role
             vm.prank(stranger);
             vm.expectRevert();
             drive.RoleAt(member1, block.timestamp);
@@ -299,7 +300,6 @@ contract MembershipHistoryTest is Test {
             vm.expectRevert();
             drive.Role(member1);
 
-            // Drive: reader role can read history
             vm.prank(member1);
             MembershipHistory.MembershipAtResult memory asReader = drive.RoleAt(member1, block.timestamp);
             Assert.equal(uint256(asReader.status), uint256(STATUS_MEMBER), "reader can RoleAt");
@@ -307,17 +307,15 @@ contract MembershipHistoryTest is Test {
             vm.prank(member1);
             Assert.greaterThan(drive.MembershipHistoryStart(), uint256(0), "reader can MembershipHistoryStart");
 
-            // Drive: whitelist grants history read without a zone role
             drive.AddWhitelist(stranger);
             vm.prank(stranger);
             MembershipHistory.MembershipAtResult memory asWl = drive.RoleAt(member1, block.timestamp);
             Assert.equal(uint256(asWl.status), uint256(STATUS_MEMBER), "whitelist can RoleAt");
 
-            // Ensure stays public (state change), not reader-gated
+            // Ensure stays public after upgrade
             vm.prank(address(0xE1150));
             drive.EnsureMembershipHistory();
 
-            // DriveMember: stranger blocked; owner/member allowed
             vm.prank(stranger);
             vm.expectRevert();
             identity.MemberAt(device, block.timestamp);
@@ -329,13 +327,11 @@ contract MembershipHistoryTest is Test {
             MembershipHistory.MembershipAtResult memory ownerRead = identity.MemberAt(device, block.timestamp);
             Assert.equal(uint256(ownerRead.status), uint256(STATUS_MEMBER), "owner can MemberAt");
 
-            // After leave, former member loses live read on Drive history
             drive.RemoveMember(member1);
             vm.prank(member1);
             vm.expectRevert();
             drive.RoleAt(member1, block.timestamp);
         } else {
-            // Non-Oasis: open read for any caller
             vm.prank(stranger);
             MembershipHistory.MembershipAtResult memory open = drive.RoleAt(member1, block.timestamp);
             Assert.equal(uint256(open.status), uint256(STATUS_MEMBER), "non-oasis stranger can RoleAt");

@@ -19,8 +19,7 @@ contract ProtectedRoleGroup is RoleGroup {
         _;
     }
 
-    // Oasis: only readers (role > None) and the contract itself.
-    // Other chains: unrestricted (ChainId.THIS != OASIS).
+    // Oasis: role > None (None==0 so `>= None` would always pass). Other chains: no-op.
     function requireReader(address _member) internal view virtual {
         if (ChainId.THIS == ChainId.OASIS) {
             require(_member == address(this) || role(_member) > RoleType.None, "Read access not allowed");
@@ -55,7 +54,6 @@ contract ProtectedRoleGroup is RoleGroup {
         return role(_member);
     }
 
-    /// @dev Same reader gate as `Role` — historical membership is still private on Oasis.
     function RoleAt(address _member, uint256 _timestamp)
         public
         view
@@ -67,7 +65,6 @@ contract ProtectedRoleGroup is RoleGroup {
         return super.RoleAt(_member, _timestamp);
     }
 
-    /// @dev Same reader gate as `IsMember` for plain Group history under ProtectedRoleGroup.
     function MemberAt(address _member, uint256 _timestamp)
         public
         view
