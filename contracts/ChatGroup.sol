@@ -21,16 +21,16 @@ contract ChatGroup is ProtectedRoleGroup {
 
     function requireReader(address _member) internal view virtual override {
         if (ChainId.THIS == ChainId.OASIS) {
-            require(_member == address(zone()) || role(_member) >= RoleType.None, "Read access not allowed");
+            require(_member == address(zone()) || role(_member) > RoleType.None, "Read access not allowed");
         }
     }
 
     function IsReader(address _member) external view returns (bool) {
         require(
-            msg.sender == address(zone()) || role(msg.sender) >= RoleType.None,
+            msg.sender == address(zone()) || role(msg.sender) > RoleType.None,
             "Only members and zone admins can call this"
         );
-        return _member == address(zone()) || role(_member) >= RoleType.None;
+        return _member == address(zone()) || role(_member) > RoleType.None;
     }
 
     function Version() external view virtual returns (int256) {
@@ -86,7 +86,7 @@ contract ChatGroup is ProtectedRoleGroup {
 
     function InfoAggregateV1(uint256 max_size) external returns (Info memory) {
         address _zone = address(zone());
-        if (_zone == address(0) || msg.sender == _zone || role(msg.sender) >= RoleType.None) {
+        if (_zone == address(0) || msg.sender == _zone || role(msg.sender) > RoleType.None) {
             MemberInfo[] memory _member_infos = MemberRoles(Members(0, max_size));
             return Info({
                 chat: address(this),

@@ -11,6 +11,7 @@ import "../contracts/DriveMember.sol";
 import "../contracts/MembershipHistory.sol";
 import "../contracts/Roles.sol";
 import "./forge-std/Test.sol";
+import "cross/ChainId.sol";
 
 contract MembershipHistoryTest is Test {
     BNS bns;
@@ -44,7 +45,7 @@ contract MembershipHistoryTest is Test {
     }
 
     function testVersion() public {
-        Assert.equal(drive.Version(), int256(161), "Drive version should be 161");
+        Assert.equal(drive.Version(), int256(162), "Drive version should be 162");
     }
 
     function testFreshDriveHistoryStartAndOwner() public {
@@ -98,85 +99,75 @@ contract MembershipHistoryTest is Test {
 
         MembershipHistory.MembershipAtResult memory afterLeave = drive.RoleAt(member1, leaveTime);
         Assert.equal(uint256(afterLeave.status), uint256(STATUS_NONE), "at leave time is None (exclusive end)");
-        Assert.equal(afterLeave.validFrom, leaveTime, "open-none starts at leave");
-        Assert.equal(afterLeave.validTo, uint256(0), "open-none after leave");
+        Assert.equal(afterLeave.validFrom, leaveTime, "None starts at leave");
+        Assert.equal(afterLeave.validTo, uint256(0), "None is open until rejoin");
 
-        // Before join but after history start: None
         MembershipHistory.MembershipAtResult memory beforeJoin = drive.RoleAt(member1, start + 1);
-        Assert.equal(uint256(beforeJoin.status), uint256(STATUS_NONE), "never-member before join is None");
-        Assert.equal(beforeJoin.validFrom, start, "none gap from history start");
-        Assert.equal(beforeJoin.validTo, joinTime, "none gap until join");
+        Assert.equal(uint256(beforeJoin.status), uint256(STATUS_NONE), "before first join is None after history start");
     }
 
-    function testGapCacheAfterRejoin() public {
+    function testRejoinGaps() public {
         vm.warp(block.timestamp + 10);
         uint256 join1 = block.timestamp;
-        drive.AddMember(member1, RoleType.Admin);
-
-        vm.warp(block.timestamp + 100);
+        drive.AddMember(member1, RoleType.Member);
+        vm.warp(block.timestamp + 30);
         uint256 leave1 = block.timestamp;
         drive.RemoveMember(member1);
-
         vm.warp(block.timestamp + 100);
         uint256 join2 = block.timestamp;
-        drive.AddMember(member1, RoleType.Member);
+        drive.AddMember(member1, RoleType.Admin);
 
         MembershipHistory.MembershipAtResult memory gap = drive.RoleAt(member1, leave1 + 50);
-        Assert.equal(uint256(gap.status), uint256(STATUS_NONE), "gap is None");
+        Assert.equal(uint256(gap.status), uint256(STATUS_NONE), "gap between leave and rejoin");
         Assert.equal(gap.validFrom, leave1, "gap from leave");
-        Assert.equal(gap.validTo, join2, "gap until rejoin is fully cacheable");
+        Assert.equal(gap.validTo, join2, "gap ends at rejoin");
 
         MembershipHistory.MembershipAtResult memory first = drive.RoleAt(member1, join1 + 1);
-        Assert.equal(uint256(first.status), uint256(STATUS_MEMBER), "first interval still Member");
-        Assert.equal(first.role, RoleType.Admin, "first interval Admin");
-        Assert.equal(first.validTo, leave1, "first interval closed at leave");
+        Assert.equal(uint256(first.status), uint256(STATUS_MEMBER), "first membership interval");
+        Assert.equal(first.role, RoleType.Member, "first was Member");
+        Assert.equal(first.validTo, leave1, "first closed at leave");
 
         MembershipHistory.MembershipAtResult memory second = drive.RoleAt(member1, join2);
-        Assert.equal(uint256(second.status), uint256(STATUS_MEMBER), "second interval Member");
-        Assert.equal(second.role, RoleType.Member, "second interval Member role");
-        Assert.equal(second.validTo, uint256(0), "second interval open");
+        Assert.equal(uint256(second.status), uint256(STATUS_MEMBER), "second membership");
+        Assert.equal(second.role, RoleType.Admin, "rejoin as Admin");
+        Assert.equal(second.validFrom, join2, "from rejoin");
+        Assert.equal(second.validTo, uint256(0), "second open");
     }
 
-    function testRoleChangeClosesAndOpens() public {
-        vm.warp(block.timestamp + 10);
+    function testRoleChangeInterval() public {
+        vm.warp(block.timestamp + 5);
+        uint256 asMember = block.timestamp;
+        drive.AddMember(member1, RoleType.Member);
+        vm.warp(block.timestamp + 40);
         uint256 asAdmin = block.timestamp;
         drive.AddMember(member1, RoleType.Admin);
 
-        vm.warp(block.timestamp + 100);
-        uint256 asMember = block.timestamp;
-        drive.AddMember(member1, RoleType.Member);
-
         MembershipHistory.MembershipAtResult memory a = drive.RoleAt(member1, asAdmin + 1);
-        Assert.equal(uint256(a.status), uint256(STATUS_MEMBER), "admin segment");
-        Assert.equal(a.role, RoleType.Admin, "Admin role");
-        Assert.equal(a.validFrom, asAdmin, "admin from");
-        Assert.equal(a.validTo, asMember, "admin until role change");
+        Assert.equal(uint256(a.status), uint256(STATUS_MEMBER), "admin after change");
+        Assert.equal(a.role, RoleType.Admin, "role is Admin");
+        Assert.equal(a.validFrom, asAdmin, "role change starts new interval");
 
         MembershipHistory.MembershipAtResult memory m = drive.RoleAt(member1, asMember);
-        Assert.equal(uint256(m.status), uint256(STATUS_MEMBER), "member segment");
-        Assert.equal(m.role, RoleType.Member, "Member role");
-        Assert.equal(m.validFrom, asMember, "member from");
-        Assert.equal(m.validTo, uint256(0), "member open");
+        Assert.equal(uint256(m.status), uint256(STATUS_MEMBER), "prior member interval");
+        Assert.equal(m.role, RoleType.Member, "prior role Member");
+        Assert.equal(m.validFrom, asMember, "from add");
+        Assert.equal(m.validTo, asAdmin, "closed at role change");
     }
 
-    function testUnknownVersusNone() public {
+    function testUnknownAddressIsNoneAfterStart() public {
         uint256 start = drive.MembershipHistoryStart();
         MembershipHistory.MembershipAtResult memory unknown = drive.RoleAt(member2, start - 1);
-        Assert.equal(uint256(unknown.status), uint256(STATUS_UNKNOWN), "pre-history is Unknown");
+        Assert.equal(uint256(unknown.status), uint256(STATUS_UNKNOWN), "pre-start any address Unknown");
 
         MembershipHistory.MembershipAtResult memory none = drive.RoleAt(member2, start);
-        Assert.equal(uint256(none.status), uint256(STATUS_NONE), "never-member after start is None not Unknown");
-        Assert.equal(none.validFrom, start, "open-none from start");
-        Assert.equal(none.validTo, uint256(0), "open-none");
+        Assert.equal(uint256(none.status), uint256(STATUS_NONE), "never joined is None after start");
+        Assert.equal(none.validFrom, start, "from history start");
+        Assert.equal(none.validTo, uint256(0), "open never-joined");
     }
 
-    function testEnsureAfterSimulatedUpgrade() public {
-        // Simulate a proxy that had members before history existed by writing nothing to history
-        // and calling Ensure after warping (fresh drive already ensured at init — use a DriveMember
-        // path: create identity, then upgrade-like ensure after adding devices under controlled start).
-        // For Drive: clear is impossible; instead verify Ensure is idempotent and backfill is stable.
-        uint256 startBefore = drive.MembershipHistoryStart();
+    function testEnsureIdempotentPreservesHistory() public {
         drive.AddMember(member1, RoleType.Reader);
+        uint256 startBefore = drive.MembershipHistoryStart();
         drive.EnsureMembershipHistory();
         Assert.equal(drive.MembershipHistoryStart(), startBefore, "Ensure is idempotent");
 
@@ -190,7 +181,7 @@ contract MembershipHistoryTest is Test {
         bytes32 mSalt = keccak256("membership-history-member");
         DriveMember identity = DriveMember(factory.Create(payable(address(this)), mSalt, address(impl)));
 
-        Assert.equal(identity.Version(), int256(124), "DriveMember version 124");
+        Assert.equal(identity.Version(), int256(125), "DriveMember version 125");
         uint256 start = identity.MembershipHistoryStart();
         Assert.greaterThan(start, uint256(0), "DriveMember history started on initialize");
 
@@ -280,6 +271,85 @@ contract MembershipHistoryTest is Test {
         Assert.equal(uint256(neu.status), uint256(STATUS_MEMBER), "new owner in history");
         Assert.equal(neu.role, RoleType.Owner, "new owner recorded as Owner");
         Assert.equal(drive.Role(member1), RoleType.Owner, "live Role is Owner");
+    }
+
+    /// @dev History views share onlyReader with Role. On Oasis strangers are blocked;
+    /// on other chains (default foundry remap) requireReader is a no-op.
+    function testHistoryApisReaderGate() public {
+        address stranger = address(0xB0B5);
+        drive.AddMember(member1, RoleType.Reader);
+
+        DriveMember impl = new DriveMember();
+        bytes32 mSalt = keccak256("oasis-reader-gate-member");
+        DriveMember identity = DriveMember(factory.Create(payable(address(this)), mSalt, address(impl)));
+        address device = address(0xD0D0);
+        identity.AddMember(device);
+
+        if (ChainId.THIS == ChainId.OASIS) {
+            // Drive: stranger cannot read history or live Role
+            vm.prank(stranger);
+            vm.expectRevert();
+            drive.RoleAt(member1, block.timestamp);
+
+            vm.prank(stranger);
+            vm.expectRevert();
+            drive.MembershipHistoryStart();
+
+            vm.prank(stranger);
+            vm.expectRevert();
+            drive.Role(member1);
+
+            // Drive: reader role can read history
+            vm.prank(member1);
+            MembershipHistory.MembershipAtResult memory asReader = drive.RoleAt(member1, block.timestamp);
+            Assert.equal(uint256(asReader.status), uint256(STATUS_MEMBER), "reader can RoleAt");
+
+            vm.prank(member1);
+            Assert.greaterThan(drive.MembershipHistoryStart(), uint256(0), "reader can MembershipHistoryStart");
+
+            // Drive: whitelist grants history read without a zone role
+            drive.AddWhitelist(stranger);
+            vm.prank(stranger);
+            MembershipHistory.MembershipAtResult memory asWl = drive.RoleAt(member1, block.timestamp);
+            Assert.equal(uint256(asWl.status), uint256(STATUS_MEMBER), "whitelist can RoleAt");
+
+            // Ensure stays public (state change), not reader-gated
+            vm.prank(address(0xE1150));
+            drive.EnsureMembershipHistory();
+
+            // DriveMember: stranger blocked; owner/member allowed
+            vm.prank(stranger);
+            vm.expectRevert();
+            identity.MemberAt(device, block.timestamp);
+
+            vm.prank(stranger);
+            vm.expectRevert();
+            identity.MembershipHistoryStart();
+
+            MembershipHistory.MembershipAtResult memory ownerRead = identity.MemberAt(device, block.timestamp);
+            Assert.equal(uint256(ownerRead.status), uint256(STATUS_MEMBER), "owner can MemberAt");
+
+            // After leave, former member loses live read on Drive history
+            drive.RemoveMember(member1);
+            vm.prank(member1);
+            vm.expectRevert();
+            drive.RoleAt(member1, block.timestamp);
+        } else {
+            // Non-Oasis: open read for any caller
+            vm.prank(stranger);
+            MembershipHistory.MembershipAtResult memory open = drive.RoleAt(member1, block.timestamp);
+            Assert.equal(uint256(open.status), uint256(STATUS_MEMBER), "non-oasis stranger can RoleAt");
+
+            vm.prank(stranger);
+            Assert.greaterThan(drive.MembershipHistoryStart(), uint256(0), "non-oasis stranger MembershipHistoryStart");
+
+            vm.prank(stranger);
+            MembershipHistory.MembershipAtResult memory openM = identity.MemberAt(device, block.timestamp);
+            Assert.equal(uint256(openM.status), uint256(STATUS_MEMBER), "non-oasis stranger can MemberAt");
+
+            vm.prank(stranger);
+            Assert.greaterThan(identity.MembershipHistoryStart(), uint256(0), "non-oasis stranger identity start");
+        }
     }
 }
 
