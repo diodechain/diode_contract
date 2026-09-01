@@ -13,6 +13,7 @@
 # ./scripts/deploy_base.sh contracts/DriveInvites.sol:DriveInvites --constructor-args 0x1a36092d88fB73692eE7c502978D634C4AfCC486
 # ./scripts/deploy_base.sh contracts/DevFleetContract.sol:DevFleetContract --constructor-args 0x3F3CD5038e4ebDf9dDA2332b89520Ae408424006
 # ./scripts/deploy_base.sh contracts/DiodeNodeRegistry.sol:DiodeNodeRegistry --constructor-args 0x3F3CD5038e4ebDf9dDA2332b89520Ae408424006 0x2bDC3e3441Dd5540eA50920C158405Ccd5727De2
+# ./scripts/deploy_base.sh contracts/FleetContractFactory.sol:FleetContractFactory --constructor-args 0x86f282834abbaaa082b4a9b472239487a42f3871
 
 set -x
 export RPC=https://developer-access-mainnet.base.org
