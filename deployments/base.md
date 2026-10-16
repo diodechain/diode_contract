@@ -20,7 +20,7 @@ FOUNDATION:
 
 IBTC:
     0x8FDB89374eE6c97C3961ab2A35AF9E28fBad643C SAFE.GLOBAL
-    https://app.safe.global/home?safe=base:0x3F3CD5038e4ebDf9dDA2332b89520Ae408424006
+    https://app.safe.global/home?safe=base:0x8FDB89374eE6c97C3961ab2A35AF9E28fBad643C
 
     Members: 
         0xeaa6Ae2143Df7310f6e5F3b26dAFACC19A5163Fd
